@@ -16,7 +16,9 @@ const aidStations = [
   { name: 'Burnt House', bibs: [512, 501, 517, 525, 531, 533] },
   { name: 'Lost Children', bibs: [535, 530, 532, 529, 503, 514] },
   { name: 'Hairpin', bibs: [526, 520, 507, 534] },
-  { name: 'Finish', bibs: [126, 110, 506, 106] }
+  { name: 'Finish', bibs: [126, 110, 506, 106] },
+  { name: 'DNS', bibs: [] },
+  { name: 'DNF', bibs: [] }
 ];
 
 // Participants data structure
@@ -292,8 +294,6 @@ function renderRaceUpdateFields(row) {
       <select class="action-select" data-row="${row.id}">
         <option value="arrived" ${row.action === 'arrived' ? 'selected' : ''}>Arrived</option>
         <option value="departed" ${row.action === 'departed' ? 'selected' : ''}>Departed</option>
-        <option value="dnf" ${row.action === 'dnf' ? 'selected' : ''}>DNF</option>
-        <option value="dns" ${row.action === 'dns' ? 'selected' : ''}>DNS</option>
       </select>
       <label>Participants</label>
       <div class="tags-input-container">
