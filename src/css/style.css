@@ -324,7 +324,7 @@ body {
   flex: 1;
 }
 
-/* Race Tracker Styles (existing) */
+/* Race Tracker Styles (multi-course layout) */
 .header-actions {
   display: flex;
   gap: 1rem;
@@ -333,23 +333,103 @@ body {
 }
 
 .kanban-board {
-  display: flex;
-  gap: 1rem;
-  overflow-x: auto;
   padding: 1rem 0;
 }
 
-.column {
+/* Course Swimlanes */
+.course-swimlane {
   background: white;
   border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.course-swimlane-header {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.course-swimlane-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.course-stats {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.course-stations {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  overflow-x: auto;
+  min-height: 200px;
+}
+
+/* Shared Stations */
+.shared-stations {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.shared-stations-header {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.shared-stations-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.shared-stats {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.shared-stations-row {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  justify-content: center;
+}
+
+/* Column Styles */
+.column {
+  background: #f8f9fa;
+  border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  min-width: 250px;
-  max-width: 300px;
+  min-width: 200px;
   flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.course-station {
+  border: 2px solid transparent;
+}
+
+.shared-station {
+  border: 2px solid transparent;
+  min-width: 150px;
 }
 
 .column-header {
-  background: #3498db;
+  background: #34495e;
   color: white;
   padding: 1rem;
   border-radius: 8px 8px 0 0;
@@ -358,48 +438,70 @@ body {
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
+  transition: background 0.3s ease;
 }
 
 .column-header:hover {
-  background: #2980b9;
+  background: #2c3e50;
+}
+
+.shared-station .column-header {
+  background: #95a5a6;
+}
+
+.shared-station .column-header:hover {
+  background: #7f8c8d;
 }
 
 .add-icon {
   font-size: 1.2rem;
   font-weight: bold;
+  opacity: 0.8;
 }
 
 .column-body {
   padding: 1rem;
-  min-height: 200px;
+  min-height: 150px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-content: flex-start;
 }
 
 .bib-card {
-  background: #f8f9fa;
+  background: #ffffff;
   border: 2px solid #dee2e6;
-  border-radius: 4px;
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
   cursor: move;
   transition: all 0.3s ease;
   display: inline-block;
-  margin-right: 0.5rem;
-  min-width: 60px;
+  min-width: 50px;
   text-align: center;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .bib-card:hover {
   border-color: #3498db;
   background: #e3f2fd;
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
 }
 
 .bib-card.dragging {
-  opacity: 0.5;
+  opacity: 0.6;
   transform: rotate(5deg);
 }
 
 .column.drag-over {
+  border-color: #3498db;
   background: #e3f2fd;
+}
+
+.shared-station.drag-over {
+  border-color: #e74c3c;
+  background: #ffeaea;
 }
 
 /* Modal Styles */
@@ -477,6 +579,41 @@ body {
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid #eee;
+}
+
+/* Batch Entry Styles */
+.batch-entry {
+  margin-bottom: 1rem;
+}
+
+.batch-entry label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.batch-entry textarea,
+.batch-entry input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+  margin-bottom: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.batch-entry textarea:focus,
+.batch-entry input:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.batch-entry textarea {
+  resize: vertical;
+  min-height: 80px;
 }
 
 /* Responsive Design */

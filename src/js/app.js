@@ -42,11 +42,39 @@ document.addEventListener('DOMContentLoaded', function() {
   renderAidStationsSetup();
   renderCoursesSetup();
   
+  // Add Enter key handlers
+  setupEnterKeyHandlers();
+  
   // Only render race tracker if we have courses configured
   if (eventData.courses.length > 0) {
     renderRaceTracker();
   }
 });
+
+// Setup Enter key handlers for inputs
+function setupEnterKeyHandlers() {
+  // Aid station input
+  const stationInput = document.getElementById('new-station-name');
+  if (stationInput) {
+    stationInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addAidStation();
+      }
+    });
+  }
+  
+  // Course input
+  const courseInput = document.getElementById('new-course-name');
+  if (courseInput) {
+    courseInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addCourse();
+      }
+    });
+  }
+}
 
 // Page Navigation
 function showPage(pageId) {
@@ -72,6 +100,7 @@ function showPage(pageId) {
       return;
     }
     renderRaceTracker();
+    updateRaceTrackerHeader();
   }
 }
 
@@ -196,7 +225,19 @@ function renderCoursesSetup() {
   const coursesContainer = document.getElementById('courses-container');
   if (!coursesContainer) return;
   
-  coursesContainer.innerHTML = eventData.courses.map(course => `
+  coursesContainer.innerHTML = eventData.courses.map(course => {
+    // Check if course has Finish station
+    const hasFinish = course.stations.some(cs => cs.stationId === 'finish');
+    
+    // Filter stations for dropdown - show DNF/DNS only after Finish is added
+    const availableStations = eventData.aidStations.filter(station => {
+      if (station.id === 'dnf' || station.id === 'dns') {
+        return hasFinish; // Only show DNF/DNS if Finish is already in the course
+      }
+      return true;
+    });
+    
+    return `
     <div class="course-item">
       <div class="course-header">
         <div class="course-name">${course.name}</div>
@@ -223,10 +264,12 @@ function renderCoursesSetup() {
           }).join('')}
         </div>
         
+        ${!hasFinish ? '<p style="color: #666; font-style: italic; margin: 0.5rem 0;">💡 Add Finish station first, then DNF/DNS will become available</p>' : ''}
+        
         <div class="add-station-to-course">
           <select id="station-select-${course.id}">
             <option value="">Select aid station...</option>
-            ${eventData.aidStations.map(station => 
+            ${availableStations.map(station => 
               `<option value="${station.id}">${station.name}</option>`
             ).join('')}
           </select>
@@ -235,7 +278,8 @@ function renderCoursesSetup() {
         </div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function addCourse() {
@@ -261,12 +305,24 @@ function addCourse() {
     stations: [] // Array of {stationId, distanceFromPrevious, totalDistance}
   };
   
+  // Auto-add Start station
+  const startStation = eventData.aidStations.find(s => s.id === 'start');
+  if (startStation) {
+    newCourse.stations.push({
+      stationId: 'start',
+      distanceFromPrevious: 0,
+      totalDistance: 0
+    });
+  }
+  
   eventData.courses.push(newCourse);
   nameInput.value = '';
   
   renderCoursesSetup();
   updateNavigation();
   saveData();
+  
+  alert(`Course "${name}" created! Start station added automatically. Add your aid stations, then Finish, then DNF/DNS will be available.`);
 }
 
 function removeCourse(courseId) {
@@ -337,7 +393,7 @@ function saveCourses() {
   alert('Courses saved successfully!');
 }
 
-// Race Tracker Functions (simplified version of original)
+// Race Tracker Functions (multi-course aware version)
 function renderRaceTracker() {
   const kanbanBoard = document.getElementById('kanban-board');
   if (!kanbanBoard) return;
@@ -359,19 +415,72 @@ function renderRaceTracker() {
     ];
   }
   
-  kanbanBoard.innerHTML = eventData.aidStations.map(station => `
-    <div class="column" data-station="${station.id}">
-      <div class="column-header" onclick="openBatchModal('${station.id}')">
-        ${station.name}
-        <span class="add-icon">+</span>
+  // Create multi-course layout
+  let html = '';
+  
+  // Add course swimlanes
+  eventData.courses.forEach(course => {
+    html += `
+      <div class="course-swimlane">
+        <div class="course-swimlane-header">
+          <h3>${course.name}</h3>
+          <div class="course-stats">
+            ${course.stations.length} stations • ${course.stations[course.stations.length - 1]?.totalDistance || 0}mi total
+          </div>
+        </div>
+        <div class="course-stations">
+          ${course.stations.map(cs => {
+            const station = eventData.aidStations.find(s => s.id === cs.stationId);
+            if (!station) return '';
+            
+            return `
+              <div class="column course-station" data-station="${station.id}">
+                <div class="column-header" onclick="openBatchModal('${station.id}')">
+                  ${station.name}
+                  <span class="add-icon">+</span>
+                </div>
+                <div class="column-body">
+                  ${(eventData.stationAssignments[station.id] || []).map(participantId => 
+                    `<div class="bib-card" draggable="true" data-participant="${participantId}">${participantId}</div>`
+                  ).join('')}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
       </div>
-      <div class="column-body">
-        ${(eventData.stationAssignments[station.id] || []).map(participantId => 
-          `<div class="bib-card" draggable="true" data-participant="${participantId}">${participantId}</div>`
-        ).join('')}
+    `;
+  });
+  
+  // Add shared stations (DNF/DNS) at the bottom
+  const sharedStations = eventData.aidStations.filter(s => s.id === 'dnf' || s.id === 'dns');
+  if (sharedStations.length > 0) {
+    html += `
+      <div class="shared-stations">
+        <div class="shared-stations-header">
+          <h3>Status Stations</h3>
+          <div class="shared-stats">Available to all courses</div>
+        </div>
+        <div class="shared-stations-row">
+          ${sharedStations.map(station => `
+            <div class="column shared-station" data-station="${station.id}">
+              <div class="column-header" onclick="openBatchModal('${station.id}')">
+                ${station.name}
+                <span class="add-icon">+</span>
+              </div>
+              <div class="column-body">
+                ${(eventData.stationAssignments[station.id] || []).map(participantId => 
+                  `<div class="bib-card" draggable="true" data-participant="${participantId}">${participantId}</div>`
+                ).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }
+  
+  kanbanBoard.innerHTML = html;
   
   // Add drag and drop functionality
   addDragAndDropHandlers();
@@ -466,13 +575,148 @@ function moveParticipant(participantId, targetStationId) {
   saveData();
 }
 
-// Simplified batch modal functions
+// Batch modal functions
 function openBatchModal(stationId) {
-  alert('Batch entry modal - to be implemented in next phase');
+  const modal = document.getElementById('batch-modal');
+  if (!modal) return;
+  
+  // Store current station for the modal
+  modal.dataset.currentStation = stationId;
+  
+  // Update modal title
+  const station = eventData.aidStations.find(s => s.id === stationId);
+  const modalTitle = modal.querySelector('.modal-header h3');
+  if (modalTitle && station) {
+    modalTitle.textContent = `Batch Entry - ${station.name}`;
+  }
+  
+  // Clear and setup batch entries
+  const batchEntries = document.getElementById('batch-entries');
+  if (batchEntries) {
+    batchEntries.innerHTML = `
+      <div class="batch-entry">
+        <label>Participants (comma separated)</label>
+        <textarea id="batch-participants" placeholder="101, 102, 103, 50k Sweep" rows="3"></textarea>
+        
+        <label>Time (optional)</label>
+        <input type="text" id="batch-time" placeholder="10:05 or leave blank for current time">
+        
+        <label>Notes (optional)</label>
+        <input type="text" id="batch-notes" placeholder="Additional notes">
+      </div>
+    `;
+  }
+  
+  modal.classList.remove('hidden');
+  
+  // Focus on participants input
+  const participantsInput = document.getElementById('batch-participants');
+  if (participantsInput) {
+    participantsInput.focus();
+  }
+}
+
+function submitBatchEntry() {
+  const modal = document.getElementById('batch-modal');
+  if (!modal) return;
+  
+  const stationId = modal.dataset.currentStation;
+  const participantsInput = document.getElementById('batch-participants');
+  const timeInput = document.getElementById('batch-time');
+  const notesInput = document.getElementById('batch-notes');
+  
+  if (!participantsInput || !stationId) return;
+  
+  const participantsText = participantsInput.value.trim();
+  if (!participantsText) {
+    alert('Please enter at least one participant');
+    return;
+  }
+  
+  // Parse participants (comma separated)
+  const participants = participantsText.split(',').map(p => p.trim()).filter(Boolean);
+  const time = timeInput ? timeInput.value.trim() : '';
+  const notes = notesInput ? notesInput.value.trim() : '';
+  const currentTime = new Date().toLocaleTimeString();
+  
+  // Add participants to station and log activities
+  participants.forEach(participantId => {
+    // Remove from current station
+    Object.keys(eventData.stationAssignments).forEach(sId => {
+      eventData.stationAssignments[sId] = eventData.stationAssignments[sId].filter(id => id !== participantId);
+    });
+    
+    // Add to target station
+    if (!eventData.stationAssignments[stationId]) {
+      eventData.stationAssignments[stationId] = [];
+    }
+    eventData.stationAssignments[stationId].push(participantId);
+    
+    // Create or update participant
+    let participant = eventData.participants.find(p => p.id === participantId);
+    if (!participant) {
+      participant = { id: participantId, name: participantId, type: 'race', active: true };
+      eventData.participants.push(participant);
+    }
+    
+    // Log the activity
+    logActivity({
+      participantId: participantId,
+      activity: 'arrival',
+      station: stationId,
+      timestamp: new Date().toISOString(),
+      userTime: time || currentTime,
+      notes: notes || 'Batch entry'
+    });
+  });
+  
+  saveData();
+  renderRaceTracker();
+  closeBatchModal();
+  
+  const station = eventData.aidStations.find(s => s.id === stationId);
+  alert(`Added ${participants.length} participants to ${station ? station.name : stationId}`);
 }
 
 function showActivityLog() {
-  alert('Activity log - to be implemented in next phase');
+  const modal = document.getElementById('activity-modal');
+  if (!modal) return;
+  
+  const logContent = document.getElementById('activity-log-content');
+  if (!logContent) return;
+  
+  // Sort activities by timestamp (newest first)
+  const sortedActivities = [...eventData.activityLog].sort((a, b) => 
+    new Date(b.timestamp) - new Date(a.timestamp)
+  );
+  
+  if (sortedActivities.length === 0) {
+    logContent.innerHTML = '<p style="text-align: center; color: #666;">No activities logged yet.</p>';
+  } else {
+    logContent.innerHTML = sortedActivities.map(activity => {
+      const station = eventData.aidStations.find(s => s.id === activity.station);
+      const stationName = station ? station.name : activity.station;
+      
+      return `
+        <div style="border-bottom: 1px solid #eee; padding: 1rem 0;">
+          <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div>
+              <strong>${activity.participantId}</strong> → <strong>${stationName}</strong>
+              <div style="color: #666; font-size: 0.9rem; margin-top: 0.25rem;">
+                ${activity.activity} at ${activity.userTime}
+                ${activity.notes ? ` • ${activity.notes}` : ''}
+              </div>
+            </div>
+            <div style="color: #999; font-size: 0.8rem;">
+              ${new Date(activity.timestamp).toLocaleString()}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+  
+  modal.classList.remove('hidden');
 }
 
 function clearAllData() {
@@ -521,11 +765,6 @@ function togglePreview() {
   alert('Toggle preview - to be implemented');
 }
 
-function submitBatchEntry() {
-  // To be implemented in next phase
-  alert('Submit batch entry - to be implemented');
-}
-
 // Activity logging
 function logActivity(activity) {
   activity.id = 'activity_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -561,5 +800,17 @@ function loadData() {
       console.error('Error loading saved data:', e);
       alert('Error loading saved data. Starting with defaults.');
     }
+  }
+}
+
+function updateRaceTrackerHeader() {
+  const eventTitle = document.getElementById('event-title');
+  if (eventTitle) {
+    let title = eventData.event.name || 'Race Tracker';
+    if (eventData.courses.length > 0) {
+      const courseNames = eventData.courses.map(c => c.name).join(', ');
+      title += ` (${courseNames})`;
+    }
+    eventTitle.textContent = title;
   }
 } 
