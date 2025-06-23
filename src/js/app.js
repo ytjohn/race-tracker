@@ -139,17 +139,68 @@ function addDragAndDrop() {
   });
 }
 
-// Helper: Parse bulk bib entry
+// Helper: Parse flexible time input
+function parseTimeInput(timeStr) {
+  if (!timeStr || timeStr.trim() === '') return null;
+  
+  const input = timeStr.trim().toUpperCase();
+  const now = new Date();
+  
+  // Handle various time formats
+  let hours = 0, minutes = 0;
+  
+  // Format: "2PM", "2AM", "14PM" (treat PM as indicator)
+  if (input.match(/^\d{1,2}[AP]M?$/)) {
+    hours = parseInt(input);
+    const isPM = input.includes('P');
+    if (isPM && hours < 12) hours += 12;
+    if (!isPM && hours === 12) hours = 0;
+  }
+  // Format: "10:05", "2:30"
+  else if (input.match(/^\d{1,2}:\d{2}$/)) {
+    const parts = input.split(':');
+    hours = parseInt(parts[0]);
+    minutes = parseInt(parts[1]);
+  }
+  // Format: "1005", "1430" (military/condensed time)
+  else if (input.match(/^\d{3,4}$/)) {
+    if (input.length === 3) {
+      hours = parseInt(input.substring(0, 1));
+      minutes = parseInt(input.substring(1));
+    } else {
+      hours = parseInt(input.substring(0, 2));
+      minutes = parseInt(input.substring(2));
+    }
+  }
+  // Format: "10" (assume hour, 0 minutes)
+  else if (input.match(/^\d{1,2}$/)) {
+    hours = parseInt(input);
+  }
+  else {
+    // Couldn't parse, return original
+    return timeStr;
+  }
+  
+  // Validate and create time string
+  if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+    const timeObj = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
+    return timeObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  
+  return timeStr; // Return original if parsing failed
+}
+
+// Helper: Parse bulk bib entry with improved time parsing
 function parseBulkEntry(input) {
   // Each line: bibs (comma separated) [@ time]
-  // Example: 101, 102, 50k Sweep @ 10:00
+  // Example: 101, 102, 50k Sweep @ 10:05
   const lines = input.split('\n').map(l => l.trim()).filter(Boolean);
   const entries = [];
   lines.forEach(line => {
     let [bibsPart, timePart] = line.split('@').map(s => s.trim());
     // Split only on commas, not spaces, to preserve multi-word names
     const bibs = bibsPart.split(',').map(b => b.trim()).filter(Boolean);
-    let time = timePart || null;
+    let time = timePart ? parseTimeInput(timePart) : null;
     entries.push({ bibs, time });
   });
   return entries;
@@ -166,7 +217,10 @@ function openBulkModal(stationIdx) {
   // Set dropdowns
   document.getElementById('modal-station-select').value = stationIdx;
   document.getElementById('modal-action-select').value = 'Arrived';
-  document.getElementById('batch-bib-input').value = '';
+  const input = document.getElementById('batch-bib-input');
+  input.value = '';
+  // Auto-focus on the input for faster entry
+  setTimeout(() => input.focus(), 100);
 }
 
 // Add dropdowns to modal on page load
@@ -398,5 +452,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// Add keyboard shortcuts to modal
+function addModalKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    // Only handle when modal is open
+    if (batchModal.classList.contains('hidden')) return;
+    
+    if (e.key === 'Escape') {
+      batchModal.classList.add('hidden');
+      e.preventDefault();
+    }
+    if (e.key === 'Enter' && e.ctrlKey) {
+      document.getElementById('submit-batch').click();
+      e.preventDefault();
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', addModalKeyboardShortcuts);
 
 // TODO: Add logic for export/import, drag-and-drop, and Kanban state 
