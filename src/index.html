@@ -24,7 +24,19 @@
     <div class="modal-content">
       <span class="close" id="close-batch-modal">&times;</span>
       <h2>Batch Bib Entry</h2>
-      <input type="text" id="batch-bib-input" placeholder="Enter bib numbers, separated by commas">
+      <div class="input-group">
+        <label for="modal-station-select">Aid Station</label>
+        <!-- Station select inserted by JS -->
+      </div>
+      <div class="input-group">
+        <label for="modal-action-select">Action</label>
+        <!-- Action select inserted by JS -->
+      </div>
+      <div class="input-group" style="position:relative;">
+        <label for="batch-bib-input">Bib Numbers (one line per group, optional @ time)</label>
+        <textarea id="batch-bib-input" placeholder="e.g. 101 102 103 @ 10:00\n104 105 @ 10:05" rows="4"></textarea>
+        <div id="autocomplete-suggestions" class="autocomplete-suggestions" style="display:none;"></div>
+      </div>
       <button id="submit-batch">Submit</button>
     </div>
   </div>
