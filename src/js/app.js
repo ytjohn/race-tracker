@@ -206,51 +206,419 @@ function parseBulkEntry(input) {
   return entries;
 }
 
-// Modal logic for bulk entry
-let selectedStationIdx = 0;
-let selectedAction = 'Arrived';
+// Batch modal state
+let batchRows = [];
+let batchRowCounter = 0;
 
-function openBulkModal(stationIdx) {
-  selectedStationIdx = stationIdx;
-  selectedAction = 'Arrived';
-  batchModal.classList.remove('hidden');
-  // Set dropdowns
-  document.getElementById('modal-station-select').value = stationIdx;
-  document.getElementById('modal-action-select').value = 'Arrived';
-  const input = document.getElementById('batch-bib-input');
-  input.value = '';
-  // Auto-focus on the input for faster entry
-  setTimeout(() => input.focus(), 100);
+// Create a new batch row
+function createBatchRow(stationIdx = 0) {
+  // Use last row's settings as defaults for new rows
+  let defaultStationIdx = stationIdx;
+  let defaultUpdateType = 'race-update';
+  let defaultAction = 'arrived';
+  
+  if (batchRows.length > 0) {
+    const lastRow = batchRows[batchRows.length - 1];
+    defaultStationIdx = lastRow.stationIdx;
+    defaultUpdateType = lastRow.updateType;
+    defaultAction = lastRow.action;
+  }
+  
+  const rowId = `batch-row-${++batchRowCounter}`;
+  const row = {
+    id: rowId,
+    stationIdx: defaultStationIdx,
+    updateType: defaultUpdateType, // 'race-update' or 'race-message'
+    action: defaultAction,
+    participants: [],
+    message: '',
+    time: ''
+  };
+  batchRows.push(row);
+  return row;
 }
 
-// Add dropdowns to modal on page load
-function enhanceModal() {
+// Remove a batch row
+function removeBatchRow(rowId) {
+  batchRows = batchRows.filter(row => row.id !== rowId);
+  document.getElementById(rowId).remove();
+}
+
+// Render a batch row in the DOM
+function renderBatchRow(row) {
+  const container = document.getElementById('batch-rows-container');
+  const rowDiv = document.createElement('div');
+  rowDiv.className = 'batch-row';
+  rowDiv.id = row.id;
+  
+  rowDiv.innerHTML = `
+    <div class="batch-row-header">
+      <span>Entry ${row.id.split('-')[2]}</span>
+      <button class="remove-row-btn" onclick="removeBatchRow('${row.id}')">Remove</button>
+    </div>
+    <div class="batch-row-fields ${row.updateType}">
+      <div class="input-group">
+        <label>Aid Station</label>
+        <select class="station-select" data-row="${row.id}">
+          ${aidStations.map((s, i) => `<option value="${i}" ${i === row.stationIdx ? 'selected' : ''}>${s.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Update Type</label>
+        <select class="update-type-select" data-row="${row.id}">
+          <option value="race-update" ${row.updateType === 'race-update' ? 'selected' : ''}>Race Update</option>
+          <option value="race-message" ${row.updateType === 'race-message' ? 'selected' : ''}>Race Message</option>
+        </select>
+      </div>
+      <div class="input-group conditional-field">
+        ${row.updateType === 'race-update' ? renderRaceUpdateFields(row) : renderRaceMessageFields(row)}
+      </div>
+      <div class="input-group">
+        <label>Time</label>
+        <input type="text" class="time-input" data-row="${row.id}" value="${row.time}" placeholder="10:05, 2PM, 1430">
+      </div>
+    </div>
+  `;
+  
+  container.appendChild(rowDiv);
+  setupRowEventListeners(row);
+}
+
+// Render race update fields (action + participants tags)
+function renderRaceUpdateFields(row) {
+  return `
+    <div class="race-update-fields">
+      <label>Action</label>
+      <select class="action-select" data-row="${row.id}">
+        <option value="arrived" ${row.action === 'arrived' ? 'selected' : ''}>Arrived</option>
+        <option value="departed" ${row.action === 'departed' ? 'selected' : ''}>Departed</option>
+        <option value="dnf" ${row.action === 'dnf' ? 'selected' : ''}>DNF</option>
+        <option value="dns" ${row.action === 'dns' ? 'selected' : ''}>DNS</option>
+      </select>
+      <label>Participants</label>
+      <div class="tags-input-container">
+        <div class="tags-input" data-row="${row.id}">
+          ${row.participants.map(p => `<span class="tag">${p}<span class="tag-remove" onclick="removeParticipantTag('${row.id}', '${p}')">×</span></span>`).join('')}
+          <input type="text" class="tag-input" placeholder="Type participant name or bib">
+        </div>
+        <div class="suggestions-dropdown hidden"></div>
+      </div>
+    </div>
+  `;
+}
+
+// Render race message fields (free-form text)
+function renderRaceMessageFields(row) {
+  return `
+    <div class="race-message-fields">
+      <label>Message</label>
+      <textarea class="message-input" data-row="${row.id}" placeholder="Free-form message (e.g., 'Station requests 2 cases water')" rows="3">${row.message}</textarea>
+    </div>
+  `;
+}
+
+// Setup event listeners for a batch row
+function setupRowEventListeners(row) {
+  const rowElement = document.getElementById(row.id);
+  
   // Station select
-  let stationSelect = document.createElement('select');
-  stationSelect.id = 'modal-station-select';
-  aidStations.forEach((s, i) => {
-    let opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = s.name;
-    stationSelect.appendChild(opt);
+  rowElement.querySelector('.station-select').addEventListener('change', (e) => {
+    row.stationIdx = parseInt(e.target.value);
   });
-  // Action select
-  let actionSelect = document.createElement('select');
-  actionSelect.id = 'modal-action-select';
-  ['Arrived', 'Departed', 'DNF'].forEach(action => {
-    let opt = document.createElement('option');
-    opt.value = action;
-    opt.textContent = action;
-    actionSelect.appendChild(opt);
+  
+  // Update type select
+  rowElement.querySelector('.update-type-select').addEventListener('change', (e) => {
+    row.updateType = e.target.value;
+    // Re-render the conditional field
+    const conditionalField = rowElement.querySelector('.conditional-field');
+    conditionalField.innerHTML = row.updateType === 'race-update' ? renderRaceUpdateFields(row) : renderRaceMessageFields(row);
+    rowElement.querySelector('.batch-row-fields').className = `batch-row-fields ${row.updateType}`;
+    setupRowEventListeners(row); // Re-setup listeners for new fields
   });
-  // Place selects inside their input-group divs
-  const stationGroup = document.querySelector('.input-group:nth-of-type(1)');
-  const actionGroup = document.querySelector('.input-group:nth-of-type(2)');
-  if (stationGroup) stationGroup.appendChild(stationSelect);
-  if (actionGroup) actionGroup.appendChild(actionSelect);
+  
+  // Time input
+  rowElement.querySelector('.time-input').addEventListener('input', (e) => {
+    row.time = e.target.value;
+  });
+  
+  // Conditional field listeners
+  if (row.updateType === 'race-update') {
+    // Action select
+    rowElement.querySelector('.action-select').addEventListener('change', (e) => {
+      row.action = e.target.value;
+    });
+    
+    // Tags input
+    setupTagsInput(row);
+  } else {
+    // Message textarea
+    rowElement.querySelector('.message-input').addEventListener('input', (e) => {
+      row.message = e.target.value;
+    });
+  }
 }
 
-document.addEventListener('DOMContentLoaded', enhanceModal);
+// Setup tags input with autocomplete
+function setupTagsInput(row) {
+  const rowElement = document.getElementById(row.id);
+  const tagsInput = rowElement.querySelector('.tags-input');
+  const tagInput = rowElement.querySelector('.tag-input');
+  const suggestionsDropdown = rowElement.querySelector('.suggestions-dropdown');
+  
+  // Focus on tags input container
+  tagsInput.addEventListener('click', () => {
+    tagInput.focus();
+  });
+  
+  // Handle input in tag field
+  tagInput.addEventListener('input', (e) => {
+    const value = e.target.value.trim();
+    if (value) {
+      showSuggestions(row.id, value);
+    } else {
+      hideSuggestions(row.id);
+    }
+  });
+  
+  // Improved keyboard handling
+  tagInput.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === 'Tab') && e.target.value.trim()) {
+      e.preventDefault();
+      addParticipantTag(row.id, e.target.value.trim());
+      hideSuggestions(row.id);
+    }
+    if (e.key === 'Escape') {
+      hideSuggestions(row.id);
+      e.target.value = '';
+    }
+  });
+  
+  // Hide suggestions on blur
+  tagInput.addEventListener('blur', () => {
+    setTimeout(() => hideSuggestions(row.id), 150);
+  });
+}
+
+// Show autocomplete suggestions
+function showSuggestions(rowId, fragment) {
+  const row = batchRows.find(r => r.id === rowId);
+  const suggestionsDropdown = document.querySelector(`#${rowId} .suggestions-dropdown`);
+  
+  // Get race participants not already in this row
+  const raceParticipants = participants.filter(p => p.type === 'race' && p.isActive);
+  const suggestions = raceParticipants
+    .filter(p => !row.participants.includes(p.name))
+    .filter(p => p.name.toLowerCase().includes(fragment.toLowerCase()) || p.id.toLowerCase().includes(fragment.toLowerCase()))
+    .slice(0, 8); // Limit suggestions
+  
+  let html = '';
+  
+  // Add existing participant suggestions
+  suggestions.forEach(p => {
+    html += `<div class="suggestion-item" onclick="addParticipantTag('${rowId}', '${p.name}')">Add ${p.name}</div>`;
+  });
+  
+  // Add "new participant" option if no exact match
+  const exactMatch = suggestions.find(p => p.name.toLowerCase() === fragment.toLowerCase());
+  if (!exactMatch && fragment) {
+    html += `<div class="suggestion-item new-participant" onclick="addParticipantTag('${rowId}', '${fragment}')">Add "${fragment}" as new participant</div>`;
+  }
+  
+  if (html) {
+    suggestionsDropdown.innerHTML = html;
+    suggestionsDropdown.classList.remove('hidden');
+  } else {
+    hideSuggestions(rowId);
+  }
+}
+
+// Hide suggestions
+function hideSuggestions(rowId) {
+  const suggestionsDropdown = document.querySelector(`#${rowId} .suggestions-dropdown`);
+  suggestionsDropdown.classList.add('hidden');
+}
+
+// Add participant tag (improved to avoid re-rendering entire row)
+function addParticipantTag(rowId, participantName) {
+  const row = batchRows.find(r => r.id === rowId);
+  if (!row.participants.includes(participantName)) {
+    row.participants.push(participantName);
+    updateParticipantTags(rowId); // Just update tags, not entire row
+  }
+}
+
+// Remove participant tag (improved to avoid re-rendering entire row)
+function removeParticipantTag(rowId, participantName) {
+  const row = batchRows.find(r => r.id === rowId);
+  row.participants = row.participants.filter(p => p !== participantName);
+  updateParticipantTags(rowId); // Just update tags, not entire row
+}
+
+// Update just the participant tags without re-rendering entire row
+function updateParticipantTags(rowId) {
+  const row = batchRows.find(r => r.id === rowId);
+  const tagsInput = document.querySelector(`#${rowId} .tags-input`);
+  const tagInput = tagsInput.querySelector('.tag-input');
+  
+  // Remove existing tags but keep the input
+  const existingTags = tagsInput.querySelectorAll('.tag');
+  existingTags.forEach(tag => tag.remove());
+  
+  // Add updated tags
+  row.participants.forEach(p => {
+    const tagElement = document.createElement('span');
+    tagElement.className = 'tag';
+    tagElement.innerHTML = `${p}<span class="tag-remove" onclick="removeParticipantTag('${rowId}', '${p}')">×</span>`;
+    tagsInput.insertBefore(tagElement, tagInput);
+  });
+  
+  // Clear and focus the input
+  tagInput.value = '';
+  tagInput.focus();
+}
+
+// Open batch modal
+function openBulkModal(stationIdx) {
+  // Reset modal state
+  batchRows = [];
+  batchRowCounter = 0;
+  document.getElementById('batch-rows-container').innerHTML = '';
+  document.getElementById('batch-preview').classList.add('hidden');
+  
+  // Ensure form sections are visible when opening
+  const batchRowsContainer = document.getElementById('batch-rows-container');
+  const addRowBtn = document.getElementById('add-batch-row');
+  const previewBtn = document.getElementById('preview-batch');
+  
+  batchRowsContainer.classList.remove('hidden');
+  if (addRowBtn) addRowBtn.style.display = 'inline-block';
+  if (previewBtn) previewBtn.style.display = 'inline-block';
+  
+  // Create first row
+  const firstRow = createBatchRow(stationIdx);
+  renderBatchRow(firstRow);
+  
+  batchModal.classList.remove('hidden');
+}
+
+// Add new batch row
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'add-batch-row') {
+    const newRow = createBatchRow();
+    renderBatchRow(newRow);
+  }
+});
+
+// Preview batch
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'preview-batch') {
+    showBatchPreview();
+  }
+});
+
+// Back to edit - show forms and hide preview
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'back-to-edit') {
+    const batchRowsContainer = document.getElementById('batch-rows-container');
+    const addRowBtn = document.getElementById('add-batch-row');
+    const previewBtn = document.getElementById('preview-batch');
+    
+    // Show form sections and buttons, hide preview
+    batchRowsContainer.classList.remove('hidden');
+    if (addRowBtn) addRowBtn.style.display = 'inline-block';
+    if (previewBtn) previewBtn.style.display = 'inline-block';
+    document.getElementById('batch-preview').classList.add('hidden');
+  }
+});
+
+// Submit batch
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'submit-batch') {
+    submitBatch();
+  }
+});
+
+// Show batch preview
+function showBatchPreview() {
+  const previewContent = document.getElementById('preview-content');
+  const batchRowsContainer = document.getElementById('batch-rows-container');
+  const addRowBtn = document.getElementById('add-batch-row');
+  const previewBtn = document.getElementById('preview-batch');
+  
+  previewContent.innerHTML = '';
+  
+  batchRows.forEach((row, index) => {
+    const stationName = aidStations[row.stationIdx].name;
+    const parsedTime = row.time ? parseTimeInput(row.time) : new Date().toLocaleTimeString();
+    
+    const previewDiv = document.createElement('div');
+    previewDiv.className = 'preview-entry';
+    
+    if (row.updateType === 'race-update') {
+      const participantsList = row.participants.length > 0 ? row.participants.join(', ') : '<em>No participants selected</em>';
+      previewDiv.innerHTML = `
+        <div class="preview-entry-header">${stationName} - ${row.action.toUpperCase()}</div>
+        <div class="preview-entry-details">
+          <div><strong>Participants:</strong> <span class="preview-participants">${participantsList}</span></div>
+          <div><strong>Time:</strong> <span class="preview-time">${parsedTime}</span></div>
+        </div>
+      `;
+    } else {
+      const message = row.message.trim() || '<em>No message entered</em>';
+      previewDiv.innerHTML = `
+        <div class="preview-entry-header">${stationName} - MESSAGE</div>
+        <div class="preview-entry-details">
+          <div><strong>Message:</strong> ${message}</div>
+          <div><strong>Time:</strong> <span class="preview-time">${parsedTime}</span></div>
+        </div>
+      `;
+    }
+    
+    previewContent.appendChild(previewDiv);
+  });
+  
+  // Hide form sections and buttons, show preview
+  batchRowsContainer.classList.add('hidden');
+  if (addRowBtn) addRowBtn.style.display = 'none';
+  if (previewBtn) previewBtn.style.display = 'none';
+  document.getElementById('batch-preview').classList.remove('hidden');
+}
+
+// Submit all batch entries
+function submitBatch() {
+  batchRows.forEach(row => {
+    const stationName = aidStations[row.stationIdx].name;
+    const time = row.time ? parseTimeInput(row.time) : null;
+    
+    if (row.updateType === 'race-update') {
+      // Process race updates
+      row.participants.forEach(participantName => {
+        findOrCreateParticipant(participantName);
+        
+        // Remove from current station and add to new station
+        aidStations.forEach(station => {
+          const idx = station.bibs.findIndex(b => b === participantName || b === Number(participantName));
+          if (idx !== -1) {
+            station.bibs.splice(idx, 1);
+          }
+        });
+        
+        if (row.action === 'arrived') {
+          aidStations[row.stationIdx].bibs.push(participantName);
+        }
+        
+        logActivity(row.action, participantName, stationName, stationName, time, '');
+      });
+    } else {
+      // Process race message
+      logActivity('other', stationName, stationName, stationName, time, row.message);
+    }
+  });
+  
+  renderKanbanBoard();
+  batchModal.classList.add('hidden');
+  saveData();
+}
 
 // Make column titles clickable to open modal (not entire column)
 function addColumnClickHandlers() {
@@ -300,105 +668,6 @@ function renderKanbanBoard() {
 
 renderKanbanBoard();
 
-// Handle batch bib entry submit
-const submitBatchBtn = document.getElementById('submit-batch');
-submitBatchBtn.addEventListener('click', () => {
-  const input = document.getElementById('batch-bib-input').value;
-  const stationIdx = Number(document.getElementById('modal-station-select').value);
-  const action = document.getElementById('modal-action-select').value;
-  const entries = parseBulkEntry(input);
-  entries.forEach(({ bibs, time }) => {
-    bibs.forEach(bib => {
-      // Ensure participant exists
-      findOrCreateParticipant(bib);
-      
-      // Remove bib from all stations (handle both numbers and strings)
-      let fromStation = null;
-      aidStations.forEach((s, i) => {
-        const idx = s.bibs.findIndex(b => b === bib || b === Number(bib));
-        if (idx !== -1) {
-          fromStation = s.name;
-          s.bibs.splice(idx, 1);
-        }
-      });
-      // Only add if action is Arrived
-      if (action === 'Arrived') {
-        aidStations[stationIdx].bibs.push(bib);
-      }
-      
-      // Log activity with proper parameters
-      const activityType = action.toLowerCase();
-      logActivity(activityType, bib, aidStations[stationIdx].name, aidStations[stationIdx].name, time, fromStation ? `From ${fromStation}` : '');
-    });
-  });
-  renderKanbanBoard();
-  batchModal.classList.add('hidden');
-  saveData();
-});
-
-// Autocomplete for bib input
-function setupAutocomplete() {
-  const input = document.getElementById('batch-bib-input');
-  const suggestionsBox = document.getElementById('autocomplete-suggestions');
-
-  input.addEventListener('input', (e) => {
-    const val = input.value;
-    // Get current line being edited
-    const lines = val.split('\n');
-    const cursorPos = input.selectionStart;
-    let lineIdx = 0, charCount = 0;
-    for (let i = 0; i < lines.length; i++) {
-      if (cursorPos <= charCount + lines[i].length) {
-        lineIdx = i;
-        break;
-      }
-      charCount += lines[i].length + 1;
-    }
-    const currentLine = lines[lineIdx] || '';
-    // Get last fragment (could be text or number)
-    const match = currentLine.match(/(\S*)$/);
-    const fragment = match ? match[1] : '';
-    if (!fragment) {
-      suggestionsBox.style.display = 'none';
-      return;
-    }
-    // Suggest all active race participants not in selected station
-    const stationIdx = Number(document.getElementById('modal-station-select').value);
-    const inStation = aidStations[stationIdx].bibs;
-    const raceParticipants = participants.filter(p => p.type === 'race' && p.isActive);
-    const suggestions = raceParticipants
-      .filter(p => !inStation.includes(p.name) && !inStation.includes(Number(p.id)))
-      .filter(p => p.name.toLowerCase().includes(fragment.toLowerCase()) || p.id.toLowerCase().includes(fragment.toLowerCase()))
-      .map(p => p.name);
-    
-    if (suggestions.length === 0) {
-      suggestionsBox.style.display = 'none';
-      return;
-    }
-    suggestionsBox.innerHTML = '';
-    suggestions.forEach(bib => {
-      const div = document.createElement('div');
-      div.className = 'autocomplete-suggestion';
-      div.textContent = bib;
-      div.onclick = () => {
-        // Replace fragment in current line with bib
-        lines[lineIdx] = currentLine.replace(/\S*$/, bib);
-        input.value = lines.join('\n');
-        suggestionsBox.style.display = 'none';
-        input.focus();
-      };
-      suggestionsBox.appendChild(div);
-    });
-    suggestionsBox.style.display = 'block';
-  });
-
-  input.addEventListener('blur', () => {
-    setTimeout(() => { suggestionsBox.style.display = 'none'; }, 150);
-  });
-}
-
-document.addEventListener('DOMContentLoaded', setupAutocomplete);
-
 // Data persistence functions
 function saveData() {
   try {
@@ -438,9 +707,8 @@ function loadData() {
 // Load data on page load
 document.addEventListener('DOMContentLoaded', () => {
   loadData();
-  enhanceModal();
-  setupAutocomplete();
   renderKanbanBoard();
+  addModalKeyboardShortcuts();
   
   // Clear data button
   document.getElementById('clear-data').addEventListener('click', () => {
@@ -469,7 +737,5 @@ function addModalKeyboardShortcuts() {
     }
   });
 }
-
-document.addEventListener('DOMContentLoaded', addModalKeyboardShortcuts);
 
 // TODO: Add logic for export/import, drag-and-drop, and Kanban state 
