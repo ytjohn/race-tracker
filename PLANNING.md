@@ -59,6 +59,16 @@ This project is a portable, offline-first race tracking tool for amateur radio o
   - Calculate estimated arrival times per aid station based on distance and average trail pace (configurable per course/segment)
   - Visually flag runners who are overdue (haven't checked in past the estimated window)
 
+- **Activity Log Management**
+  - Separate screen for reviewing/editing activity log entries (table view)
+  - Ability to modify or delete log entries (for correcting mistakes)
+  - Export/print activity logs
+
+- **Participant Management**
+  - Add/modify/delete participant entries page
+  - Distinguish between official race participants and "other" participants (sweeps, crew, etc.)
+  - Handle mistakes in participant movements (accidental moves, wrong times, etc.)
+
 ---
 
 ## Out of Scope (for now)

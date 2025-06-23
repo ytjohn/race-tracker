@@ -13,6 +13,7 @@
     <button id="open-batch-modal">Batch Entry</button>
     <button id="export-json">Export JSON</button>
     <button id="import-json">Import JSON</button>
+    <button id="clear-data">Clear Data</button>
   </header>
   <main>
     <section id="kanban-board">
@@ -34,7 +35,7 @@
       </div>
       <div class="input-group" style="position:relative;">
         <label for="batch-bib-input">Bib Numbers (one line per group, optional @ time)</label>
-        <textarea id="batch-bib-input" placeholder="e.g. 101 102 103 @ 10:00\n104 105 @ 10:05" rows="4"></textarea>
+        <textarea id="batch-bib-input" placeholder="e.g. 101, 102, 50k Sweep @ 10:00&#10;104, 105 @ 10:05" rows="4"></textarea>
         <div id="autocomplete-suggestions" class="autocomplete-suggestions" style="display:none;"></div>
       </div>
       <button id="submit-batch">Submit</button>

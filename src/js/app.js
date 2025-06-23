@@ -12,12 +12,78 @@ closeBatchModalBtn.addEventListener('click', () => {
 
 // Sample data for Kanban columns and bibs
 const aidStations = [
-  { name: 'Start', bibs: [102, 103, 115, 133] },
+  { name: 'Start', bibs: [102, 103, 115, 133, '50k Sweep', 'Half Sweep'] },
   { name: 'Burnt House', bibs: [512, 501, 517, 525, 531, 533] },
   { name: 'Lost Children', bibs: [535, 530, 532, 529, 503, 514] },
   { name: 'Hairpin', bibs: [526, 520, 507, 534] },
   { name: 'Finish', bibs: [126, 110, 506, 106] }
 ];
+
+// Participants data structure
+const participants = [
+  // Initialize with existing bibs as race participants
+  ...aidStations.flatMap(s => s.bibs).filter(bib => typeof bib === 'number').map(bib => ({
+    id: String(bib),
+    name: String(bib),
+    type: 'race',
+    isActive: true
+  })),
+  // Add sweep participants as race participants
+  { id: '50k-sweep', name: '50k Sweep', type: 'race', isActive: true },
+  { id: 'half-sweep', name: 'Half Sweep', type: 'race', isActive: true },
+  // Add station participants as other
+  { id: 'station-burnt', name: 'Burnt House Station', type: 'other', isActive: true },
+  { id: 'station-lost', name: 'Lost Children Station', type: 'other', isActive: true },
+  { id: 'station-hairpin', name: 'Hairpin Station', type: 'other', isActive: true }
+];
+
+// Activity log data structure
+const activityLog = [];
+
+// Helper functions for logging
+function generateId() {
+  return 'log_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+function addParticipant(id, name, type = 'other') {
+  const participant = { id, name, type, isActive: true };
+  participants.push(participant);
+  // Log the creation of new participant
+  logActivity('other', id, 'System', 'System', null, `New participant added: ${name} (${type})`);
+  saveData();
+  return participant;
+}
+
+function logActivity(activity, participantId, station, reportingStation = null, userTime = null, notes = '') {
+  const timestamp = new Date().toISOString();
+  const defaultUserTime = userTime || new Date().toLocaleTimeString();
+  const entry = {
+    id: generateId(),
+    timestamp, // When logged by user
+    userTime: defaultUserTime, // Time provided by user or current time
+    participant: participantId,
+    activity, // 'arrival', 'departed', 'dnf', 'dns', 'other'
+    station,
+    reportingStation: reportingStation || station,
+    notes,
+    createdAt: timestamp,
+    modifiedAt: timestamp
+  };
+  activityLog.push(entry);
+  console.log('Activity logged:', entry);
+  saveData();
+  return entry;
+}
+
+// Helper: Find or create participant
+function findOrCreateParticipant(id) {
+  let participant = participants.find(p => p.id === id || p.name === id);
+  if (!participant) {
+    console.log(`Creating new participant: ${id}`);
+    participant = addParticipant(id, id, 'other');
+  }
+  return participant;
+}
 
 // Enable drag-and-drop for bib cards
 function addDragAndDrop() {
@@ -49,10 +115,12 @@ function addDragAndDrop() {
       e.preventDefault();
       row.classList.remove('dragover');
       const bib = e.dataTransfer.getData('text/plain');
-      // Find and remove bib from its current station
+      // Find and remove bib from its current station (handle both numbers and strings)
+      let fromStation = null;
       for (const station of aidStations) {
-        const idx = station.bibs.indexOf(Number(bib));
+        const idx = station.bibs.findIndex(b => b === bib || b === Number(bib));
         if (idx !== -1) {
+          fromStation = station.name;
           station.bibs.splice(idx, 1);
           break;
         }
@@ -60,7 +128,10 @@ function addDragAndDrop() {
       // Add bib to the new station
       const colIdx = Array.from(bibRows).indexOf(row);
       if (colIdx !== -1) {
-        aidStations[colIdx].bibs.push(Number(bib));
+        aidStations[colIdx].bibs.push(bib);
+        // Log the activity
+        findOrCreateParticipant(bib);
+        logActivity('arrival', bib, aidStations[colIdx].name, aidStations[colIdx].name, null, `Moved from ${fromStation || 'unknown'}`);
       }
       renderKanbanBoard();
       addDragAndDrop();
@@ -70,23 +141,18 @@ function addDragAndDrop() {
 
 // Helper: Parse bulk bib entry
 function parseBulkEntry(input) {
-  // Each line: bibs (space/comma separated) [@ time]
-  // Example: 101 102 103 @ 10:00
+  // Each line: bibs (comma separated) [@ time]
+  // Example: 101, 102, 50k Sweep @ 10:00
   const lines = input.split('\n').map(l => l.trim()).filter(Boolean);
   const entries = [];
   lines.forEach(line => {
     let [bibsPart, timePart] = line.split('@').map(s => s.trim());
-    const bibs = bibsPart.split(/\s|,/).map(b => b.trim()).filter(Boolean);
+    // Split only on commas, not spaces, to preserve multi-word names
+    const bibs = bibsPart.split(',').map(b => b.trim()).filter(Boolean);
     let time = timePart || null;
     entries.push({ bibs, time });
   });
   return entries;
-}
-
-// Placeholder for logging activity
-function logActivity(action, bib, fromStation, toStation, time) {
-  // TODO: Implement logging/persistence
-  // console.log(`[${action}] Bib ${bib} from ${fromStation} to ${toStation} at ${time}`);
 }
 
 // Modal logic for bulk entry
@@ -189,11 +255,13 @@ submitBatchBtn.addEventListener('click', () => {
   const entries = parseBulkEntry(input);
   entries.forEach(({ bibs, time }) => {
     bibs.forEach(bib => {
-      bib = Number(bib);
-      // Remove bib from all stations
+      // Ensure participant exists
+      findOrCreateParticipant(bib);
+      
+      // Remove bib from all stations (handle both numbers and strings)
       let fromStation = null;
       aidStations.forEach((s, i) => {
-        const idx = s.bibs.indexOf(bib);
+        const idx = s.bibs.findIndex(b => b === bib || b === Number(bib));
         if (idx !== -1) {
           fromStation = s.name;
           s.bibs.splice(idx, 1);
@@ -203,12 +271,15 @@ submitBatchBtn.addEventListener('click', () => {
       if (action === 'Arrived') {
         aidStations[stationIdx].bibs.push(bib);
       }
-      // Call logActivity placeholder
-      logActivity(action, bib, fromStation, aidStations[stationIdx].name, time || new Date().toLocaleTimeString());
+      
+      // Log activity with proper parameters
+      const activityType = action.toLowerCase();
+      logActivity(activityType, bib, aidStations[stationIdx].name, aidStations[stationIdx].name, time, fromStation ? `From ${fromStation}` : '');
     });
   });
   renderKanbanBoard();
   batchModal.classList.add('hidden');
+  saveData();
 });
 
 // Autocomplete for bib input
@@ -230,19 +301,22 @@ function setupAutocomplete() {
       charCount += lines[i].length + 1;
     }
     const currentLine = lines[lineIdx] || '';
-    // Get last bib fragment
-    const match = currentLine.match(/(\d*)$/);
+    // Get last fragment (could be text or number)
+    const match = currentLine.match(/(\S*)$/);
     const fragment = match ? match[1] : '';
     if (!fragment) {
       suggestionsBox.style.display = 'none';
       return;
     }
-    // Suggest bibs not in selected station
+    // Suggest all active race participants not in selected station
     const stationIdx = Number(document.getElementById('modal-station-select').value);
-    const allBibs = aidStations.flatMap(s => s.bibs);
-    const uniqueBibs = Array.from(new Set(allBibs));
     const inStation = aidStations[stationIdx].bibs;
-    const suggestions = uniqueBibs.filter(bib => !inStation.includes(bib) && String(bib).startsWith(fragment));
+    const raceParticipants = participants.filter(p => p.type === 'race' && p.isActive);
+    const suggestions = raceParticipants
+      .filter(p => !inStation.includes(p.name) && !inStation.includes(Number(p.id)))
+      .filter(p => p.name.toLowerCase().includes(fragment.toLowerCase()) || p.id.toLowerCase().includes(fragment.toLowerCase()))
+      .map(p => p.name);
+    
     if (suggestions.length === 0) {
       suggestionsBox.style.display = 'none';
       return;
@@ -254,7 +328,7 @@ function setupAutocomplete() {
       div.textContent = bib;
       div.onclick = () => {
         // Replace fragment in current line with bib
-        lines[lineIdx] = currentLine.replace(/\d*$/, bib);
+        lines[lineIdx] = currentLine.replace(/\S*$/, bib);
         input.value = lines.join('\n');
         suggestionsBox.style.display = 'none';
         input.focus();
@@ -270,5 +344,59 @@ function setupAutocomplete() {
 }
 
 document.addEventListener('DOMContentLoaded', setupAutocomplete);
+
+// Data persistence functions
+function saveData() {
+  try {
+    localStorage.setItem('raceTracker_participants', JSON.stringify(participants));
+    localStorage.setItem('raceTracker_aidStations', JSON.stringify(aidStations));
+    localStorage.setItem('raceTracker_activityLog', JSON.stringify(activityLog));
+    console.log('Data saved to localStorage');
+  } catch (error) {
+    console.error('Failed to save data:', error);
+  }
+}
+
+function loadData() {
+  try {
+    const savedParticipants = localStorage.getItem('raceTracker_participants');
+    const savedStations = localStorage.getItem('raceTracker_aidStations');
+    const savedLog = localStorage.getItem('raceTracker_activityLog');
+    
+    if (savedParticipants) {
+      participants.length = 0;
+      participants.push(...JSON.parse(savedParticipants));
+    }
+    if (savedStations) {
+      aidStations.length = 0;
+      aidStations.push(...JSON.parse(savedStations));
+    }
+    if (savedLog) {
+      activityLog.length = 0;
+      activityLog.push(...JSON.parse(savedLog));
+    }
+    console.log('Data loaded from localStorage');
+  } catch (error) {
+    console.error('Failed to load data:', error);
+  }
+}
+
+// Load data on page load
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+  enhanceModal();
+  setupAutocomplete();
+  renderKanbanBoard();
+  
+  // Clear data button
+  document.getElementById('clear-data').addEventListener('click', () => {
+    if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+      localStorage.removeItem('raceTracker_participants');
+      localStorage.removeItem('raceTracker_aidStations');
+      localStorage.removeItem('raceTracker_activityLog');
+      location.reload();
+    }
+  });
+});
 
 // TODO: Add logic for export/import, drag-and-drop, and Kanban state 
