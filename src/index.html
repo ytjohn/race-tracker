@@ -8,44 +8,173 @@
   <!-- Optionally include Alpine.js or other JS libraries here -->
 </head>
 <body>
-  <header>
-    <h1>Race Tracker</h1>
-    <button id="open-batch-modal">Batch Entry</button>
-    <button id="export-json">Export JSON</button>
-    <button id="import-json">Import JSON</button>
-    <button id="clear-data">Clear Data</button>
-  </header>
-  <main>
-    <section id="kanban-board">
-      <!-- Kanban columns will be rendered here -->
-    </section>
-  </main>
-  <!-- Modal for batch entry -->
-  <div id="batch-modal" class="modal hidden">
-    <div class="modal-content batch-modal-content">
-      <span class="close" id="close-batch-modal">&times;</span>
-      <h2>Batch Entry</h2>
-      
-      <div id="batch-rows-container">
-        <!-- Batch rows will be added here dynamically -->
+  <!-- Navigation -->
+  <nav class="main-nav">
+    <div class="nav-brand">Race Tracker</div>
+    <div class="nav-links">
+      <button class="nav-btn" onclick="showPage('event-setup')">Event Setup</button>
+      <button class="nav-btn" onclick="showPage('aid-stations-setup')">Aid Stations</button>
+      <button class="nav-btn" onclick="showPage('courses-setup')">Courses</button>
+      <button class="nav-btn" onclick="showPage('race-tracker')" id="tracker-nav">Race Tracker</button>
+    </div>
+  </nav>
+
+  <!-- Event Setup Page -->
+  <div id="event-setup" class="page active">
+    <div class="page-header">
+      <h1>Event Setup</h1>
+      <p>Configure your race event details</p>
+    </div>
+    
+    <div class="setup-form">
+      <div class="form-group">
+        <label for="event-name">Event Name</label>
+        <input type="text" id="event-name" placeholder="e.g., 2025 LTTR">
       </div>
       
-      <div class="modal-actions">
-        <button id="add-batch-row" class="secondary-btn">+ Add Row</button>
-        <button id="preview-batch" class="primary-btn">Preview</button>
+      <div class="form-group">
+        <label for="event-date">Event Date</label>
+        <input type="date" id="event-date">
       </div>
       
-      <!-- Preview section (initially hidden) -->
-      <div id="batch-preview" class="batch-preview hidden">
-        <h3>Preview Entries</h3>
-        <div id="preview-content"></div>
-        <div class="preview-actions">
-          <button id="back-to-edit" class="secondary-btn">Back to Edit</button>
-          <button id="submit-batch" class="primary-btn">Submit All</button>
+      <div class="form-group">
+        <label for="event-location">Location</label>
+        <input type="text" id="event-location" placeholder="e.g., Trail Location">
+      </div>
+      
+      <div class="form-group">
+        <label for="event-description">Description (Optional)</label>
+        <textarea id="event-description" rows="3" placeholder="Additional event details..."></textarea>
+      </div>
+      
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveEventDetails()">Save Event Details</button>
+        <button class="btn btn-secondary" onclick="showPage('aid-stations-setup')">Next: Aid Stations →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aid Stations Setup Page -->
+  <div id="aid-stations-setup" class="page">
+    <div class="page-header">
+      <h1>Aid Stations Setup</h1>
+      <p>Configure aid stations for your event</p>
+    </div>
+    
+    <div class="setup-form">
+      <div class="default-stations">
+        <h3>Default Stations</h3>
+        <p>These stations are always included:</p>
+        <div class="station-list">
+          <div class="station-item default">Start</div>
+          <div class="station-item default">Finish</div>
+          <div class="station-item default">DNF</div>
+          <div class="station-item default">DNS</div>
+        </div>
+      </div>
+      
+      <div class="custom-stations">
+        <h3>Custom Aid Stations</h3>
+        <div class="add-station-form">
+          <input type="text" id="new-station-name" placeholder="Aid Station Name">
+          <button class="btn btn-small" onclick="addAidStation()">Add Station</button>
+        </div>
+        <div id="custom-stations-list" class="station-list">
+          <!-- Custom stations will be added here -->
+        </div>
+      </div>
+      
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="showPage('event-setup')">← Back: Event</button>
+        <button class="btn btn-primary" onclick="saveAidStations()">Save Aid Stations</button>
+        <button class="btn btn-secondary" onclick="showPage('courses-setup')">Next: Courses →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Courses Setup Page -->
+  <div id="courses-setup" class="page">
+    <div class="page-header">
+      <h1>Courses Setup</h1>
+      <p>Configure race courses and their aid station sequences</p>
+    </div>
+    
+    <div class="setup-form">
+      <div class="courses-list">
+        <div class="add-course-form">
+          <input type="text" id="new-course-name" placeholder="Course Name (e.g., 50 Mile)">
+          <button class="btn btn-small" onclick="addCourse()">Add Course</button>
+        </div>
+        <div id="courses-container">
+          <!-- Courses will be added here -->
+        </div>
+      </div>
+      
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="showPage('aid-stations-setup')">← Back: Aid Stations</button>
+        <button class="btn btn-primary" onclick="saveCourses()">Save Courses</button>
+        <button class="btn btn-secondary" onclick="showPage('race-tracker')">Next: Race Tracker →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Race Tracker Page (Original Content) -->
+  <div id="race-tracker" class="page">
+    <div class="page-header">
+      <h1 id="event-title">Race Tracker</h1>
+      <div class="header-actions">
+        <button class="btn btn-secondary" onclick="showActivityLog()">View Activity Log</button>
+        <button class="btn btn-danger" onclick="clearAllData()">Clear All Data</button>
+      </div>
+    </div>
+
+    <!-- Kanban Board -->
+    <div class="kanban-board" id="kanban-board">
+      <!-- Columns will be generated by JavaScript -->
+    </div>
+
+    <!-- Batch Entry Modal -->
+    <div id="batch-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Batch Entry</h3>
+          <button class="close-btn" onclick="closeBatchModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="batch-entries">
+            <!-- Entry rows will be added here -->
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-small" onclick="addBatchRow()">Add Row</button>
+            <button class="btn btn-small" onclick="togglePreview()" id="preview-btn">Preview</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeBatchModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="submitBatchEntry()">Submit All</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Log Modal -->
+    <div id="activity-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Activity Log</h3>
+          <button class="close-btn" onclick="closeActivityLog()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="activity-log-content">
+            <!-- Activity log will be populated here -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeActivityLog()">Close</button>
         </div>
       </div>
     </div>
   </div>
+
   <script src="js/app.js"></script>
 </body>
 </html> 
