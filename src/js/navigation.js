@@ -228,6 +228,16 @@ function initializeNavigation() {
     });
   });
   
+  // Navigation event listener for nav-brand
+  const navBrand = document.querySelector('.nav-brand[data-page]');
+  if (navBrand) {
+    navBrand.addEventListener('click', function(e) {
+      e.preventDefault();
+      const page = this.getAttribute('data-page');
+      showPage(page);
+    });
+  }
+  
   // Settings dropdown toggle
   const settingsToggle = document.getElementById('settings-toggle');
   if (settingsToggle) {
