@@ -569,6 +569,9 @@ function bulkDepartureFromStart(stationId, courseClass) {
     return;
   }
   
+  // Parse the departure time to a proper Date object
+  const parsedTime = parseTimeInput(departureTime);
+  
   // Log departure for each participant
   startParticipants.forEach(participantId => {
     logActivity({
@@ -577,7 +580,7 @@ function bulkDepartureFromStart(stationId, courseClass) {
       stationId: stationId,
       priorStationId: null,
       notes: `Bulk departure - ${courseName}`,
-      userTime: departureTime
+      userTime: parsedTime.toISOString()
     });
   });
   

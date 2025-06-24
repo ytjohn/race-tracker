@@ -1,0 +1,390 @@
+{
+  "id": "event_1750777696772_keschmew1",
+  "event": {
+    "name": "2025 LTTR Default",
+    "date": "2025-06-24",
+    "location": "my backyard",
+    "description": "This is the default event for the LTTR tracker. It is used to test the tracker and ensure it is working correctly."
+  },
+  "aidStations": [
+    {
+      "id": "start",
+      "name": "Start",
+      "isDefault": true
+    },
+    {
+      "id": "finish",
+      "name": "Finish",
+      "isDefault": true
+    },
+    {
+      "id": "dnf",
+      "name": "DNF",
+      "isDefault": true
+    },
+    {
+      "id": "dns",
+      "name": "DNS",
+      "isDefault": true
+    },
+    {
+      "id": "suspect",
+      "name": "Suspect Data",
+      "isDefault": true
+    },
+    {
+      "id": "station_1750729749724",
+      "name": "Hairpin",
+      "isDefault": false
+    },
+    {
+      "id": "station_1750729756160",
+      "name": "Lost Children",
+      "isDefault": false
+    },
+    {
+      "id": "station_1750729759812",
+      "name": "Skyline",
+      "isDefault": false
+    },
+    {
+      "id": "station_1750729763845",
+      "name": "Windber",
+      "isDefault": false
+    },
+    {
+      "id": "station_1750729771578",
+      "name": "Burnt House",
+      "isDefault": false
+    }
+  ],
+  "courses": [
+    {
+      "id": "course_1750729780586",
+      "name": "50k",
+      "stations": [
+        {
+          "stationId": "start",
+          "distanceFromPrevious": 0,
+          "totalDistance": 0,
+          "cumulative": 0
+        },
+        {
+          "stationId": "station_1750729756160",
+          "distanceFromPrevious": 3,
+          "totalDistance": 3,
+          "distance": 3,
+          "cumulative": 3
+        },
+        {
+          "stationId": "station_1750729749724",
+          "distanceFromPrevious": 3.2,
+          "totalDistance": 6.2,
+          "cumulative": 6.3,
+          "distance": 3.3
+        },
+        {
+          "stationId": "station_1750729771578",
+          "distanceFromPrevious": 4.1,
+          "totalDistance": 10.3,
+          "cumulative": 9.1,
+          "distance": 2.8
+        },
+        {
+          "stationId": "finish",
+          "distanceFromPrevious": 3,
+          "totalDistance": 13.3,
+          "cumulative": 10.299999999999999,
+          "distance": 1.2
+        }
+      ],
+      "totalDistance": 10.299999999999999
+    },
+    {
+      "id": "course_1750729834404",
+      "name": "Half Marathon",
+      "stations": [
+        {
+          "stationId": "start",
+          "distanceFromPrevious": 0,
+          "totalDistance": 0,
+          "cumulative": 0
+        },
+        {
+          "stationId": "station_1750729763845",
+          "distanceFromPrevious": 4,
+          "totalDistance": 4,
+          "distance": 1.1,
+          "cumulative": 1.1
+        },
+        {
+          "stationId": "station_1750729771578",
+          "distanceFromPrevious": 11,
+          "totalDistance": 15,
+          "cumulative": 3.3000000000000003,
+          "distance": 2.2
+        },
+        {
+          "stationId": "finish",
+          "distanceFromPrevious": 3,
+          "totalDistance": 18,
+          "cumulative": 6.300000000000001,
+          "distance": 3
+        }
+      ],
+      "totalDistance": 6.300000000000001
+    }
+  ],
+  "participants": [
+    {
+      "id": "100",
+      "name": "100",
+      "type": "race",
+      "active": true,
+      "courseId": "course_1750729834404"
+    },
+    {
+      "id": "101",
+      "name": "101",
+      "type": "race",
+      "active": true,
+      "courseId": "course_1750729834404"
+    },
+    {
+      "id": "102",
+      "name": "102",
+      "type": "race",
+      "active": true,
+      "courseId": "course_1750729834404"
+    },
+    {
+      "id": "103",
+      "name": "103",
+      "type": "race",
+      "active": true,
+      "courseId": "course_1750729834404"
+    },
+    {
+      "id": "104",
+      "name": "104",
+      "type": "race",
+      "active": true,
+      "courseId": "course_1750729834404"
+    },
+    {
+      "id": "105",
+      "name": "105",
+      "type": "race",
+      "active": true,
+      "courseId": "course_1750729834404"
+    },
+    {
+      "id": "500",
+      "name": "500",
+      "type": "race",
+      "active": true,
+      "courseId": "course_1750729780586"
+    },
+    {
+      "id": "501",
+      "name": "501",
+      "type": "race",
+      "active": true,
+      "courseId": "course_1750729780586"
+    },
+    {
+      "id": "502",
+      "name": "502",
+      "type": "race",
+      "active": true,
+      "courseId": "course_1750729780586"
+    },
+    {
+      "id": "503",
+      "name": "503",
+      "type": "race",
+      "active": true,
+      "courseId": "course_1750729780586"
+    },
+    {
+      "id": "504",
+      "name": "504",
+      "type": "race",
+      "active": true,
+      "courseId": "course_1750729780586"
+    },
+    {
+      "id": "505",
+      "name": "505",
+      "type": "race",
+      "active": true,
+      "courseId": "course_1750729780586"
+    },
+    {
+      "id": "HM Sweep 1",
+      "name": "HM Sweep 1",
+      "type": "race",
+      "active": true,
+      "courseId": "course_1750729834404"
+    },
+    {
+      "id": "HM Sweep 2",
+      "name": "HM Sweep 2",
+      "type": "race",
+      "active": true,
+      "courseId": "course_1750729834404"
+    },
+    {
+      "id": "50K Sweep 1",
+      "name": "50K Sweep 1",
+      "type": "race",
+      "active": true,
+      "courseId": "course_1750729780586"
+    },
+    {
+      "id": "50K Sweep 2",
+      "name": "50K Sweep 2",
+      "type": "race",
+      "active": true,
+      "courseId": "course_1750729780586"
+    }
+  ],
+  "stationAssignments": {
+    "start": [
+      "100",
+      "101",
+      "102",
+      "103",
+      "104",
+      "105",
+      "500",
+      "501",
+      "502",
+      "503",
+      "504",
+      "505",
+      "HM Sweep 1",
+      "HM Sweep 2",
+      "50K Sweep 1",
+      "50K Sweep 2"
+    ],
+    "station_1750729749724": [],
+    "station_1750729756160": [],
+    "station_1750729771578": [],
+    "station_1750729763845": [],
+    "finish": []
+  },
+  "activityLog": [
+    {
+      "id": "mcajf1p0tbdbi9tmjs",
+      "timestamp": "2025-06-24T13:04:34.644Z",
+      "userTime": "2025-06-24T13:04:34.644Z",
+      "participantId": "506",
+      "activityType": "arrival",
+      "stationId": "station_1750729756160",
+      "reportingStation": "system",
+      "notes": null,
+      "priorStationId": "start"
+    },
+    {
+      "id": "mcajf2idchw2ogyoe0h",
+      "timestamp": "2025-06-24T13:04:35.701Z",
+      "userTime": "2025-06-24T13:04:35.701Z",
+      "participantId": "511",
+      "activityType": "arrival",
+      "stationId": "station_1750729756160",
+      "reportingStation": "system",
+      "notes": null,
+      "priorStationId": "start"
+    },
+    {
+      "id": "mcajf47xr7kprld0cor",
+      "timestamp": "2025-06-24T13:04:37.917Z",
+      "userTime": "2025-06-24T13:04:37.917Z",
+      "participantId": "105",
+      "activityType": "arrival",
+      "stationId": "station_1750729763845",
+      "reportingStation": "system",
+      "notes": null,
+      "priorStationId": "start"
+    },
+    {
+      "id": "mcajf4zml7olx5p2u3n",
+      "timestamp": "2025-06-24T13:04:38.914Z",
+      "userTime": "2025-06-24T13:04:38.914Z",
+      "participantId": "110",
+      "activityType": "arrival",
+      "stationId": "station_1750729763845",
+      "reportingStation": "system",
+      "notes": null,
+      "priorStationId": "start"
+    },
+    {
+      "id": "mcajf5r4ftafx1seq8",
+      "timestamp": "2025-06-24T13:04:39.904Z",
+      "userTime": "2025-06-24T13:04:39.904Z",
+      "participantId": "106",
+      "activityType": "arrival",
+      "stationId": "station_1750729763845",
+      "reportingStation": "system",
+      "notes": null,
+      "priorStationId": "start"
+    },
+    {
+      "id": "mcajf7m2ho31jj88yx7",
+      "timestamp": "2025-06-24T13:04:42.314Z",
+      "userTime": "2025-06-24T13:04:42.314Z",
+      "participantId": "110",
+      "activityType": "arrival",
+      "stationId": "station_1750729771578",
+      "reportingStation": "system",
+      "notes": null,
+      "priorStationId": "station_1750729763845"
+    },
+    {
+      "id": "mcajygc2goizbdhtjvs",
+      "timestamp": "2025-06-24T13:19:40.082Z",
+      "userTime": "2025-06-24T13:19:40.082Z",
+      "participantId": "500",
+      "activityType": "arrival",
+      "stationId": "finish",
+      "reportingStation": "system",
+      "notes": null,
+      "priorStationId": "station_1750729749724"
+    },
+    {
+      "id": "mcajyr1pkm4kfv8qf",
+      "timestamp": "2025-06-24T13:19:53.965Z",
+      "userTime": "2025-06-24T13:19:53.965Z",
+      "participantId": "532",
+      "activityType": "arrival",
+      "stationId": "station_1750729771578",
+      "reportingStation": "system",
+      "notes": null,
+      "priorStationId": "start"
+    },
+    {
+      "id": "mcajyy9ebp1jmgv1225",
+      "timestamp": "2025-06-24T13:20:03.315Z",
+      "userTime": "2025-06-24T13:20:03.314Z",
+      "participantId": "502",
+      "activityType": "arrival",
+      "stationId": "station_1750729763845",
+      "reportingStation": "system",
+      "notes": "",
+      "priorStationId": "station_1750729771578"
+    },
+    {
+      "id": "mcam1n3ujqfjuaiqqzp",
+      "timestamp": "2025-06-24T14:18:08.058Z",
+      "userTime": "2025-06-24T14:17:00.000Z",
+      "participantId": null,
+      "activityType": "other",
+      "stationId": "station_1750729749724",
+      "priorStationId": null,
+      "notes": "Water Requested"
+    }
+  ],
+  "exportedAt": "2025-06-24T15:11:22.406Z",
+  "version": "1.0"
+}

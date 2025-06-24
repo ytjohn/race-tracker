@@ -2,9 +2,13 @@
 // This file coordinates all modules and initializes the app
 
 // Initialize the application
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
   // Load app data and initialize current event
-  loadData();
+  try {
+    await loadData();
+  } catch (error) {
+    console.error('Error loading data:', error);
+  }
   
   // Initialize navigation system
   initializeNavigation();
@@ -19,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initializeEventSetup();
   initializeParticipants();
   initializeActivityLog();
+  initializeEventManagement();
   
   // Setup button event listeners
   setupButtonEventListeners();

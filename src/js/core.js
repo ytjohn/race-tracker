@@ -106,6 +106,47 @@ function deleteEvent(eventId) {
   return false;
 }
 
+// Duplicate current event
+function duplicateCurrentEvent() {
+  if (!eventData) {
+    alert('No event to duplicate');
+    return;
+  }
+  
+  // Create a deep copy of the current event
+  const duplicatedEvent = JSON.parse(JSON.stringify(eventData));
+  
+  // Generate new ID
+  const newId = generateEventId();
+  duplicatedEvent.id = newId;
+  
+  // Update event name to indicate it's a copy
+  const originalName = duplicatedEvent.event.name || 'Unnamed Event';
+  duplicatedEvent.event.name = `${originalName} (Copy)`;
+  
+  // Clear race data but keep setup (stations, courses, participants)
+  duplicatedEvent.stationAssignments = {};
+  duplicatedEvent.activityLog = [];
+  
+  // Reset all participants to start station
+  if (duplicatedEvent.participants.length > 0) {
+    duplicatedEvent.stationAssignments['start'] = duplicatedEvent.participants.map(p => p.id);
+  }
+  
+  // Add to events
+  appData.events[newId] = duplicatedEvent;
+  
+  // Switch to duplicated event
+  switchToEvent(newId);
+  
+  // Show event setup page to allow editing the duplicated event
+  showPage('event-setup');
+  
+  alert(`Event duplicated successfully! You can now modify "${duplicatedEvent.event.name}".`);
+  
+  return newId;
+}
+
 // Export current event
 function exportEvent() {
   if (!eventData) {
@@ -204,6 +245,33 @@ function saveAppData() {
   }
 }
 
+// Load default event data from JSON file
+async function loadDefaultEventData() {
+  try {
+    const response = await fetch('data/default-lttr-tracker.json');
+    if (response.ok) {
+      const defaultData = await response.json();
+      
+      // Generate new ID to avoid conflicts
+      const newId = generateEventId();
+      defaultData.id = newId;
+      
+      // Add to events
+      appData.events[newId] = defaultData;
+      appData.currentEventId = newId;
+      eventData = defaultData;
+      
+      saveAppData();
+      
+      console.log('Default event data loaded successfully');
+      return true;
+    }
+  } catch (error) {
+    console.error('Error loading default event data:', error);
+  }
+  return false;
+}
+
 // Load app data from localStorage
 function loadAppData() {
   try {
@@ -230,7 +298,7 @@ function saveData() {
   }
 }
 
-function loadData() {
+async function loadData() {
   loadAppData();
   
   // Auto-load last used event or create new one
@@ -244,8 +312,11 @@ function loadData() {
       appData.currentEventId = eventIds[0];
       eventData = appData.events[eventIds[0]];
     } else {
-      // Create new event if none exist
-      createNewEvent();
+      // Try to load default data first, then create new event if that fails
+      const defaultLoaded = await loadDefaultEventData();
+      if (!defaultLoaded) {
+        createNewEvent();
+      }
     }
   }
 }

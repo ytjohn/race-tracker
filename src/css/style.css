@@ -2144,3 +2144,268 @@ body {
   color: #495057;
   font-weight: 500;
 }
+
+/* Event Management Styles */
+.dropdown-section {
+  padding: 0.5rem 0;
+}
+
+.dropdown-section-title {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.events-management {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.current-event-info {
+  margin-bottom: 2rem;
+}
+
+.current-event-info h3 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+}
+
+.all-events-list h3 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+}
+
+.events-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.event-card {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.event-card:hover {
+  border-color: #3498db;
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
+  transform: translateY(-2px);
+}
+
+.event-card.current {
+  border-color: #27ae60;
+  background: #f8fff9;
+}
+
+.event-card.current::before {
+  content: "CURRENT";
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  background: #27ae60;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: bold;
+  border-radius: 0 6px 0 6px;
+}
+
+.event-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.event-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.event-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.event-action-btn {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+
+.event-action-btn:hover {
+  color: #333;
+  background: rgba(0,0,0,0.05);
+}
+
+.event-action-btn.delete {
+  color: #e74c3c;
+}
+
+.event-action-btn.delete:hover {
+  color: #c0392b;
+  background: rgba(231, 76, 60, 0.1);
+}
+
+.event-details {
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.event-detail-row {
+  display: flex;
+  margin-bottom: 0.5rem;
+}
+
+.event-detail-label {
+  font-weight: 500;
+  min-width: 70px;
+  color: #555;
+}
+
+.event-detail-value {
+  color: #666;
+}
+
+.event-stats {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.event-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.event-stat-number {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+.event-stat-label {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.event-actions {
+  text-align: center;
+  padding-top: 2rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.event-actions .btn {
+  margin: 0 0.5rem;
+}
+
+.empty-events-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #666;
+}
+
+.empty-events-state h3 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.empty-events-state p {
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+/* Confirmation Dialog */
+.confirmation-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.confirmation-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+
+.confirmation-content h3 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.confirmation-content p {
+  color: #666;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.confirmation-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.confirmation-actions .btn {
+  min-width: 100px;
+}
+
+@media (max-width: 768px) {
+  .events-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .event-card {
+    padding: 1rem;
+  }
+  
+  .event-stats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .event-stat {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}

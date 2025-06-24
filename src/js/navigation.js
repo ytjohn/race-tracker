@@ -57,6 +57,13 @@ function showPage(pageId, updateUrl = true) {
     }
   }
   
+  // Special handling for events list page
+  if (pageId === 'events-list') {
+    if (window.renderEventsListPage) {
+      renderEventsListPage();
+    }
+  }
+  
   // Load existing event data into forms when showing event setup
   if (pageId === 'event-setup') {
     if (eventData) {
