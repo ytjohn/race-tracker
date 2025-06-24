@@ -10,11 +10,173 @@ function initializeRaceTracker() {
   console.log('Race tracker module initialized');
 }
 
+// Test function for debugging
+function testBatchModal() {
+  console.log('Testing batch modal...');
+  const modal = document.getElementById('batch-modal');
+  console.log('Modal found:', modal);
+  if (modal) {
+    modal.classList.remove('hidden');
+    console.log('Modal should now be visible');
+  }
+}
+
+// Make test function globally accessible
+window.testBatchModal = testBatchModal;
+
 // Helper function to get station name by ID
 function getStationName(stationId) {
   if (!eventData || !eventData.aidStations) return stationId;
   const station = eventData.aidStations.find(s => s.id === stationId);
   return station ? station.name : stationId;
+}
+
+// Helper function to get current participant station
+function getCurrentParticipantStation(participantId) {
+  if (!eventData || !eventData.stationAssignments) return null;
+  
+  for (const stationId of Object.keys(eventData.stationAssignments)) {
+    if ((eventData.stationAssignments[stationId] || []).includes(participantId)) {
+      return stationId;
+    }
+  }
+  return null;
+}
+
+// Helper function to analyze participant move for course progression
+function analyzeParticipantMove(participant, targetStationId, currentStationId) {
+  if (!participant || !participant.courseId) {
+    return {
+      status: 'error',
+      message: 'Participant not assigned to a course'
+    };
+  }
+  
+  const course = eventData.courses.find(c => c.id === participant.courseId);
+  if (!course) {
+    return {
+      status: 'error',
+      message: 'Participant course not found'
+    };
+  }
+  
+  // DNF and DNS can be reached from anywhere
+  const flexibleStations = ['dnf', 'dns'];
+  if (flexibleStations.includes(targetStationId)) {
+    return {
+      status: 'valid',
+      message: 'Valid transition to status station'
+    };
+  }
+  
+  // Check if target station is in participant's course
+  const targetStationIndex = course.stations.findIndex(cs => cs.stationId === targetStationId);
+  if (targetStationIndex === -1) {
+    return {
+      status: 'error',
+      message: 'Station not in participant course'
+    };
+  }
+  
+  // If no current station (not started), any station is potentially valid
+  if (!currentStationId) {
+    return targetStationId === 'start' ? {
+      status: 'valid',
+      message: 'Valid start position'
+    } : {
+      status: 'warning',
+      message: 'Starting at non-start station'
+    };
+  }
+  
+  // Check current station position in course
+  const currentStationIndex = course.stations.findIndex(cs => cs.stationId === currentStationId);
+  if (currentStationIndex === -1) {
+    // Current station not in course (e.g., DNF/DNS)
+    return {
+      status: 'warning',
+      message: 'Moving from status station'
+    };
+  }
+  
+  // Check progression order
+  if (targetStationIndex <= currentStationIndex) {
+    return {
+      status: 'warning',
+      message: 'Moving backwards or to same station'
+    };
+  }
+  
+  // Check if skipping stations (more than 1 station ahead)
+  if (targetStationIndex > currentStationIndex + 1) {
+    const skippedCount = targetStationIndex - currentStationIndex - 1;
+    const skippedStations = course.stations
+      .slice(currentStationIndex + 1, targetStationIndex)
+      .map(cs => getStationName(cs.stationId))
+      .join(', ');
+    
+    return {
+      status: 'warning',
+      message: `Skipping ${skippedCount} station${skippedCount > 1 ? 's' : ''}: ${skippedStations}`
+    };
+  }
+  
+  // Valid forward progression
+  return {
+    status: 'valid',
+    message: 'Valid course progression'
+  };
+}
+
+// Helper function to get analysis icon
+function getAnalysisIcon(status) {
+  const icons = {
+    valid: '✅',
+    warning: '⚠️',
+    error: '❌'
+  };
+  return icons[status] || '';
+}
+
+// Helper function to update participant tags display with enhanced information
+function updateParticipantTagsDisplay(entryId) {
+  const entry = batchEntries.find(e => e.id === entryId);
+  const tagsContainer = document.getElementById(`tags-${entryId}`);
+  if (!entry || !tagsContainer) return;
+  
+  const targetStationId = entry.stationId;
+  
+  tagsContainer.innerHTML = entry.participants.map(participantId => {
+    const participant = eventData.participants.find(p => p.id === participantId);
+    if (!participant) return `
+      <span class="tag">
+        ${participantId}
+        <button type="button" onclick="removeParticipantFromEntry('${entryId}', '${participantId}')">&times;</button>
+      </span>
+    `;
+    
+    const currentStation = getCurrentParticipantStation(participantId);
+    const course = eventData.courses.find(c => c.id === participant.courseId);
+    const courseName = course ? course.name : 'No Course';
+    const stationName = currentStation ? getStationName(currentStation) : 'Not Started';
+    
+    // Analyze course progression for this participant
+    const analysis = targetStationId ? analyzeParticipantMove(participant, targetStationId, currentStation) : null;
+    const analysisClass = analysis ? `course-analysis-${analysis.status}` : '';
+    const analysisIcon = analysis ? getAnalysisIcon(analysis.status) : '';
+    
+    return `
+      <span class="tag ${analysisClass}" title="${analysis ? analysis.message : ''}">
+        <div class="tag-content">
+          <span class="tag-id">${participant.id}</span>
+          <span class="tag-course">${courseName}</span>
+          <span class="tag-station">${stationName}</span>
+          ${analysis ? `<span class="tag-analysis">${analysisIcon}</span>` : ''}
+        </div>
+        <button type="button" onclick="removeParticipantFromEntry('${entryId}', '${participantId}')">&times;</button>
+      </span>
+    `;
+  }).join('');
 }
 
 // Render the race tracker kanban board
@@ -262,8 +424,13 @@ function moveParticipant(participantId, targetStationId) {
 
 // Open batch entry modal
 function openBatchModal(stationId) {
+  console.log('openBatchModal called with stationId:', stationId);
   const modal = document.getElementById('batch-modal');
-  if (!modal) return;
+  console.log('Modal element found:', modal);
+  if (!modal) {
+    console.error('Batch modal not found!');
+    return;
+  }
   
   // Reset state
   batchEntries = [];
@@ -275,9 +442,14 @@ function openBatchModal(stationId) {
   // Set default station for new entries
   batchEntries[0].stationId = stationId;
   
+  console.log('Removing hidden class from modal');
   modal.classList.remove('hidden');
+  console.log('Modal classes after removing hidden:', modal.className);
   renderBatchEntries();
 }
+
+// Make function globally accessible
+window.openBatchModal = openBatchModal;
 
 // Add a new batch entry row
 function addBatchRow() {
@@ -312,13 +484,21 @@ function removeBatchRow(entryId) {
 
 // Render batch entries
 function renderBatchEntries() {
+  console.log('renderBatchEntries called');
   const batchEntriesContainer = document.getElementById('batch-entries');
-  if (!batchEntriesContainer) return;
+  console.log('Batch entries container found:', batchEntriesContainer);
+  if (!batchEntriesContainer) {
+    console.error('Batch entries container not found!');
+    return;
+  }
   
   if (isPreviewMode) {
     renderBatchPreview();
     return;
   }
+  
+  console.log('eventData available:', !!eventData);
+  console.log('batchEntries length:', batchEntries.length);
   
   const html = batchEntries.map((entry, index) => `
     <div class="batch-entry-row" data-entry-id="${entry.id}">
@@ -380,6 +560,7 @@ function renderBatchEntries() {
                 <input type="text" class="participant-input" 
                        placeholder="Enter participant ID/name..."
                        onkeydown="handleParticipantInput(event, '${entry.id}')"
+                       oninput="showParticipantSuggestions(event, '${entry.id}')"
                        onfocus="showParticipantSuggestions(event, '${entry.id}')"
                        onblur="hideParticipantSuggestions()">
                 <div class="autocomplete-suggestions" id="suggestions-${entry.id}"></div>
@@ -482,16 +663,8 @@ function addParticipantToEntry(entryId, participantId) {
     eventData.participants.push(newParticipant);
   }
   
-  // Update the tags display
-  const tagsContainer = document.getElementById(`tags-${entryId}`);
-  if (tagsContainer) {
-    tagsContainer.innerHTML = entry.participants.map(p => `
-      <span class="tag">
-        ${p}
-        <button type="button" onclick="removeParticipantFromEntry('${entryId}', '${p}')">&times;</button>
-      </span>
-    `).join('');
-  }
+  // Update the tags display with enhanced information
+  updateParticipantTagsDisplay(entryId);
 }
 
 // Remove participant from entry
@@ -501,35 +674,57 @@ function removeParticipantFromEntry(entryId, participantId) {
   
   entry.participants = entry.participants.filter(p => p !== participantId);
   
-  // Update the tags display
-  const tagsContainer = document.getElementById(`tags-${entryId}`);
-  if (tagsContainer) {
-    tagsContainer.innerHTML = entry.participants.map(p => `
-      <span class="tag">
-        ${p}
-        <button type="button" onclick="removeParticipantFromEntry('${entryId}', '${p}')">&times;</button>
-      </span>
-    `).join('');
-  }
+  // Update the tags display with enhanced information
+  updateParticipantTagsDisplay(entryId);
 }
 
-// Show participant suggestions
+// Show participant suggestions with course analysis
 function showParticipantSuggestions(event, entryId) {
   const input = event.target;
   const suggestionsContainer = document.getElementById(`suggestions-${entryId}`);
   if (!suggestionsContainer) return;
   
-  const query = input.value.toLowerCase();
-  const suggestions = eventData.participants
-    .filter(p => p.id.toLowerCase().includes(query) || p.name.toLowerCase().includes(query))
-    .slice(0, 10);
+  const query = input.value.toLowerCase().trim();
+  
+  // Filter participants based on query (only show if query has content)
+  let suggestions = [];
+  if (query.length > 0) {
+    suggestions = eventData.participants
+      .filter(p => 
+        p.id.toLowerCase().includes(query) || 
+        p.name.toLowerCase().includes(query)
+      )
+      .slice(0, 10);
+  }
   
   if (suggestions.length > 0) {
-    suggestionsContainer.innerHTML = suggestions.map(p => `
-      <div class="suggestion-item" onclick="selectParticipantSuggestion('${entryId}', '${p.id}', this)">
-        ${p.id} - ${p.name}
-      </div>
-    `).join('');
+    const entry = batchEntries.find(e => e.id === entryId);
+    const targetStationId = entry ? entry.stationId : null;
+    
+    suggestionsContainer.innerHTML = suggestions.map(p => {
+      const currentStation = getCurrentParticipantStation(p.id);
+      const course = eventData.courses.find(c => c.id === p.courseId);
+      const courseName = course ? course.name : 'No Course';
+      const stationName = currentStation ? getStationName(currentStation) : 'Not Started';
+      
+      // Analyze course progression for this potential move
+      const analysis = targetStationId ? analyzeParticipantMove(p, targetStationId, currentStation) : null;
+      const analysisClass = analysis ? `course-analysis-${analysis.status}` : '';
+      const analysisIcon = analysis ? getAnalysisIcon(analysis.status) : '';
+      
+      return `
+        <div class="suggestion-item ${analysisClass}" 
+             onclick="selectParticipantSuggestion('${entryId}', '${p.id}', this)"
+             title="${analysis ? analysis.message : ''}">
+          <div class="suggestion-content">
+            <span class="suggestion-id">${p.id}</span>
+            <span class="suggestion-course">${courseName}</span>
+            <span class="suggestion-station">${stationName}</span>
+          </div>
+          ${analysis ? `<div class="suggestion-analysis">${analysisIcon}</div>` : ''}
+        </div>
+      `;
+    }).join('');
     suggestionsContainer.style.display = 'block';
   } else {
     suggestionsContainer.style.display = 'none';
@@ -586,7 +781,12 @@ function submitBatchEntry() {
         const participant = eventData.participants.find(p => p.id === participantId);
         let finalStationId = entry.stationId;
         let finalNotes = entry.notes;
-        let activityType = entry.action.toLowerCase();
+        // Map action to proper activity type
+        const actionToActivityType = {
+          'arrived': 'arrival',
+          'departed': 'departed'
+        };
+        let activityType = actionToActivityType[entry.action.toLowerCase()] || entry.action.toLowerCase();
         
         // Check for course validation
         const sharedStations = ['dnf', 'dns'];
@@ -660,47 +860,18 @@ function closeBatchModal() {
   isPreviewMode = false;
 }
 
-// Show activity log
-function showActivityLog() {
-  const modal = document.getElementById('activity-modal');
-  const logContent = document.getElementById('activity-log-content');
-  
-  if (!modal || !logContent || !eventData) return;
-  
-  const sortedLog = [...eventData.activityLog].sort((a, b) => 
-    new Date(b.userTime || b.timestamp) - new Date(a.userTime || a.timestamp)
-  );
-  
-  const html = sortedLog.map(entry => {
-    const participant = entry.participantId ? 
-      eventData.participants.find(p => p.id === entry.participantId) : null;
-    const station = eventData.aidStations.find(s => s.id === entry.stationId);
-    const priorStation = entry.priorStationId ? 
-      eventData.aidStations.find(s => s.id === entry.priorStationId) : null;
-    const time = new Date(entry.userTime || entry.timestamp);
-    
-    return `
-      <div class="activity-entry">
-        <div class="activity-time">${formatTime(time)}</div>
-        <div class="activity-details">
-          ${participant ? `<strong>${participant.name}</strong> ` : ''}
-          ${entry.activityType} 
-          ${station ? `at ${station.name}` : ''}
-          ${priorStation ? ` (from ${priorStation.name})` : ''}
-          ${entry.notes ? `- ${entry.notes}` : ''}
-        </div>
-      </div>
-    `;
-  }).join('');
-  
-  logContent.innerHTML = html || '<p>No activity recorded yet.</p>';
-  modal.classList.remove('hidden');
-}
+// Make functions globally accessible
+window.closeBatchModal = closeBatchModal;
+window.removeBatchRow = removeBatchRow;
+window.updateBatchEntry = updateBatchEntry;
+window.handleParticipantInput = handleParticipantInput;
+window.addParticipantToEntry = addParticipantToEntry;
+window.removeParticipantFromEntry = removeParticipantFromEntry;
+window.showParticipantSuggestions = showParticipantSuggestions;
+window.selectParticipantSuggestion = selectParticipantSuggestion;
+window.hideParticipantSuggestions = hideParticipantSuggestions;
+window.togglePreview = togglePreview;
+window.submitBatchEntry = submitBatchEntry;
+window.addBatchRow = addBatchRow;
 
-// Close activity log
-function closeActivityLog() {
-  const modal = document.getElementById('activity-modal');
-  if (modal) {
-    modal.classList.add('hidden');
-  }
-} 
+ 

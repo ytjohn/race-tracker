@@ -15,6 +15,13 @@ function renderActivityLogManagement() {
     new Date(b.userTime || b.timestamp) - new Date(a.userTime || a.timestamp)
   );
   
+  // Check if course distances need to be configured
+  const hasDistanceConfigIssues = eventData.courses.some(course => 
+    course.stations.some((station, index) => 
+      index > 0 && (station.distance === 0 || station.distance == null)
+    )
+  );
+  
   if (sortedLog.length === 0) {
     activityContainer.innerHTML = `
       <div class="empty-state">
@@ -65,6 +72,18 @@ function renderActivityLogManagement() {
         </button>
       </div>
     </div>
+    
+    ${hasDistanceConfigIssues ? `
+      <div class="distance-config-notice">
+        <div class="notice-icon">⚠️</div>
+        <div class="notice-content">
+          <strong>Course distances not configured</strong>
+          <p>Distance calculations are showing 0.0 mi because station distances haven't been set up. 
+             <a href="javascript:void(0)" onclick="showPage('courses-setup')">Go to Setup > Courses</a> 
+             to add distances between stations.</p>
+        </div>
+      </div>
+    ` : ''}
     
     <div class="activity-log-filters">
       <div class="filter-section">
@@ -188,6 +207,10 @@ function renderActivityLogRows(logEntries) {
     // Course analysis
     const courseAnalysis = participant ? analyzeCourseProgression(participant, entry, priorStation) : null;
     
+    // Check if this might be a distance configuration issue
+    const isDistanceConfigIssue = courseAnalysis && courseAnalysis.cumulativeDistance === 0 && 
+      participant && participant.courseId && entry.stationId !== 'start';
+    
     // Duration since last event for this participant
     const duration = participant ? calculateDurationSinceLastEvent(participant.id, entry) : null;
     
@@ -270,7 +293,9 @@ function renderActivityLogRows(logEntries) {
         <td class="distance-cell">
           <div class="distance-display">
             ${courseAnalysis && courseAnalysis.cumulativeDistance != null ? 
-              `${courseAnalysis.cumulativeDistance.toFixed(1)} mi` : '—'}
+              (isDistanceConfigIssue ? 
+                '<span title="Course distances not configured. Go to Setup > Courses to add distances between stations." style="color: #f39c12;">0.0 mi*</span>' :
+                `${courseAnalysis.cumulativeDistance.toFixed(1)} mi`) : '—'}
           </div>
         </td>
         <td class="duration-cell">
@@ -472,17 +497,136 @@ function cancelEntryEdit(entryId) {
   row.querySelector('.action-buttons').classList.remove('hidden');
   row.querySelector('.edit-actions').classList.add('hidden');
   
-  // Reset form values to original
-  renderActivityLogManagement();
+  // Reset form values to original values without full re-render
+  const entry = eventData.activityLog.find(e => e.id === entryId);
+  if (entry) {
+    const time = new Date(entry.userTime || entry.timestamp);
+    const timeInput = row.querySelector('.time-edit input[type="time"]');
+    if (timeInput) {
+      timeInput.value = time.toTimeString().slice(0, 5);
+    }
+    
+    const participantSelect = row.querySelector('.participant-edit select');
+    if (participantSelect) {
+      participantSelect.value = entry.participantId || '';
+    }
+    
+    const activitySelect = row.querySelector('.activity-edit select');
+    if (activitySelect) {
+      activitySelect.value = entry.activityType;
+    }
+    
+    const stationSelect = row.querySelector('.station-edit select');
+    if (stationSelect) {
+      stationSelect.value = entry.stationId;
+    }
+    
+    const priorStationSelect = row.querySelector('.prior-station-edit select');
+    if (priorStationSelect) {
+      priorStationSelect.value = entry.priorStationId || '';
+    }
+    
+    const notesTextarea = row.querySelector('.notes-edit textarea');
+    if (notesTextarea) {
+      notesTextarea.value = entry.notes || '';
+    }
+  }
 }
 
 // Save entry changes
 function saveEntryChanges(entryId) {
   saveData();
-  cancelEntryEdit(entryId);
   
-  // Re-render to show updated data
-  renderActivityLogManagement();
+  // Update the display values in the row without full re-render
+  const row = document.querySelector(`[data-entry-id="${entryId}"]`);
+  const entry = eventData.activityLog.find(e => e.id === entryId);
+  
+  if (row && entry) {
+    // Update display values
+    const participant = entry.participantId ? 
+      eventData.participants.find(p => p.id === entry.participantId) : null;
+    const station = eventData.aidStations.find(s => s.id === entry.stationId);
+    const priorStation = entry.priorStationId ? 
+      eventData.aidStations.find(s => s.id === entry.priorStationId) : null;
+    const time = new Date(entry.userTime || entry.timestamp);
+    
+    // Update time display
+    const timeDisplay = row.querySelector('.time-display');
+    if (timeDisplay) {
+      timeDisplay.textContent = formatTime(time);
+    }
+    
+    // Update participant display
+    const participantDisplay = row.querySelector('.participant-display');
+    if (participantDisplay) {
+      participantDisplay.textContent = participant ? `${participant.name} (${participant.id})` : '—';
+    }
+    
+    // Update course display
+    const courseDisplay = row.querySelector('.course-display');
+    if (courseDisplay) {
+      const course = participant && participant.courseId ? 
+        eventData.courses.find(c => c.id === participant.courseId) : null;
+      courseDisplay.textContent = course ? course.name : '—';
+    }
+    
+    // Update activity display
+    const activityDisplay = row.querySelector('.activity-display .activity-badge');
+    if (activityDisplay) {
+      activityDisplay.textContent = formatActivityType(entry.activityType);
+      activityDisplay.className = `activity-badge activity-${entry.activityType}`;
+    }
+    
+    // Update station display
+    const stationDisplay = row.querySelector('.station-display');
+    if (stationDisplay) {
+      stationDisplay.textContent = station ? station.name : 'Unknown';
+    }
+    
+    // Update prior station display
+    const priorStationDisplay = row.querySelector('.prior-station-display');
+    if (priorStationDisplay) {
+      priorStationDisplay.textContent = priorStation ? priorStation.name : '—';
+    }
+    
+    // Update notes display
+    const notesDisplay = row.querySelector('.notes-display');
+    if (notesDisplay) {
+      notesDisplay.textContent = entry.notes || '—';
+    }
+    
+    // Update course analysis and distance
+    const courseAnalysis = participant ? analyzeCourseProgression(participant, entry, priorStation) : null;
+    const isDistanceConfigIssue = courseAnalysis && courseAnalysis.cumulativeDistance === 0 && 
+      participant && participant.courseId && entry.stationId !== 'start';
+    
+    const distanceDisplay = row.querySelector('.distance-display');
+    if (distanceDisplay) {
+      if (courseAnalysis && courseAnalysis.cumulativeDistance != null) {
+        if (isDistanceConfigIssue) {
+          distanceDisplay.innerHTML = '<span title="Course distances not configured. Go to Setup > Courses to add distances between stations." style="color: #f39c12;">0.0 mi*</span>';
+        } else {
+          distanceDisplay.textContent = `${courseAnalysis.cumulativeDistance.toFixed(1)} mi`;
+        }
+      } else {
+        distanceDisplay.textContent = '—';
+      }
+    }
+    
+    const analysisDisplay = row.querySelector('.course-analysis-display');
+    if (analysisDisplay) {
+      analysisDisplay.innerHTML = courseAnalysis ? renderCourseAnalysisIcon(courseAnalysis, participant) : '—';
+    }
+    
+    // Update duration
+    const duration = participant ? calculateDurationSinceLastEvent(participant.id, entry) : null;
+    const durationDisplay = row.querySelector('.duration-display');
+    if (durationDisplay) {
+      durationDisplay.textContent = duration ? formatDuration(duration) : '—';
+    }
+  }
+  
+  cancelEntryEdit(entryId);
 }
 
 // Update entry time
@@ -857,14 +1001,8 @@ function applyBulkEdit() {
 
 // Open Add Activity Modal (reuse batch entry modal)
 function openAddActivityModal() {
-  // Check if the batch modal functions exist from race-tracker.js
-  if (typeof openBatchModal === 'function') {
-    // Open the batch modal for general activity logging
-    openBatchModal();
-  } else {
-    // Create a simplified add activity modal if batch modal isn't available
-    createStandaloneAddActivityModal();
-  }
+  // Always use the standalone modal for activity log page
+  createStandaloneAddActivityModal();
 }
 
 // Create standalone add activity modal
@@ -1000,6 +1138,37 @@ function parseTimeToISO(timeString) {
   return date.toISOString();
 }
 
+// Make functions globally accessible
+window.openAddActivityModal = openAddActivityModal;
+window.closeAddActivityModal = closeAddActivityModal;
+window.submitAddActivity = submitAddActivity;
+window.exportActivityLog = exportActivityLog;
+window.clearActivityLog = clearActivityLog;
+window.toggleParticipantFilter = toggleParticipantFilter;
+window.selectAllParticipants = selectAllParticipants;
+window.clearAllParticipants = clearAllParticipants;
+window.clearFilters = clearFilters;
+window.showBulkEditModal = showBulkEditModal;
+window.deleteBulkSelected = deleteBulkSelected;
+window.toggleEditEntry = toggleEditEntry;
+window.deleteActivityEntry = deleteActivityEntry;
+window.saveEntryChanges = saveEntryChanges;
+window.cancelEntryEdit = cancelEntryEdit;
+window.closeBulkEditModal = closeBulkEditModal;
+window.applyBulkEdit = applyBulkEdit;
+window.filterByParticipant = filterByParticipant;
+window.updateParticipantFilter = updateParticipantFilter;
+window.filterActivityLog = filterActivityLog;
+window.toggleSelectAll = toggleSelectAll;
+window.updateBulkActions = updateBulkActions;
+window.updateEntryTime = updateEntryTime;
+window.updateEntryParticipant = updateEntryParticipant;
+window.updateEntryActivityType = updateEntryActivityType;
+window.updateEntryStation = updateEntryStation;
+window.updateEntryPriorStation = updateEntryPriorStation;
+window.updateEntryNotes = updateEntryNotes;
+window.filterParticipantList = filterParticipantList;
+
 // Participant filter functions
 function toggleParticipantFilter() {
   const dropdown = document.getElementById('participant-filter-dropdown');
@@ -1075,6 +1244,19 @@ function analyzeCourseProgression(participant, entry, priorStation) {
   const course = eventData.courses.find(c => c.id === participant.courseId);
   if (!course) return null;
   
+  // Debug logging for participant 500
+  if (participant.id === '500') {
+    console.log('Course Analysis Debug for 500:', {
+      participant,
+      entry,
+      priorStation,
+      course,
+      courseStations: course.stations,
+      currentStation: entry.stationId,
+      priorStationId: priorStation?.id
+    });
+  }
+  
   const currentStationIndex = course.stations.findIndex(cs => cs.stationId === entry.stationId);
   const priorStationIndex = priorStation ? 
     course.stations.findIndex(cs => cs.stationId === priorStation.id) : -1;
@@ -1099,12 +1281,32 @@ function analyzeCourseProgression(participant, entry, priorStation) {
   }
   
   // Check progression order
-  if (priorStationIndex >= 0 && currentStationIndex <= priorStationIndex) {
-    return {
-      status: 'warning',
-      message: 'Arrived out of course order',
-      cumulativeDistance: course.stations[currentStationIndex].cumulative || 0
-    };
+  if (priorStationIndex >= 0) {
+    if (currentStationIndex <= priorStationIndex) {
+      return {
+        status: 'warning',
+        message: 'Moving backwards or to same station',
+        cumulativeDistance: course.stations[currentStationIndex].cumulative || 0
+      };
+    }
+    
+    // Check if skipping stations (more than 1 station ahead)
+    if (currentStationIndex > priorStationIndex + 1) {
+      const skippedCount = currentStationIndex - priorStationIndex - 1;
+      const skippedStations = course.stations
+        .slice(priorStationIndex + 1, currentStationIndex)
+        .map(cs => {
+          const station = eventData.aidStations.find(s => s.id === cs.stationId);
+          return station ? station.name : cs.stationId;
+        })
+        .join(', ');
+      
+      return {
+        status: 'warning',
+        message: `Skipping ${skippedCount} station${skippedCount > 1 ? 's' : ''}: ${skippedStations}`,
+        cumulativeDistance: course.stations[currentStationIndex].cumulative || 0
+      };
+    }
   }
   
   // Valid progression

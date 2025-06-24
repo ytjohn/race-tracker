@@ -1122,12 +1122,15 @@ body {
 .tag {
   background: #3498db;
   color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 3px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
   font-size: 0.85rem;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.5rem;
+  border: 2px solid #2980b9;
+  min-width: 0; /* Allow flex shrinking */
+  max-width: 300px; /* Prevent tags from getting too wide */
 }
 
 .tag button {
@@ -1143,6 +1146,100 @@ body {
 .tag button:hover {
   background: rgba(255,255,255,0.2);
   border-radius: 50%;
+}
+
+/* Enhanced tag styling with course analysis */
+.tag-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
+}
+
+.tag-id {
+  font-weight: 600;
+  color: #2c3e50;
+  white-space: nowrap;
+}
+
+.tag-course {
+  font-size: 0.75rem;
+  color: #7f8c8d;
+  white-space: nowrap;
+}
+
+.tag-station {
+  font-size: 0.75rem;
+  color: #95a5a6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tag-analysis {
+  font-size: 0.9rem;
+  margin-left: auto;
+}
+
+/* Course analysis colors for tags */
+.tag.course-analysis-valid {
+  border: 2px solid #27ae60;
+  background: linear-gradient(135deg, rgba(39, 174, 96, 0.1) 0%, rgba(39, 174, 96, 0.05) 100%);
+}
+
+.tag.course-analysis-warning {
+  border: 2px solid #f39c12;
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.1) 0%, rgba(243, 156, 18, 0.05) 100%);
+}
+
+.tag.course-analysis-error {
+  border: 2px solid #e74c3c;
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.1) 0%, rgba(231, 76, 60, 0.05) 100%);
+}
+
+/* Distance configuration notice */
+.distance-config-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.1) 0%, rgba(243, 156, 18, 0.05) 100%);
+  border: 2px solid #f39c12;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+}
+
+.distance-config-notice .notice-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.distance-config-notice .notice-content {
+  flex: 1;
+}
+
+.distance-config-notice .notice-content strong {
+  color: #d68910;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.distance-config-notice .notice-content p {
+  margin: 0;
+  color: #7d6608;
+  line-height: 1.4;
+}
+
+.distance-config-notice .notice-content a {
+  color: #d68910;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.distance-config-notice .notice-content a:hover {
+  color: #b7950b;
 }
 
 .participant-input {
@@ -1171,9 +1268,12 @@ body {
 }
 
 .suggestion-item {
-  padding: 0.5rem;
+  padding: 0.75rem;
   cursor: pointer;
   border-bottom: 1px solid #f1f1f1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .suggestion-item:hover {
@@ -1182,6 +1282,65 @@ body {
 
 .suggestion-item:last-child {
   border-bottom: none;
+}
+
+/* Enhanced autocomplete suggestions with course analysis */
+.suggestion-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.suggestion-id {
+  font-weight: 600;
+  color: #2c3e50;
+  min-width: 60px;
+}
+
+.suggestion-course {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  min-width: 80px;
+}
+
+.suggestion-station {
+  font-size: 0.85rem;
+  color: #95a5a6;
+  flex: 1;
+}
+
+.suggestion-analysis {
+  margin-left: auto;
+  font-size: 1.1rem;
+}
+
+/* Course analysis colors for suggestions */
+.suggestion-item.course-analysis-valid {
+  border-left: 4px solid #27ae60;
+  background: linear-gradient(90deg, rgba(39, 174, 96, 0.05) 0%, transparent 100%);
+}
+
+.suggestion-item.course-analysis-warning {
+  border-left: 4px solid #f39c12;
+  background: linear-gradient(90deg, rgba(243, 156, 18, 0.05) 0%, transparent 100%);
+}
+
+.suggestion-item.course-analysis-error {
+  border-left: 4px solid #e74c3c;
+  background: linear-gradient(90deg, rgba(231, 76, 60, 0.05) 0%, transparent 100%);
+}
+
+.suggestion-item.course-analysis-valid:hover {
+  background: linear-gradient(90deg, rgba(39, 174, 96, 0.1) 0%, rgba(39, 174, 96, 0.02) 100%);
+}
+
+.suggestion-item.course-analysis-warning:hover {
+  background: linear-gradient(90deg, rgba(243, 156, 18, 0.1) 0%, rgba(243, 156, 18, 0.02) 100%);
+}
+
+.suggestion-item.course-analysis-error:hover {
+  background: linear-gradient(90deg, rgba(231, 76, 60, 0.1) 0%, rgba(231, 76, 60, 0.02) 100%);
 }
 
 /* Preview Mode Styles */
