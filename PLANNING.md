@@ -134,3 +134,6 @@ This project is a portable, offline-first race tracking tool for amateur radio o
 ---
 
 *This plan will be updated as the project progresses and requirements evolve.*
+
+
+image.png

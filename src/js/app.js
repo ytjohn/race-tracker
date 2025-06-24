@@ -1230,13 +1230,23 @@ function moveParticipant(participantId, targetStationId) {
   saveData();
 }
 
-// Batch modal functions
+// Advanced Batch Entry System
+let batchEntryState = {
+  currentStation: null,
+  entries: [],
+  nextEntryId: 1,
+  isPreviewMode: false
+};
+
 function openBatchModal(stationId) {
   const modal = document.getElementById('batch-modal');
   if (!modal) return;
   
-  // Store current station for the modal
-  modal.dataset.currentStation = stationId;
+  // Initialize batch entry state
+  batchEntryState.currentStation = stationId;
+  batchEntryState.entries = [];
+  batchEntryState.nextEntryId = 1;
+  batchEntryState.isPreviewMode = false;
   
   // Update modal title
   const station = eventData.aidStations.find(s => s.id === stationId);
@@ -1245,113 +1255,405 @@ function openBatchModal(stationId) {
     modalTitle.textContent = `Batch Entry - ${station.name}`;
   }
   
-  // Clear and setup batch entries
-  const batchEntries = document.getElementById('batch-entries');
-  if (batchEntries) {
-    const station = eventData.aidStations.find(s => s.id === stationId);
-    
-    batchEntries.innerHTML = `
-      <div style="background: #e8f5e8; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.9rem;">
-        <strong>📍 Moving participants to:</strong> ${station ? station.name : stationId}<br>
-        <em>Note: Course assignments are managed in the Participants Setup page</em>
-      </div>
-      <div class="batch-entry">
-        <label>Participants (comma separated)</label>
-        <textarea id="batch-participants" placeholder="101, 102, 103, 50k Sweep" rows="3"></textarea>
-        
-        <label>Time (optional)</label>
-        <input type="text" id="batch-time" placeholder="10:05 or leave blank for current time">
-        
-        <label>Notes (optional)</label>
-        <input type="text" id="batch-notes" placeholder="Additional notes">
-      </div>
-    `;
-  }
+  // Add initial entry
+  addBatchRow();
   
   modal.classList.remove('hidden');
+}
+
+function parseTimeInput(timeStr) {
+  if (!timeStr || !timeStr.trim()) {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
   
-  // Focus on participants input
-  const participantsInput = document.getElementById('batch-participants');
-  if (participantsInput) {
-    participantsInput.focus();
+  const input = timeStr.trim().toLowerCase();
+  const now = new Date();
+  
+  // Handle various time formats
+  if (input.match(/^\d{1,2}:\d{2}$/)) {
+    // Format: "10:05" or "2:30"
+    return input;
+  } else if (input.match(/^\d{3,4}$/)) {
+    // Format: "1005" or "230"
+    const timeNum = input.padStart(4, '0');
+    return `${timeNum.slice(0, 2)}:${timeNum.slice(2)}`;
+  } else if (input.match(/^\d{1,2}(am|pm)$/)) {
+    // Format: "2pm" or "10am"
+    const hour = parseInt(input.replace(/[^\d]/g, ''));
+    const isPM = input.includes('pm');
+    const hour24 = isPM && hour !== 12 ? hour + 12 : (!isPM && hour === 12 ? 0 : hour);
+    return `${hour24.toString().padStart(2, '0')}:00`;
+  } else if (input.match(/^\d{1,2}$/)) {
+    // Format: "14" (assume hour)
+    const hour = parseInt(input);
+    return `${hour.toString().padStart(2, '0')}:00`;
+  }
+  
+  // If we can't parse it, return as-is
+  return timeStr;
+}
+
+function addBatchRow() {
+  const entryId = batchEntryState.nextEntryId++;
+  const previousEntry = batchEntryState.entries[batchEntryState.entries.length - 1];
+  
+  const newEntry = {
+    id: entryId,
+    station: previousEntry ? previousEntry.station : batchEntryState.currentStation,
+    updateType: previousEntry ? previousEntry.updateType : 'race-update',
+    action: previousEntry ? previousEntry.action : 'arrived',
+    participants: [],
+    message: '',
+    time: '',
+    notes: ''
+  };
+  
+  batchEntryState.entries.push(newEntry);
+  renderBatchEntries();
+  
+  // Focus on the new entry
+  setTimeout(() => {
+    const newEntryElement = document.querySelector(`[data-entry-id="${entryId}"]`);
+    if (newEntryElement) {
+      const participantInput = newEntryElement.querySelector('.participant-input');
+      if (participantInput) {
+        participantInput.focus();
+      }
+    }
+  }, 100);
+}
+
+function removeBatchRow(entryId) {
+  batchEntryState.entries = batchEntryState.entries.filter(entry => entry.id !== entryId);
+  renderBatchEntries();
+}
+
+function renderBatchEntries() {
+  const container = document.getElementById('batch-entries');
+  if (!container) return;
+  
+  if (batchEntryState.isPreviewMode) {
+    renderBatchPreview();
+    return;
+  }
+  
+  let html = '';
+  
+  batchEntryState.entries.forEach((entry, index) => {
+    html += `
+      <div class="batch-entry-row" data-entry-id="${entry.id}">
+        <div class="batch-entry-header">
+          <h4>Entry ${index + 1}</h4>
+          ${batchEntryState.entries.length > 1 ? 
+            `<button class="btn btn-danger btn-small" onclick="removeBatchRow(${entry.id})">Remove</button>` : 
+            ''
+          }
+        </div>
+        
+        <div class="batch-entry-form">
+          <div class="form-row">
+            <div class="form-col">
+              <label>Aid Station</label>
+              <select onchange="updateBatchEntry(${entry.id}, 'station', this.value)">
+                ${eventData.aidStations.map(station => 
+                  `<option value="${station.id}" ${station.id === entry.station ? 'selected' : ''}>${station.name}</option>`
+                ).join('')}
+              </select>
+            </div>
+            
+            <div class="form-col">
+              <label>Update Type</label>
+              <select onchange="updateBatchEntry(${entry.id}, 'updateType', this.value)">
+                <option value="race-update" ${entry.updateType === 'race-update' ? 'selected' : ''}>Race Update</option>
+                <option value="race-message" ${entry.updateType === 'race-message' ? 'selected' : ''}>Race Message</option>
+              </select>
+            </div>
+            
+            ${entry.updateType === 'race-update' ? `
+              <div class="form-col">
+                <label>Action</label>
+                <select onchange="updateBatchEntry(${entry.id}, 'action', this.value)">
+                  <option value="arrived" ${entry.action === 'arrived' ? 'selected' : ''}>Arrived</option>
+                  <option value="departed" ${entry.action === 'departed' ? 'selected' : ''}>Departed</option>
+                </select>
+              </div>
+            ` : `
+              <div class="form-col">
+                <label>Message</label>
+                <input type="text" value="${entry.message}" placeholder="Free-form message" 
+                       onchange="updateBatchEntry(${entry.id}, 'message', this.value)">
+              </div>
+            `}
+            
+            <div class="form-col">
+              <label>Time</label>
+              <input type="text" value="${entry.time}" placeholder="10:05, 2PM, 1430" 
+                     onchange="updateBatchEntry(${entry.id}, 'time', this.value)">
+            </div>
+          </div>
+          
+          ${entry.updateType === 'race-update' ? `
+            <div class="form-row">
+              <div class="form-col-full">
+                <label>Participants</label>
+                <div class="tags-input-container" data-entry-id="${entry.id}">
+                  <div class="tags-display">
+                    ${entry.participants.map(p => `
+                      <span class="tag">
+                        ${p} <button onclick="removeParticipantFromEntry(${entry.id}, '${p}')">&times;</button>
+                      </span>
+                    `).join('')}
+                  </div>
+                  <input type="text" 
+                         class="participant-input" 
+                         placeholder="Type participant name or bib"
+                         onkeydown="handleParticipantInput(event, ${entry.id})"
+                         oninput="showParticipantSuggestions(event, ${entry.id})">
+                  <div class="autocomplete-suggestions" style="display: none;"></div>
+                </div>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+}
+
+function renderBatchPreview() {
+  const container = document.getElementById('batch-entries');
+  if (!container) return;
+  
+  let html = '<div class="batch-preview">';
+  
+  batchEntryState.entries.forEach((entry, index) => {
+    const station = eventData.aidStations.find(s => s.id === entry.station);
+    const stationName = station ? station.name : entry.station;
+    const parsedTime = parseTimeInput(entry.time);
+    
+    html += `
+      <div class="preview-entry">
+        <div class="preview-header">
+          <strong>Entry ${index + 1}: ${stationName}</strong>
+          <span class="preview-time">${parsedTime}</span>
+        </div>
+        <div class="preview-content">
+          ${entry.updateType === 'race-update' ? `
+            <div class="preview-action">${entry.action}</div>
+            <div class="preview-participants">
+              ${entry.participants.length > 0 ? 
+                entry.participants.map(p => `<span class="preview-participant">${p}</span>`).join(' ') :
+                '<em>No participants</em>'
+              }
+            </div>
+          ` : `
+            <div class="preview-message">${entry.message || '<em>No message</em>'}</div>
+          `}
+        </div>
+      </div>
+    `;
+  });
+  
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function updateBatchEntry(entryId, field, value) {
+  const entry = batchEntryState.entries.find(e => e.id === entryId);
+  if (entry) {
+    entry[field] = value;
+    renderBatchEntries();
+  }
+}
+
+function handleParticipantInput(event, entryId) {
+  if (event.key === 'Enter' || event.key === 'Tab') {
+    event.preventDefault();
+    addParticipantToEntry(entryId, event.target.value.trim());
+    event.target.value = '';
+    hideParticipantSuggestions();
+  } else if (event.key === 'Escape') {
+    hideParticipantSuggestions();
+  }
+}
+
+function addParticipantToEntry(entryId, participantId) {
+  if (!participantId) return;
+  
+  const entry = batchEntryState.entries.find(e => e.id === entryId);
+  if (entry && !entry.participants.includes(participantId)) {
+    entry.participants.push(participantId);
+    
+    // Store current input focus before re-rendering
+    const currentInput = document.querySelector(`[data-entry-id="${entryId}"] .participant-input`);
+    const shouldRefocus = currentInput && document.activeElement === currentInput;
+    
+    renderBatchEntries();
+    
+    // Restore focus to the input after re-rendering
+    if (shouldRefocus) {
+      setTimeout(() => {
+        const newInput = document.querySelector(`[data-entry-id="${entryId}"] .participant-input`);
+        if (newInput) {
+          newInput.focus();
+        }
+      }, 0);
+    }
+  }
+}
+
+function removeParticipantFromEntry(entryId, participantId) {
+  const entry = batchEntryState.entries.find(e => e.id === entryId);
+  if (entry) {
+    entry.participants = entry.participants.filter(p => p !== participantId);
+    
+    // Store current input focus before re-rendering
+    const currentInput = document.querySelector(`[data-entry-id="${entryId}"] .participant-input`);
+    const shouldRefocus = currentInput && document.activeElement === currentInput;
+    
+    renderBatchEntries();
+    
+    // Restore focus to the input after re-rendering
+    if (shouldRefocus) {
+      setTimeout(() => {
+        const newInput = document.querySelector(`[data-entry-id="${entryId}"] .participant-input`);
+        if (newInput) {
+          newInput.focus();
+        }
+      }, 0);
+    }
+  }
+}
+
+function showParticipantSuggestions(event, entryId) {
+  const input = event.target;
+  const query = input.value.toLowerCase();
+  const container = input.parentNode;
+  const suggestionsDiv = container.querySelector('.autocomplete-suggestions');
+  
+  if (query.length < 1) {
+    suggestionsDiv.style.display = 'none';
+    return;
+  }
+  
+  // Get suggestions from existing participants
+  const suggestions = eventData.participants
+    .filter(p => 
+      p.id.toLowerCase().includes(query) || 
+      p.name.toLowerCase().includes(query)
+    )
+    .slice(0, 10);
+  
+  if (suggestions.length === 0) {
+    suggestionsDiv.style.display = 'none';
+    return;
+  }
+  
+  suggestionsDiv.innerHTML = suggestions.map(p => `
+    <div class="suggestion-item" onclick="selectParticipantSuggestion(${entryId}, '${p.id}', this)">
+      <strong>${p.id}</strong> ${p.name !== p.id ? `(${p.name})` : ''}
+    </div>
+  `).join('');
+  
+  suggestionsDiv.style.display = 'block';
+}
+
+function selectParticipantSuggestion(entryId, participantId, element) {
+  // Clear input and hide suggestions first
+  const container = element.parentNode.parentNode;
+  const input = container.querySelector('.participant-input');
+  input.value = '';
+  hideParticipantSuggestions();
+  
+  // Add participant (this will handle focus restoration)
+  addParticipantToEntry(entryId, participantId);
+}
+
+function hideParticipantSuggestions() {
+  document.querySelectorAll('.autocomplete-suggestions').forEach(div => {
+    div.style.display = 'none';
+  });
+}
+
+function togglePreview() {
+  batchEntryState.isPreviewMode = !batchEntryState.isPreviewMode;
+  renderBatchEntries();
+  
+  const button = document.getElementById('preview-btn');
+  if (button) {
+    button.textContent = batchEntryState.isPreviewMode ? 'Edit' : 'Preview';
   }
 }
 
 function submitBatchEntry() {
-  const modal = document.getElementById('batch-modal');
-  if (!modal) return;
-  
-  const stationId = modal.dataset.currentStation;
-  const participantsInput = document.getElementById('batch-participants');
-  const timeInput = document.getElementById('batch-time');
-  const notesInput = document.getElementById('batch-notes');
-  
-  if (!participantsInput || !stationId) return;
-  
-  const participantsText = participantsInput.value.trim();
-  if (!participantsText) {
-    alert('Please enter at least one participant');
+  if (batchEntryState.entries.length === 0) {
+    alert('No entries to submit');
     return;
   }
   
-  // Parse participants (comma separated)
-  const participants = participantsText.split(',').map(p => p.trim()).filter(Boolean);
-  const time = timeInput ? timeInput.value.trim() : '';
-  const notes = notesInput ? notesInput.value.trim() : '';
-  const currentTime = new Date().toLocaleTimeString();
+  let totalProcessed = 0;
   
-  // Add participants to station and log activities
-  participants.forEach(participantId => {
-    // Remove from current station
-    Object.keys(eventData.stationAssignments).forEach(sId => {
-      eventData.stationAssignments[sId] = eventData.stationAssignments[sId].filter(id => id !== participantId);
-    });
-    
-    // Add to target station
-    if (!eventData.stationAssignments[stationId]) {
-      eventData.stationAssignments[stationId] = [];
-    }
-    eventData.stationAssignments[stationId].push(participantId);
-    
-    // Create participant if doesn't exist (but don't assign course during race operations)
-    let participant = eventData.participants.find(p => p.id === participantId);
-    if (!participant) {
-      // Show warning about unregistered participant
-      console.warn(`Participant ${participantId} not found in participants list. Adding without course assignment.`);
+  batchEntryState.entries.forEach(entry => {
+    if (entry.updateType === 'race-update') {
+      entry.participants.forEach(participantId => {
+        // Remove from current station
+        Object.keys(eventData.stationAssignments).forEach(sId => {
+          eventData.stationAssignments[sId] = eventData.stationAssignments[sId].filter(id => id !== participantId);
+        });
+        
+        // Add to target station
+        if (!eventData.stationAssignments[entry.station]) {
+          eventData.stationAssignments[entry.station] = [];
+        }
+        eventData.stationAssignments[entry.station].push(participantId);
+        
+        // Create participant if doesn't exist
+        let participant = eventData.participants.find(p => p.id === participantId);
+        if (!participant) {
+          participant = { 
+            id: participantId, 
+            name: participantId, 
+            type: 'race', 
+            active: true,
+            courseId: null
+          };
+          eventData.participants.push(participant);
+        }
+        
+        // Log the activity
+        logActivity({
+          participantId: participantId,
+          activity: entry.action,
+          station: entry.station,
+          timestamp: new Date().toISOString(),
+          userTime: parseTimeInput(entry.time),
+          notes: entry.notes || 'Batch entry'
+        });
+        
+        totalProcessed++;
+      });
+    } else if (entry.updateType === 'race-message') {
+      // Log race message
+      logActivity({
+        participantId: 'STATION',
+        activity: 'other',
+        station: entry.station,
+        timestamp: new Date().toISOString(),
+        userTime: parseTimeInput(entry.time),
+        notes: entry.message || 'Race message'
+      });
       
-      participant = { 
-        id: participantId, 
-        name: participantId, 
-        type: 'race', 
-        active: true,
-        courseId: null // No course assignment during race operations
-      };
-      eventData.participants.push(participant);
+      totalProcessed++;
     }
-    
-    // Validate that participant can be at this station
-    const participantCourseId = participant.courseId;
-    if (participantCourseId && !isStationInCourse(stationId, participantCourseId)) {
-      console.warn(`Participant ${participantId} assigned to different course but being moved to ${stationId}. This may be intentional (e.g., course change).`);
-    }
-    
-    // Log the activity
-    logActivity({
-      participantId: participantId,
-      activity: 'arrival',
-      station: stationId,
-      timestamp: new Date().toISOString(),
-      userTime: time || currentTime,
-      notes: notes || 'Batch entry'
-    });
   });
   
   saveData();
   renderRaceTracker();
   closeBatchModal();
   
-  const station = eventData.aidStations.find(s => s.id === stationId);
-  alert(`Added ${participants.length} participants to ${station ? station.name : stationId}`);
+  alert(`Processed ${totalProcessed} entries successfully`);
 }
 
 function showActivityLog() {
@@ -1431,15 +1733,7 @@ function closeActivityLog() {
   }
 }
 
-function addBatchRow() {
-  // To be implemented in next phase
-  alert('Add batch row - to be implemented');
-}
 
-function togglePreview() {
-  // To be implemented in next phase
-  alert('Toggle preview - to be implemented');
-}
 
 // Activity logging
 function logActivity(activity) {
