@@ -80,9 +80,10 @@ function renderParticipantsList() {
         
         <div class="participants-table">
           <div class="participants-table-header">
-            <div class="col-checkbox"></div>
+            <div class="col-checkbox">✓</div>
             <div class="col-id">ID/Bib</div>
             <div class="col-name">Name</div>
+            <div class="col-course">Course</div>
             <div class="col-actions">Actions</div>
           </div>
           <div class="participants-table-body">
@@ -92,15 +93,16 @@ function renderParticipantsList() {
                   <input type="checkbox" class="participant-checkbox" data-participant-id="${participant.id}">
                 </div>
                 <div class="col-id">${participant.id}</div>
-                <div class="col-name">${participant.name}</div>
+                <div class="col-name">${participant.name || ''}</div>
+                <div class="col-course">${course.name}</div>
                 <div class="col-actions">
-                                     <select class="participant-course-select" data-participant-id="${participant.id}">
-                     <option value="">Move to...</option>
-                     ${eventData.courses.map(c => 
-                       `<option value="${c.id}" ${c.id === participant.courseId ? 'selected' : ''}>${c.name}</option>`
-                     ).join('')}
-                   </select>
-                   <button class="btn btn-small btn-danger participant-remove-btn" data-participant-id="${participant.id}">Remove</button>
+                  <select class="participant-course-select" data-participant-id="${participant.id}">
+                    <option value="">Move to...</option>
+                    ${eventData.courses.map(c => 
+                      `<option value="${c.id}" ${c.id === participant.courseId ? 'selected' : ''}>${c.name}</option>`
+                    ).join('')}
+                  </select>
+                  <button class="btn btn-small btn-danger participant-remove-btn" data-participant-id="${participant.id}">×</button>
                 </div>
               </div>
             `).join('')}
@@ -120,9 +122,10 @@ function renderParticipantsList() {
         
         <div class="participants-table">
           <div class="participants-table-header">
-            <div class="col-checkbox"></div>
+            <div class="col-checkbox">✓</div>
             <div class="col-id">ID/Bib</div>
             <div class="col-name">Name</div>
+            <div class="col-course">Course</div>
             <div class="col-actions">Actions</div>
           </div>
           <div class="participants-table-body">
@@ -132,15 +135,16 @@ function renderParticipantsList() {
                   <input type="checkbox" class="participant-checkbox" data-participant-id="${participant.id}">
                 </div>
                 <div class="col-id">${participant.id}</div>
-                <div class="col-name">${participant.name}</div>
+                <div class="col-name">${participant.name || ''}</div>
+                <div class="col-course"><em>Unassigned</em></div>
                 <div class="col-actions">
-                                     <select class="participant-course-select" data-participant-id="${participant.id}">
-                     <option value="">Assign to course...</option>
-                     ${eventData.courses.map(c => 
-                       `<option value="${c.id}">${c.name}</option>`
-                     ).join('')}
-                   </select>
-                   <button class="btn btn-small btn-danger participant-remove-btn" data-participant-id="${participant.id}">Remove</button>
+                  <select class="participant-course-select" data-participant-id="${participant.id}">
+                    <option value="">Assign to course...</option>
+                    ${eventData.courses.map(c => 
+                      `<option value="${c.id}">${c.name}</option>`
+                    ).join('')}
+                  </select>
+                  <button class="btn btn-small btn-danger participant-remove-btn" data-participant-id="${participant.id}">×</button>
                 </div>
               </div>
             `).join('')}
