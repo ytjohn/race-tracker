@@ -1521,6 +1521,10 @@ body {
   width: 150px;
 }
 
+.course-column {
+  width: 120px;
+}
+
 .activity-column {
   width: 120px;
 }
@@ -1531,6 +1535,18 @@ body {
 
 .prior-station-column {
   width: 140px;
+}
+
+.course-analysis-column {
+  width: 180px;
+}
+
+.distance-column {
+  width: 100px;
+}
+
+.duration-column {
+  width: 100px;
 }
 
 .notes-column {
@@ -1551,9 +1567,13 @@ body {
 
 .time-cell,
 .participant-cell,
+.course-cell,
 .activity-cell,
 .station-cell,
 .prior-station-cell,
+.course-analysis-cell,
+.distance-cell,
+.duration-cell,
 .notes-cell {
   position: relative;
 }
@@ -1762,4 +1782,127 @@ body {
     padding: 0.5rem;
     font-size: 0.9rem;
   }
-} 
+}
+
+/* Participant Filter Styles */
+.participant-filter-container {
+  position: relative;
+  display: inline-block;
+  min-width: 200px;
+}
+
+.participant-filter-header {
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.participant-filter-header:hover {
+  background: #f8f9fa;
+}
+
+.participant-filter-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.participant-filter-search {
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.participant-filter-actions {
+  padding: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.participant-filter-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.participant-filter-item {
+  display: block;
+  padding: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.participant-filter-item:hover {
+  background: #f8f9fa;
+}
+
+.participant-filter-item input {
+  margin-right: 0.5rem;
+}
+
+/* Course Analysis Styles */
+.course-analysis-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.course-analysis-valid {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.course-analysis-warning {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.course-analysis-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.distance-display {
+  font-weight: 500;
+  color: #666;
+}
+
+.duration-display {
+  font-weight: 500;
+  color: #666;
+  font-family: monospace;
+}
+
+.course-display {
+  font-size: 0.9rem;
+  color: #495057;
+  font-weight: 500;
+}

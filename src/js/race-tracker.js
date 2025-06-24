@@ -35,7 +35,7 @@ function renderRaceTracker() {
   
   // Group stations by course and shared stations
   const courseStations = {};
-  const sharedStations = ['dnf', 'dns', 'suspect'];
+  const sharedStations = ['dnf', 'dns'];
   
   // Organize stations by course
   eventData.courses.forEach(course => {
@@ -226,17 +226,13 @@ function moveParticipant(participantId, targetStationId) {
   let isSuspectMove = false;
   
   // Check if move is valid (course restrictions)
-  const sharedStations = ['dnf', 'dns', 'suspect'];
+  const sharedStations = ['dnf', 'dns'];
   const isTargetShared = sharedStations.includes(targetStationId);
   
   if (!isTargetShared && !isStationInCourse(targetStationId, participant.courseId)) {
-    // Invalid move - redirect to suspect data
-    finalStationId = 'suspect';
-    notes = `SUSPECT: Attempted to move from ${participant.courseId || 'unknown course'} to invalid station ${getStationName(targetStationId)}`;
-    isSuspectMove = true;
-    
-    // Show alert to user
-    alert(`⚠️ SUSPECT DATA: ${participant.name} cannot be moved to ${getStationName(targetStationId)} - not part of their course. Moved to Suspect Data instead.`);
+    // Invalid move - show error and cancel
+    alert(`❌ INVALID MOVE: ${participant.name} cannot be moved to ${getStationName(targetStationId)} - not part of their course.`);
+    return; // Cancel the move
   }
   
   // Remove from current station
@@ -254,7 +250,7 @@ function moveParticipant(participantId, targetStationId) {
   // Log the activity
   logActivity({
     participantId: participantId,
-    activityType: isSuspectMove ? 'suspect' : 'arrival',
+    activityType: 'arrival',
     stationId: finalStationId,
     priorStationId: currentStationId,
     notes: notes
@@ -592,15 +588,13 @@ function submitBatchEntry() {
         let finalNotes = entry.notes;
         let activityType = entry.action.toLowerCase();
         
-        // Check for suspect data conditions
-        const sharedStations = ['dnf', 'dns', 'suspect'];
+        // Check for course validation
+        const sharedStations = ['dnf', 'dns'];
         const isTargetShared = sharedStations.includes(entry.stationId);
         
         if (participant && !isTargetShared && !isStationInCourse(entry.stationId, participant.courseId)) {
-          // Invalid move - redirect to suspect data
-          finalStationId = 'suspect';
-          finalNotes = `SUSPECT: Batch entry attempted to move ${participantId} from ${participant.courseId || 'unknown course'} to invalid station ${getStationName(entry.stationId)}. Original notes: ${entry.notes || 'none'}`;
-          activityType = 'suspect';
+          // Skip invalid moves - they will be flagged in the activity log analysis
+          console.warn(`Skipping invalid move: ${participantId} to ${getStationName(entry.stationId)} - not in their course`);
         }
         
         // Find current station
@@ -652,25 +646,7 @@ function submitBatchEntry() {
   renderRaceTracker();
   closeBatchModal();
   
-  // Count suspect entries for summary
-  const suspectCount = batchEntries.reduce((count, entry) => {
-    if (entry.updateType === 'Race Update') {
-      return count + entry.participants.filter(participantId => {
-        const participant = eventData.participants.find(p => p.id === participantId);
-        const sharedStations = ['dnf', 'dns', 'suspect'];
-        const isTargetShared = sharedStations.includes(entry.stationId);
-        return participant && !isTargetShared && !isStationInCourse(entry.stationId, participant.courseId);
-      }).length;
-    }
-    return count;
-  }, 0);
-  
-  let message = `Processed ${processedCount} updates successfully!`;
-  if (suspectCount > 0) {
-    message += `\n\n⚠️ ${suspectCount} entries were moved to Suspect Data due to course validation issues.`;
-  }
-  
-  alert(message);
+  alert(`Processed ${processedCount} updates successfully!`);
 }
 
 // Close batch modal

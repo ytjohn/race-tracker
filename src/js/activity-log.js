@@ -69,12 +69,30 @@ function renderActivityLogManagement() {
     <div class="activity-log-filters">
       <div class="filter-section">
         <div class="filter-controls">
-          <select id="filter-participant" onchange="filterActivityLog()" class="filter-select">
-            <option value="">All Participants</option>
-            ${getUniqueParticipants(sortedLog).map(p => 
-              `<option value="${p.id}">${p.name} (${p.id})</option>`
-            ).join('')}
-          </select>
+          <div class="participant-filter-container">
+            <div class="participant-filter-header" onclick="toggleParticipantFilter()">
+              <span>✓ All Participants</span>
+              <span class="filter-arrow">▼</span>
+            </div>
+            <div class="participant-filter-dropdown" id="participant-filter-dropdown" style="display: none;">
+              <div class="participant-filter-search">
+                <input type="text" id="participant-search" placeholder="Search participants..." 
+                       oninput="filterParticipantList()" class="search-input">
+              </div>
+              <div class="participant-filter-actions">
+                <button class="btn btn-small" onclick="selectAllParticipants()">Select All</button>
+                <button class="btn btn-small" onclick="clearAllParticipants()">Clear All</button>
+              </div>
+              <div class="participant-filter-list" id="participant-filter-list">
+                ${getUniqueParticipants(sortedLog).map(p => `
+                  <label class="participant-filter-item">
+                    <input type="checkbox" value="${p.id}" checked onchange="updateParticipantFilter()">
+                    <span>${p.name} (${p.id})</span>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+          </div>
           
           <select id="filter-station" onchange="filterActivityLog()" class="filter-select">
             <option value="">All Stations</option>
@@ -83,12 +101,24 @@ function renderActivityLogManagement() {
             ).join('')}
           </select>
           
+          <select id="filter-course" onchange="filterActivityLog()" class="filter-select">
+            <option value="">All Courses</option>
+            ${eventData.courses.map(c => 
+              `<option value="${c.id}">${c.name}</option>`
+            ).join('')}
+          </select>
+          
           <select id="filter-activity-type" onchange="filterActivityLog()" class="filter-select">
             <option value="">All Activity Types</option>
             <option value="arrival">Arrivals</option>
             <option value="departed">Departures</option>
-            <option value="suspect">Suspect Data</option>
             <option value="other">Messages/Other</option>
+          </select>
+          
+          <select id="filter-course-issues" onchange="filterActivityLog()" class="filter-select">
+            <option value="">All Entries</option>
+            <option value="issues-only">Course Issues Only</option>
+            <option value="valid-only">Valid Entries Only</option>
           </select>
           
           <button class="btn btn-small btn-outline" onclick="clearFilters()">
@@ -124,9 +154,13 @@ function renderActivityLogManagement() {
             </th>
             <th class="time-column">Time</th>
             <th class="participant-column">Participant</th>
+            <th class="course-column">Course</th>
             <th class="activity-column">Activity</th>
             <th class="station-column">Station</th>
             <th class="prior-station-column">Prior Station</th>
+            <th class="course-analysis-column">Course Analysis</th>
+            <th class="distance-column">Distance</th>
+            <th class="duration-column">Duration</th>
             <th class="notes-column">Notes</th>
             <th class="actions-column">Actions</th>
           </tr>
@@ -150,6 +184,12 @@ function renderActivityLogRows(logEntries) {
     const priorStation = entry.priorStationId ? 
       eventData.aidStations.find(s => s.id === entry.priorStationId) : null;
     const time = new Date(entry.userTime || entry.timestamp);
+    
+    // Course analysis
+    const courseAnalysis = participant ? analyzeCourseProgression(participant, entry, priorStation) : null;
+    
+    // Duration since last event for this participant
+    const duration = participant ? calculateDurationSinceLastEvent(participant.id, entry) : null;
     
     return `
       <tr class="activity-row ${entry.activityType}" data-entry-id="${entry.id}">
@@ -186,6 +226,12 @@ function renderActivityLogRows(logEntries) {
             </div>
           `}
         </td>
+        <td class="course-cell">
+          <div class="course-display">
+            ${participant && participant.courseId ? 
+              (eventData.courses.find(c => c.id === participant.courseId)?.name || 'Unknown Course') : '—'}
+          </div>
+        </td>
         <td class="activity-cell">
           <div class="activity-display">
             <span class="activity-badge activity-${entry.activityType}">
@@ -196,7 +242,6 @@ function renderActivityLogRows(logEntries) {
             <select onchange="updateEntryActivityType('${entry.id}', this.value)">
               <option value="arrival" ${entry.activityType === 'arrival' ? 'selected' : ''}>Arrival</option>
               <option value="departed" ${entry.activityType === 'departed' ? 'selected' : ''}>Departure</option>
-              <option value="suspect" ${entry.activityType === 'suspect' ? 'selected' : ''}>Suspect</option>
               <option value="other" ${entry.activityType === 'other' ? 'selected' : ''}>Message/Other</option>
             </select>
           </div>
@@ -220,6 +265,22 @@ function renderActivityLogRows(logEntries) {
                 `<option value="${s.id}" ${s.id === entry.priorStationId ? 'selected' : ''}>${s.name}</option>`
               ).join('')}
             </select>
+          </div>
+        </td>
+        <td class="course-analysis-cell">
+          <div class="course-analysis-display">
+            ${courseAnalysis ? renderCourseAnalysis(courseAnalysis) : '—'}
+          </div>
+        </td>
+        <td class="distance-cell">
+          <div class="distance-display">
+            ${courseAnalysis && courseAnalysis.cumulativeDistance != null ? 
+              `${courseAnalysis.cumulativeDistance.toFixed(1)} mi` : '—'}
+          </div>
+        </td>
+        <td class="duration-cell">
+          <div class="duration-display">
+            ${duration ? formatDuration(duration) : '—'}
           </div>
         </td>
         <td class="notes-cell">
@@ -277,22 +338,58 @@ function formatActivityType(activityType) {
 
 // Filter activity log
 function filterActivityLog() {
-  const participantFilter = document.getElementById('filter-participant').value;
-  const stationFilter = document.getElementById('filter-station').value;
-  const activityFilter = document.getElementById('filter-activity-type').value;
+  const selectedParticipants = Array.from(
+    document.querySelectorAll('#participant-filter-list input[type="checkbox"]:checked')
+  ).map(cb => cb.value);
+  
+  const stationFilter = document.getElementById('filter-station')?.value;
+  const courseFilter = document.getElementById('filter-course')?.value;
+  const activityFilter = document.getElementById('filter-activity-type')?.value;
+  const courseIssuesFilter = document.getElementById('filter-course-issues')?.value;
   
   let filteredLog = [...eventData.activityLog];
   
-  if (participantFilter) {
-    filteredLog = filteredLog.filter(entry => entry.participantId === participantFilter);
+  // Participant filter - only filter if some participants are unchecked
+  if (selectedParticipants.length > 0 && 
+      selectedParticipants.length < document.querySelectorAll('#participant-filter-list input[type="checkbox"]').length) {
+    filteredLog = filteredLog.filter(entry => 
+      !entry.participantId || selectedParticipants.includes(entry.participantId)
+    );
   }
   
   if (stationFilter) {
     filteredLog = filteredLog.filter(entry => entry.stationId === stationFilter);
   }
   
+  // Course filter
+  if (courseFilter) {
+    filteredLog = filteredLog.filter(entry => {
+      const participant = entry.participantId ? 
+        eventData.participants.find(p => p.id === entry.participantId) : null;
+      return participant && participant.courseId === courseFilter;
+    });
+  }
+  
   if (activityFilter) {
     filteredLog = filteredLog.filter(entry => entry.activityType === activityFilter);
+  }
+  
+  // Course issues filter
+  if (courseIssuesFilter) {
+    filteredLog = filteredLog.filter(entry => {
+      const participant = entry.participantId ? 
+        eventData.participants.find(p => p.id === entry.participantId) : null;
+      const priorStation = entry.priorStationId ? 
+        eventData.aidStations.find(s => s.id === entry.priorStationId) : null;
+      const courseAnalysis = participant ? analyzeCourseProgression(participant, entry, priorStation) : null;
+      
+      if (courseIssuesFilter === 'issues-only') {
+        return courseAnalysis && (courseAnalysis.status === 'warning' || courseAnalysis.status === 'error');
+      } else if (courseIssuesFilter === 'valid-only') {
+        return !courseAnalysis || courseAnalysis.status === 'valid';
+      }
+      return true;
+    });
   }
   
   // Sort filtered results
@@ -309,9 +406,21 @@ function filterActivityLog() {
 
 // Clear filters
 function clearFilters() {
-  document.getElementById('filter-participant').value = '';
-  document.getElementById('filter-station').value = '';
-  document.getElementById('filter-activity-type').value = '';
+  // Reset participant filter
+  const participantCheckboxes = document.querySelectorAll('#participant-filter-list input[type="checkbox"]');
+  participantCheckboxes.forEach(cb => cb.checked = true);
+  updateParticipantFilter();
+  
+  // Reset other filters
+  const stationFilter = document.getElementById('filter-station');
+  const courseFilter = document.getElementById('filter-course');
+  const activityFilter = document.getElementById('filter-activity-type');
+  const courseIssuesFilter = document.getElementById('filter-course-issues');
+  if (stationFilter) stationFilter.value = '';
+  if (courseFilter) courseFilter.value = '';
+  if (activityFilter) activityFilter.value = '';
+  if (courseIssuesFilter) courseIssuesFilter.value = '';
+  
   filterActivityLog();
 }
 
@@ -335,7 +444,7 @@ function toggleEditEntry(entryId) {
     row.classList.add('editing');
     
     // Show edit controls, hide display
-    row.querySelectorAll('.time-display, .participant-display, .activity-display, .station-display, .prior-station-display, .notes-display').forEach(el => {
+    row.querySelectorAll('.time-display, .participant-display, .course-display, .activity-display, .station-display, .prior-station-display, .notes-display').forEach(el => {
       el.classList.add('hidden');
     });
     row.querySelectorAll('.time-edit, .participant-edit, .activity-edit, .station-edit, .prior-station-edit, .notes-edit').forEach(el => {
@@ -354,7 +463,7 @@ function cancelEntryEdit(entryId) {
   row.classList.remove('editing');
   
   // Show display controls, hide edit
-  row.querySelectorAll('.time-display, .participant-display, .activity-display, .station-display, .prior-station-display, .notes-display').forEach(el => {
+  row.querySelectorAll('.time-display, .participant-display, .course-display, .activity-display, .station-display, .prior-station-display, .notes-display').forEach(el => {
     el.classList.remove('hidden');
   });
   row.querySelectorAll('.time-edit, .participant-edit, .activity-edit, .station-edit, .prior-station-edit, .notes-edit').forEach(el => {
@@ -472,7 +581,7 @@ function exportActivityLog(format) {
 
 // Export as CSV
 function exportActivityLogCSV(logEntries) {
-  const headers = ['Time', 'Participant ID', 'Participant Name', 'Activity Type', 'Station', 'Prior Station', 'Notes'];
+  const headers = ['Time', 'Participant ID', 'Participant Name', 'Course', 'Activity Type', 'Station', 'Prior Station', 'Course Analysis', 'Distance', 'Duration', 'Notes'];
   
   const rows = logEntries.map(entry => {
     const participant = entry.participantId ? 
@@ -482,13 +591,28 @@ function exportActivityLogCSV(logEntries) {
       eventData.aidStations.find(s => s.id === entry.priorStationId) : null;
     const time = new Date(entry.userTime || entry.timestamp);
     
+    // Get course info
+    const course = participant && participant.courseId ? 
+      eventData.courses.find(c => c.id === participant.courseId) : null;
+    
+    // Get course analysis
+    const courseAnalysis = participant ? analyzeCourseProgression(participant, entry, priorStation) : null;
+    
+    // Get duration
+    const duration = participant ? calculateDurationSinceLastEvent(participant.id, entry) : null;
+    
     return [
       formatTime(time),
       participant ? participant.id : '',
       participant ? participant.name : '',
+      course ? course.name : '',
       formatActivityType(entry.activityType),
       station ? station.name : 'Unknown',
       priorStation ? priorStation.name : '',
+      courseAnalysis ? courseAnalysis.message : '',
+      courseAnalysis && courseAnalysis.cumulativeDistance != null ? 
+        `${courseAnalysis.cumulativeDistance.toFixed(1)} mi` : '',
+      duration ? formatDuration(duration) : '',
       entry.notes || ''
     ];
   });
@@ -615,7 +739,6 @@ function showBulkEditModal() {
               <select id="bulk-activity-value" disabled>
                 <option value="arrival">Arrival</option>
                 <option value="departed">Departure</option>
-                <option value="suspect">Suspect</option>
                 <option value="other">Message/Other</option>
               </select>
             </div>
@@ -785,7 +908,6 @@ function createStandaloneAddActivityModal() {
                  <select id="add-activity-type">
                    <option value="arrival">Arrival</option>
                    <option value="departed">Departure</option>
-                   <option value="suspect">Suspect</option>
                    <option value="other">Message/Other</option>
                  </select>
                </div>
@@ -876,4 +998,169 @@ function parseTimeToISO(timeString) {
   const date = new Date(today);
   date.setHours(parseInt(hours), parseInt(minutes), 0, 0);
   return date.toISOString();
+}
+
+// Participant filter functions
+function toggleParticipantFilter() {
+  const dropdown = document.getElementById('participant-filter-dropdown');
+  if (dropdown) {
+    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+  }
+}
+
+// Close participant filter when clicking outside
+document.addEventListener('click', function(event) {
+  const container = event.target.closest('.participant-filter-container');
+  if (!container) {
+    const dropdown = document.getElementById('participant-filter-dropdown');
+    if (dropdown) {
+      dropdown.style.display = 'none';
+    }
+  }
+});
+
+function filterParticipantList() {
+  const searchInput = document.getElementById('participant-search');
+  const filterList = document.getElementById('participant-filter-list');
+  const searchTerm = searchInput.value.toLowerCase();
+  
+  const items = filterList.querySelectorAll('.participant-filter-item');
+  items.forEach(item => {
+    const text = item.textContent.toLowerCase();
+    item.style.display = text.includes(searchTerm) ? 'block' : 'none';
+  });
+}
+
+function selectAllParticipants() {
+  const checkboxes = document.querySelectorAll('#participant-filter-list input[type="checkbox"]');
+  checkboxes.forEach(checkbox => {
+    if (checkbox.closest('.participant-filter-item').style.display !== 'none') {
+      checkbox.checked = true;
+    }
+  });
+  updateParticipantFilter();
+}
+
+function clearAllParticipants() {
+  const checkboxes = document.querySelectorAll('#participant-filter-list input[type="checkbox"]');
+  checkboxes.forEach(checkbox => {
+    if (checkbox.closest('.participant-filter-item').style.display !== 'none') {
+      checkbox.checked = false;
+    }
+  });
+  updateParticipantFilter();
+}
+
+function updateParticipantFilter() {
+  const checkboxes = document.querySelectorAll('#participant-filter-list input[type="checkbox"]:checked');
+  const header = document.querySelector('.participant-filter-header span');
+  
+  if (checkboxes.length === 0) {
+    header.textContent = 'No Participants Selected';
+  } else if (checkboxes.length === document.querySelectorAll('#participant-filter-list input[type="checkbox"]').length) {
+    header.textContent = '✓ All Participants';
+  } else {
+    header.textContent = `✓ ${checkboxes.length} Participants`;
+  }
+  
+  filterActivityLog();
+}
+
+// Course analysis functions
+function analyzeCourseProgression(participant, entry, priorStation) {
+  if (!participant || !participant.courseId || entry.activityType !== 'arrival') {
+    return null;
+  }
+  
+  const course = eventData.courses.find(c => c.id === participant.courseId);
+  if (!course) return null;
+  
+  const currentStationIndex = course.stations.findIndex(cs => cs.stationId === entry.stationId);
+  const priorStationIndex = priorStation ? 
+    course.stations.findIndex(cs => cs.stationId === priorStation.id) : -1;
+  
+  // DNF and DNS can be reached from anywhere
+  const flexibleStations = ['dnf', 'dns'];
+  if (flexibleStations.includes(entry.stationId)) {
+    return {
+      status: 'valid',
+      message: 'Valid transition',
+      cumulativeDistance: priorStationIndex >= 0 ? (course.stations[priorStationIndex].cumulative || 0) : 0
+    };
+  }
+  
+  // Check if current station is in course
+  if (currentStationIndex === -1) {
+    return {
+      status: 'error',
+      message: 'Station not in participant course',
+      cumulativeDistance: null
+    };
+  }
+  
+  // Check progression order
+  if (priorStationIndex >= 0 && currentStationIndex <= priorStationIndex) {
+    return {
+      status: 'warning',
+      message: 'Arrived out of course order',
+      cumulativeDistance: course.stations[currentStationIndex].cumulative || 0
+    };
+  }
+  
+  // Valid progression
+  return {
+    status: 'valid',
+    message: 'Valid course progression',
+    cumulativeDistance: course.stations[currentStationIndex].cumulative || 0
+  };
+}
+
+function renderCourseAnalysis(analysis) {
+  if (!analysis) return '—';
+  
+  const statusIcons = {
+    valid: '✅',
+    warning: '⚠️',
+    error: '❌'
+  };
+  
+  return `
+    <div class="course-analysis-badge course-analysis-${analysis.status}" 
+         title="${analysis.message}">
+      ${statusIcons[analysis.status]} ${analysis.message}
+    </div>
+  `;
+}
+
+// Calculate duration since last event for a participant
+function calculateDurationSinceLastEvent(participantId, currentEntry) {
+  const participantEntries = eventData.activityLog
+    .filter(entry => entry.participantId === participantId)
+    .sort((a, b) => new Date(a.userTime || a.timestamp) - new Date(b.userTime || b.timestamp));
+  
+  const currentIndex = participantEntries.findIndex(entry => entry.id === currentEntry.id);
+  if (currentIndex <= 0) return null; // First entry or not found
+  
+  const previousEntry = participantEntries[currentIndex - 1];
+  const currentTime = new Date(currentEntry.userTime || currentEntry.timestamp);
+  const previousTime = new Date(previousEntry.userTime || previousEntry.timestamp);
+  
+  return currentTime - previousTime; // Duration in milliseconds
+}
+
+// Format duration in a human-readable way
+function formatDuration(durationMs) {
+  if (!durationMs || durationMs < 0) return '—';
+  
+  const minutes = Math.floor(durationMs / (1000 * 60));
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  
+  if (hours > 0) {
+    return `${hours}h ${remainingMinutes}m`;
+  } else if (minutes > 0) {
+    return `${minutes}m`;
+  } else {
+    return '<1m';
+  }
 } 
