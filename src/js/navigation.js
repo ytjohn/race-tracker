@@ -1,8 +1,8 @@
 // Current page state
-let currentPage = 'event-setup';
+let currentPage = 'race-tracker';
 
 // Page Navigation
-function showPage(pageId) {
+function showPage(pageId, updateUrl = true) {
   // Hide all pages
   document.querySelectorAll('.page').forEach(page => {
     page.classList.remove('active');
@@ -15,6 +15,14 @@ function showPage(pageId) {
   }
   
   currentPage = pageId;
+  
+  // Update URL without reloading page
+  if (updateUrl && window.history) {
+    const url = new URL(window.location);
+    url.searchParams.set('page', pageId);
+    window.history.pushState({ page: pageId }, '', url);
+  }
+  
   updateNavigation();
   
   // Special handling for race tracker page
@@ -43,8 +51,14 @@ function showPage(pageId) {
   }
   
   // Load existing event data into forms when showing event setup
-  if (pageId === 'event-setup' && eventData) {
-    loadEventDataIntoForms();
+  if (pageId === 'event-setup') {
+    if (eventData) {
+      loadEventDataIntoForms();
+    }
+    // Setup auto-save functionality
+    if (window.setupEventDetailsAutoSave) {
+      setupEventDetailsAutoSave();
+    }
   }
   
   // Re-render setup pages to show current event data
@@ -64,10 +78,23 @@ function updateNavigation() {
     btn.classList.remove('active');
   });
   
+  // Update dropdown item states
+  document.querySelectorAll('.dropdown-item').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
   // Find the button for current page and mark as active
   const currentBtn = document.querySelector(`[data-page="${currentPage}"]`);
   if (currentBtn) {
     currentBtn.classList.add('active');
+    
+    // If it's a dropdown item, also highlight the dropdown toggle
+    if (currentBtn.classList.contains('dropdown-item')) {
+      const settingsToggle = document.getElementById('settings-toggle');
+      if (settingsToggle) {
+        settingsToggle.classList.add('active');
+      }
+    }
   }
   
   // Enable/disable race tracker based on setup completion
@@ -111,9 +138,54 @@ function loadEventDataIntoForms() {
   if (eventDescriptionEl) eventDescriptionEl.value = eventData.event.description || '';
 }
 
+// Get initial page from URL or determine default
+function getInitialPage() {
+  // Check URL parameters first
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlPage = urlParams.get('page');
+  
+  if (urlPage) {
+    return urlPage;
+  }
+  
+  // Default logic: race tracker if setup is complete, otherwise event setup
+  if (!eventData || !eventData.event || !eventData.event.name) {
+    return 'event-setup';
+  }
+  
+  if (!eventData.courses || eventData.courses.length === 0) {
+    return 'event-setup';
+  }
+  
+  if (!eventData.participants || eventData.participants.length === 0) {
+    return 'participants-setup';
+  }
+  
+  return 'race-tracker';
+}
+
+// Handle browser back/forward buttons
+function handlePopState(event) {
+  if (event.state && event.state.page) {
+    showPage(event.state.page, false);
+  } else {
+    // Fallback to URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlPage = urlParams.get('page');
+    if (urlPage) {
+      showPage(urlPage, false);
+    }
+  }
+}
+
 // Initialize navigation system
 function initializeNavigation() {
-  // Navigation event listeners
+  // Set up browser back/forward handling
+  window.addEventListener('popstate', handlePopState);
+  
+  // Set initial page based on URL or default logic
+  currentPage = getInitialPage();
+  // Navigation event listeners for nav buttons
   document.querySelectorAll('.nav-btn[data-page]').forEach(btn => {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
@@ -124,6 +196,19 @@ function initializeNavigation() {
         alert('Please complete Event Setup, Aid Stations, Courses, and Participants configuration first.');
         return;
       }
+      
+      showPage(page);
+    });
+  });
+  
+  // Navigation event listeners for dropdown items
+  document.querySelectorAll('.dropdown-item[data-page]').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const page = this.getAttribute('data-page');
+      
+      // Close dropdown
+      document.getElementById('settings-dropdown').classList.remove('show');
       
       showPage(page);
     });

@@ -5,6 +5,39 @@
 function initializeEventSetup() {
   // Event setup is ready
   console.log('Event setup module initialized');
+  
+  // Setup auto-save for event details form
+  setupEventDetailsAutoSave();
+}
+
+// Setup auto-save for event details
+function setupEventDetailsAutoSave() {
+  const eventInputs = [
+    'event-name',
+    'event-date', 
+    'event-location',
+    'event-description'
+  ];
+  
+  eventInputs.forEach(inputId => {
+    const input = document.getElementById(inputId);
+    if (input) {
+      // Save on input change with debouncing
+      let saveTimeout;
+      input.addEventListener('input', function() {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+          saveEventDetails();
+        }, 500); // 500ms debounce
+      });
+      
+      // Also save on blur (when user moves away from field)
+      input.addEventListener('blur', function() {
+        clearTimeout(saveTimeout);
+        saveEventDetails();
+      });
+    }
+  });
 }
 
 // Event Setup Functions
@@ -25,8 +58,6 @@ function saveEventDetails() {
   
   saveData();
   updatePageTitle();
-  
-  alert('Event details saved successfully!');
 }
 
 // Aid Stations Setup Functions
@@ -101,7 +132,6 @@ function removeAidStation(stationId) {
 
 function saveAidStations() {
   saveData();
-  alert('Aid stations saved successfully!');
 }
 
 // Courses Setup Functions
@@ -327,5 +357,4 @@ function recalculateCourseDistances(courseId) {
 
 function saveCourses() {
   saveData();
-  alert('Courses saved successfully!');
 } 

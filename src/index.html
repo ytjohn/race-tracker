@@ -12,14 +12,16 @@
   <nav class="main-nav">
     <div class="nav-brand">Race Tracker</div>
     <div class="nav-links">
-      <button class="nav-btn" data-page="event-setup">Event Setup</button>
-      <button class="nav-btn" data-page="aid-stations-setup">Aid Stations</button>
-      <button class="nav-btn" data-page="courses-setup">Courses</button>
-      <button class="nav-btn" data-page="participants-setup">Participants</button>
       <button class="nav-btn" data-page="race-tracker" id="tracker-nav">Race Tracker</button>
+      <button class="nav-btn" data-page="participants-setup">Participants</button>
+      
       <div class="nav-dropdown">
         <button class="nav-btn dropdown-toggle" id="settings-toggle">Settings ▼</button>
         <div class="dropdown-menu" id="settings-dropdown">
+          <button class="dropdown-item" data-page="event-setup">Event Setup</button>
+          <button class="dropdown-item" data-page="aid-stations-setup">Aid Stations</button>
+          <button class="dropdown-item" data-page="courses-setup">Courses</button>
+          <div class="dropdown-divider"></div>
           <button class="dropdown-item" id="new-event-btn">New Event</button>
           <div class="dropdown-divider"></div>
           <button class="dropdown-item" id="export-event-btn">Export Event</button>
@@ -31,7 +33,7 @@
   </nav>
 
   <!-- Event Setup Page -->
-  <div id="event-setup" class="page active">
+  <div id="event-setup" class="page">
     <div class="page-header">
       <h1>Event Setup</h1>
       <p>Configure your race event details</p>
@@ -59,7 +61,6 @@
       </div>
       
       <div class="form-actions">
-        <button class="btn btn-primary" id="save-event-btn">Save Event Details</button>
         <button class="btn btn-secondary" data-page="aid-stations-setup">Next: Aid Stations →</button>
       </div>
     </div>
@@ -98,7 +99,6 @@
       
       <div class="form-actions">
         <button class="btn btn-secondary" data-page="event-setup">← Back: Event</button>
-        <button class="btn btn-primary" id="save-stations-btn">Save Aid Stations</button>
         <button class="btn btn-secondary" data-page="courses-setup">Next: Courses →</button>
       </div>
     </div>
@@ -124,7 +124,6 @@
       
       <div class="form-actions">
         <button class="btn btn-secondary" data-page="aid-stations-setup">← Back: Aid Stations</button>
-        <button class="btn btn-primary" id="save-courses-btn">Save Courses</button>
         <button class="btn btn-secondary" data-page="participants-setup">Next: Participants →</button>
       </div>
     </div>
@@ -174,7 +173,6 @@
       
       <div class="form-actions">
         <button class="btn btn-secondary" data-page="courses-setup">← Back: Courses</button>
-        <button class="btn btn-primary" id="save-participants-btn">Save Participants</button>
         <button class="btn btn-secondary" data-page="race-tracker">Next: Race Tracker →</button>
       </div>
     </div>

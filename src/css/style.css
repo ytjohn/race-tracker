@@ -102,6 +102,11 @@ body {
   background: #f8f9fa;
 }
 
+.dropdown-item.active {
+  background: #3498db;
+  color: white;
+}
+
 .dropdown-divider {
   height: 1px;
   background: #e9ecef;

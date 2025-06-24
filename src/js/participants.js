@@ -288,12 +288,6 @@ function bulkAddParticipants() {
   
   saveData();
   renderParticipantsList();
-  
-  let message = `Added ${addedCount} participants`;
-  if (skippedCount > 0) {
-    message += ` (${skippedCount} skipped - already exist)`;
-  }
-  alert(message);
 }
 
 // Change participant course
@@ -428,8 +422,6 @@ function clearAllParticipantsFromCourse(courseId) {
     
     saveData();
     renderParticipantsList();
-    
-    alert(`Removed ${participantsToRemove.length} participants from ${course.name}`);
   }
 }
 
@@ -493,8 +485,6 @@ function bulkMoveToCourse() {
     
     // Re-render to show changes
     renderParticipantsList();
-    
-    alert(`Moved ${selectedCheckboxes.length} participants to ${targetCourse.name}`);
   }
 }
 
@@ -524,13 +514,10 @@ function bulkRemoveParticipants() {
     
     saveData();
     renderParticipantsList();
-    
-    alert(`Removed ${participantIds.length} participants`);
   }
 }
 
 // Save participants
 function saveParticipants() {
   saveData();
-  alert('Participants saved successfully!');
 } 

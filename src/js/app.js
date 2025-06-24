@@ -58,47 +58,29 @@ function refreshAllSetupPages() {
 
 // Setup button event listeners
 function setupButtonEventListeners() {
-  // Event setup buttons
-  const saveEventBtn = document.getElementById('save-event-btn');
-  if (saveEventBtn) {
-    saveEventBtn.addEventListener('click', saveEventDetails);
-  }
-  
   // Aid stations buttons
   const addStationBtn = document.getElementById('add-station-btn');
-  const saveStationsBtn = document.getElementById('save-stations-btn');
   
   if (addStationBtn) {
     addStationBtn.addEventListener('click', addAidStation);
   }
-  if (saveStationsBtn) {
-    saveStationsBtn.addEventListener('click', saveAidStations);
-  }
   
   // Courses buttons
   const addCourseBtn = document.getElementById('add-course-btn');
-  const saveCoursesBtn = document.getElementById('save-courses-btn');
   
   if (addCourseBtn) {
     addCourseBtn.addEventListener('click', addCourse);
-  }
-  if (saveCoursesBtn) {
-    saveCoursesBtn.addEventListener('click', saveCourses);
   }
   
   // Participants buttons
   const addParticipantBtn = document.getElementById('add-participant-btn');
   const bulkAddBtn = document.getElementById('bulk-add-btn');
-  const saveParticipantsBtn = document.getElementById('save-participants-btn');
   
   if (addParticipantBtn) {
     addParticipantBtn.addEventListener('click', addParticipant);
   }
   if (bulkAddBtn) {
     bulkAddBtn.addEventListener('click', bulkAddParticipants);
-  }
-  if (saveParticipantsBtn) {
-    saveParticipantsBtn.addEventListener('click', saveParticipants);
   }
   
   // Navigation buttons (for data-page attributes)
