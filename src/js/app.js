@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize all modules
   initializeEventSetup();
   initializeParticipants();
+  initializeActivityLog();
   
   // Setup button event listeners
   setupButtonEventListeners();

@@ -43,6 +43,13 @@ function showPage(pageId, updateUrl = true) {
     }
   }
   
+  // Special handling for activity log page
+  if (pageId === 'activity-log') {
+    if (window.renderActivityLogManagement) {
+      renderActivityLogManagement();
+    }
+  }
+  
   // Special handling for participants setup page
   if (pageId === 'participants-setup') {
     if (window.renderParticipantsSetup) {
