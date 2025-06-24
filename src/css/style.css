@@ -2526,3 +2526,518 @@ body {
     margin-top: 2rem;
   }
 }
+
+/* ===== DISPLAY MODE (BIG SCREEN) ===== */
+
+.display-mode-container {
+  height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+/* Activity Ticker */
+.activity-ticker {
+  background: rgba(0, 0, 0, 0.8);
+  height: 60px;
+  overflow: hidden;
+  position: relative;
+  border-bottom: 3px solid #4a90e2;
+}
+
+.ticker-content {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  white-space: nowrap;
+  animation: scroll-ticker 60s linear infinite;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.ticker-item {
+  margin-right: 4rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ticker-time {
+  color: #4a90e2;
+  font-weight: 600;
+}
+
+.ticker-update {
+  color: #e8f4f8;
+}
+
+@keyframes scroll-ticker {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* Main Display Area */
+.display-main {
+  flex: 1;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.display-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.display-info h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.display-stats {
+  display: flex;
+  gap: 1rem;
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.display-stats .divider {
+  opacity: 0.6;
+}
+
+.display-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.display-nav-buttons {
+  display: flex;
+  gap: 0.25rem;
+  margin-right: 1rem;
+  padding: 0.25rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+.display-nav-btn {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  transition: all 0.2s ease !important;
+  min-width: 80px !important;
+  font-size: 0.85rem !important;
+}
+
+.display-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+  transform: none !important;
+}
+
+.display-nav-btn.active {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #2c3e50 !important;
+  border-color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 600;
+}
+
+.display-actions .btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  text-align: center;
+}
+
+.display-actions .btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Display View Container */
+.display-view-container {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 2rem;
+  backdrop-filter: blur(5px);
+  overflow: auto;
+}
+
+/* Live Update Alert */
+.live-update-alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  background: linear-gradient(135deg, #ff1744, #d50000);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(255, 23, 68, 0.4);
+  animation: slideInAlert 0.5s ease-out, fadeOutAlert 0.5s ease-in 2.5s forwards;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.alert-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.alert-icon {
+  font-size: 1.2rem;
+  animation: pulse 1s infinite;
+}
+
+.alert-text {
+  font-size: 1rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes slideInAlert {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOutAlert {
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* Compact Header Styles */
+.display-controls.compact {
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.display-controls.compact .display-info h2 {
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.display-controls.compact .display-stats {
+  font-size: 1rem;
+}
+
+.display-actions .btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.display-actions .btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Compact Kanban Board - fits everything on screen */
+.compact-kanban {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  height: 100%;
+  max-height: calc(100vh - 200px);
+}
+
+.compact-station {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.compact-station-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.compact-station-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.compact-station-count {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  min-width: 2rem;
+  text-align: center;
+}
+
+.compact-participants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  flex: 1;
+  align-content: flex-start;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.compact-participant {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.compact-participant.recent-update {
+  animation: pulse-highlight 2s infinite;
+  border: 1px solid #ffd700;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+  background: rgba(255, 235, 59, 0.9);
+  color: #333;
+}
+
+.empty-station {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+@keyframes pulse-highlight {
+  0%, 100% { 
+    transform: scale(1); 
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+  }
+  50% { 
+    transform: scale(1.02); 
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+  }
+}
+
+/* Original Display Kanban Board (for larger screens) */
+.display-kanban {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.display-station {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.display-station-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.display-station-name {
+  font-size: 1.6rem;
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.display-station-count {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.display-participants {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 0.5rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.display-participant {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  padding: 0.5rem;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.display-participant.recent-update {
+  animation: pulse-highlight 2s infinite;
+  border: 2px solid #ffd700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+/* Recent Activity View */
+.display-recent-activity {
+  display: grid;
+  gap: 1rem;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.display-activity-item {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-left: 4px solid;
+  transition: all 0.3s ease;
+}
+
+.display-activity-item.arrival { border-left-color: #4caf50; }
+.display-activity-item.departed { border-left-color: #ff9800; }
+.display-activity-item.other { border-left-color: #2196f3; }
+
+.display-activity-info {
+  flex: 1;
+}
+
+.display-activity-main {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.display-activity-details {
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+.display-activity-time {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #4a90e2;
+  text-align: right;
+}
+
+/* Statistics View */
+.display-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  height: 100%;
+}
+
+.display-stat-card {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.display-stat-number {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.display-stat-label {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Responsive adjustments for compact layout */
+@media (max-width: 1200px) {
+  .compact-kanban {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+  }
+  
+  .compact-station {
+    padding: 0.75rem;
+  }
+  
+  .compact-station-name {
+    font-size: 1rem;
+  }
+  
+  .compact-participant {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.4rem;
+  }
+}
+
+/* Responsive adjustments for very large screens */
+@media (min-width: 1920px) {
+  .display-info h2 {
+    font-size: 3.5rem;
+  }
+  
+  .display-stats {
+    font-size: 1.4rem;
+  }
+  
+  .compact-kanban {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .compact-station-name {
+    font-size: 1.4rem;
+  }
+  
+  .compact-station-count {
+    font-size: 1rem;
+  }
+  
+  .compact-participant {
+    font-size: 0.9rem;
+    padding: 0.3rem 0.6rem;
+  }
+}

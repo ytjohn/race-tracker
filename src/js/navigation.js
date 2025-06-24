@@ -64,6 +64,18 @@ function showPage(pageId, updateUrl = true) {
     }
   }
   
+  // Special handling for display mode page
+  if (pageId === 'display-mode') {
+    if (window.startDisplayMode) {
+      startDisplayMode();
+    }
+  } else {
+    // Stop display mode when leaving the page
+    if (window.stopDisplayMode) {
+      stopDisplayMode();
+    }
+  }
+  
   // Load existing event data into forms when showing event setup
   if (pageId === 'event-setup') {
     if (eventData) {
