@@ -378,7 +378,7 @@ function filterActivityLog() {
   if (selectedParticipants.length > 0 && 
       selectedParticipants.length < document.querySelectorAll('#participant-filter-list input[type="checkbox"]').length) {
     filteredLog = filteredLog.filter(entry => 
-      !entry.participantId || selectedParticipants.includes(entry.participantId)
+      entry.participantId && selectedParticipants.includes(entry.participantId)
     );
   }
   
