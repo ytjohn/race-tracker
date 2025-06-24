@@ -208,8 +208,21 @@ function moveParticipant(participantId, targetStationId) {
   const participant = eventData.participants.find(p => p.id === participantId);
   if (!participant) return;
   
+  // Find current station
+  let currentStationId = null;
+  Object.keys(eventData.stationAssignments).forEach(stationId => {
+    if ((eventData.stationAssignments[stationId] || []).includes(participantId)) {
+      currentStationId = stationId;
+    }
+  });
+  
+  // Silent no-op if dropping on same station
+  if (currentStationId === targetStationId) {
+    return;
+  }
+  
   let finalStationId = targetStationId;
-  let notes = 'Moved via drag and drop';
+  let notes = null; // No automatic notes
   let isSuspectMove = false;
   
   // Check if move is valid (course restrictions)
@@ -243,6 +256,7 @@ function moveParticipant(participantId, targetStationId) {
     participantId: participantId,
     activityType: isSuspectMove ? 'suspect' : 'arrival',
     stationId: finalStationId,
+    priorStationId: currentStationId,
     notes: notes
   });
   
@@ -589,6 +603,14 @@ function submitBatchEntry() {
           activityType = 'suspect';
         }
         
+        // Find current station
+        let currentStationId = null;
+        Object.keys(eventData.stationAssignments).forEach(stationId => {
+          if ((eventData.stationAssignments[stationId] || []).includes(participantId)) {
+            currentStationId = stationId;
+          }
+        });
+        
         // Move participant to station
         Object.keys(eventData.stationAssignments).forEach(stationId => {
           eventData.stationAssignments[stationId] = (eventData.stationAssignments[stationId] || [])
@@ -605,6 +627,7 @@ function submitBatchEntry() {
           participantId: participantId,
           activityType: activityType,
           stationId: finalStationId,
+          priorStationId: currentStationId,
           userTime: parsedTime.toISOString(),
           notes: finalNotes
         });
@@ -676,6 +699,8 @@ function showActivityLog() {
     const participant = entry.participantId ? 
       eventData.participants.find(p => p.id === entry.participantId) : null;
     const station = eventData.aidStations.find(s => s.id === entry.stationId);
+    const priorStation = entry.priorStationId ? 
+      eventData.aidStations.find(s => s.id === entry.priorStationId) : null;
     const time = new Date(entry.userTime || entry.timestamp);
     
     return `
@@ -685,6 +710,7 @@ function showActivityLog() {
           ${participant ? `<strong>${participant.name}</strong> ` : ''}
           ${entry.activityType} 
           ${station ? `at ${station.name}` : ''}
+          ${priorStation ? ` (from ${priorStation.name})` : ''}
           ${entry.notes ? `- ${entry.notes}` : ''}
         </div>
       </div>

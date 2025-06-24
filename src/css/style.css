@@ -1529,6 +1529,10 @@ body {
   width: 140px;
 }
 
+.prior-station-column {
+  width: 140px;
+}
+
 .notes-column {
   min-width: 200px;
 }
@@ -1549,6 +1553,7 @@ body {
 .participant-cell,
 .activity-cell,
 .station-cell,
+.prior-station-cell,
 .notes-cell {
   position: relative;
 }
@@ -1557,6 +1562,7 @@ body {
 .participant-edit select,
 .activity-edit select,
 .station-edit select,
+.prior-station-edit select,
 .notes-edit textarea {
   width: 100%;
   padding: 0.5rem;

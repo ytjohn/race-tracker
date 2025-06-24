@@ -126,6 +126,7 @@ function renderActivityLogManagement() {
             <th class="participant-column">Participant</th>
             <th class="activity-column">Activity</th>
             <th class="station-column">Station</th>
+            <th class="prior-station-column">Prior Station</th>
             <th class="notes-column">Notes</th>
             <th class="actions-column">Actions</th>
           </tr>
@@ -146,6 +147,8 @@ function renderActivityLogRows(logEntries) {
     const participant = entry.participantId ? 
       eventData.participants.find(p => p.id === entry.participantId) : null;
     const station = eventData.aidStations.find(s => s.id === entry.stationId);
+    const priorStation = entry.priorStationId ? 
+      eventData.aidStations.find(s => s.id === entry.priorStationId) : null;
     const time = new Date(entry.userTime || entry.timestamp);
     
     return `
@@ -204,6 +207,17 @@ function renderActivityLogRows(logEntries) {
             <select onchange="updateEntryStation('${entry.id}', this.value)">
               ${eventData.aidStations.map(s => 
                 `<option value="${s.id}" ${s.id === entry.stationId ? 'selected' : ''}>${s.name}</option>`
+              ).join('')}
+            </select>
+          </div>
+        </td>
+        <td class="prior-station-cell">
+          <div class="prior-station-display">${priorStation ? priorStation.name : '—'}</div>
+          <div class="prior-station-edit hidden">
+            <select onchange="updateEntryPriorStation('${entry.id}', this.value)">
+              <option value="">No Prior Station</option>
+              ${eventData.aidStations.map(s => 
+                `<option value="${s.id}" ${s.id === entry.priorStationId ? 'selected' : ''}>${s.name}</option>`
               ).join('')}
             </select>
           </div>
@@ -321,10 +335,10 @@ function toggleEditEntry(entryId) {
     row.classList.add('editing');
     
     // Show edit controls, hide display
-    row.querySelectorAll('.time-display, .participant-display, .activity-display, .station-display, .notes-display').forEach(el => {
+    row.querySelectorAll('.time-display, .participant-display, .activity-display, .station-display, .prior-station-display, .notes-display').forEach(el => {
       el.classList.add('hidden');
     });
-    row.querySelectorAll('.time-edit, .participant-edit, .activity-edit, .station-edit, .notes-edit').forEach(el => {
+    row.querySelectorAll('.time-edit, .participant-edit, .activity-edit, .station-edit, .prior-station-edit, .notes-edit').forEach(el => {
       el.classList.remove('hidden');
     });
     row.querySelector('.action-buttons').classList.add('hidden');
@@ -340,10 +354,10 @@ function cancelEntryEdit(entryId) {
   row.classList.remove('editing');
   
   // Show display controls, hide edit
-  row.querySelectorAll('.time-display, .participant-display, .activity-display, .station-display, .notes-display').forEach(el => {
+  row.querySelectorAll('.time-display, .participant-display, .activity-display, .station-display, .prior-station-display, .notes-display').forEach(el => {
     el.classList.remove('hidden');
   });
-  row.querySelectorAll('.time-edit, .participant-edit, .activity-edit, .station-edit, .notes-edit').forEach(el => {
+  row.querySelectorAll('.time-edit, .participant-edit, .activity-edit, .station-edit, .prior-station-edit, .notes-edit').forEach(el => {
     el.classList.add('hidden');
   });
   row.querySelector('.action-buttons').classList.remove('hidden');
@@ -400,6 +414,14 @@ function updateEntryStation(entryId, newStationId) {
   entry.stationId = newStationId;
 }
 
+// Update entry prior station
+function updateEntryPriorStation(entryId, newPriorStationId) {
+  const entry = eventData.activityLog.find(e => e.id === entryId);
+  if (!entry) return;
+  
+  entry.priorStationId = newPriorStationId || null;
+}
+
 // Update entry notes
 function updateEntryNotes(entryId, newNotes) {
   const entry = eventData.activityLog.find(e => e.id === entryId);
@@ -450,12 +472,14 @@ function exportActivityLog(format) {
 
 // Export as CSV
 function exportActivityLogCSV(logEntries) {
-  const headers = ['Time', 'Participant ID', 'Participant Name', 'Activity Type', 'Station', 'Notes'];
+  const headers = ['Time', 'Participant ID', 'Participant Name', 'Activity Type', 'Station', 'Prior Station', 'Notes'];
   
   const rows = logEntries.map(entry => {
     const participant = entry.participantId ? 
       eventData.participants.find(p => p.id === entry.participantId) : null;
     const station = eventData.aidStations.find(s => s.id === entry.stationId);
+    const priorStation = entry.priorStationId ? 
+      eventData.aidStations.find(s => s.id === entry.priorStationId) : null;
     const time = new Date(entry.userTime || entry.timestamp);
     
     return [
@@ -464,6 +488,7 @@ function exportActivityLogCSV(logEntries) {
       participant ? participant.name : '',
       formatActivityType(entry.activityType),
       station ? station.name : 'Unknown',
+      priorStation ? priorStation.name : '',
       entry.notes || ''
     ];
   });
@@ -609,6 +634,20 @@ function showBulkEditModal() {
             </div>
             
             <div class="form-section">
+              <h4>Update Prior Station</h4>
+              <label>
+                <input type="checkbox" id="bulk-update-prior-station"> 
+                Change prior station for all selected entries
+              </label>
+              <select id="bulk-prior-station-value" disabled>
+                <option value="">No Prior Station</option>
+                ${eventData.aidStations.map(s => 
+                  `<option value="${s.id}">${s.name}</option>`
+                ).join('')}
+              </select>
+            </div>
+            
+            <div class="form-section">
               <h4>Update Notes</h4>
               <label>
                 <input type="checkbox" id="bulk-update-notes"> 
@@ -629,7 +668,7 @@ function showBulkEditModal() {
   document.body.insertAdjacentHTML('beforeend', modalHtml);
   
   // Setup checkbox handlers to enable/disable inputs
-  ['time', 'activity', 'station', 'notes'].forEach(field => {
+  ['time', 'activity', 'station', 'prior-station', 'notes'].forEach(field => {
     const checkbox = document.getElementById(`bulk-update-${field}`);
     const input = document.getElementById(`bulk-${field}-value`);
     
@@ -671,6 +710,10 @@ function applyBulkEdit() {
   
   if (document.getElementById('bulk-update-station').checked) {
     updates.stationId = document.getElementById('bulk-station-value').value;
+  }
+  
+  if (document.getElementById('bulk-update-prior-station').checked) {
+    updates.priorStationId = document.getElementById('bulk-prior-station-value').value || null;
   }
   
   if (document.getElementById('bulk-update-notes').checked) {
@@ -727,26 +770,41 @@ function createStandaloneAddActivityModal() {
               </div>
             </div>
             
-            <div class="form-row">
-              <div class="form-col">
-                <label for="add-participant">Participant</label>
-                <select id="add-participant">
-                  <option value="">Select Participant</option>
-                  ${eventData.participants.map(p => 
-                    `<option value="${p.id}">${p.name} (${p.id})</option>`
-                  ).join('')}
-                </select>
-              </div>
-              <div class="form-col">
-                <label for="add-activity-type">Activity Type</label>
-                <select id="add-activity-type">
-                  <option value="arrival">Arrival</option>
-                  <option value="departed">Departure</option>
-                  <option value="suspect">Suspect</option>
-                  <option value="other">Message/Other</option>
-                </select>
-              </div>
-            </div>
+                         <div class="form-row">
+               <div class="form-col">
+                 <label for="add-participant">Participant</label>
+                 <select id="add-participant">
+                   <option value="">Select Participant</option>
+                   ${eventData.participants.map(p => 
+                     `<option value="${p.id}">${p.name} (${p.id})</option>`
+                   ).join('')}
+                 </select>
+               </div>
+               <div class="form-col">
+                 <label for="add-activity-type">Activity Type</label>
+                 <select id="add-activity-type">
+                   <option value="arrival">Arrival</option>
+                   <option value="departed">Departure</option>
+                   <option value="suspect">Suspect</option>
+                   <option value="other">Message/Other</option>
+                 </select>
+               </div>
+             </div>
+             
+             <div class="form-row">
+               <div class="form-col">
+                 <label for="add-prior-station">Prior Station (Optional)</label>
+                 <select id="add-prior-station">
+                   <option value="">No Prior Station</option>
+                   ${eventData.aidStations.map(s => 
+                     `<option value="${s.id}">${s.name}</option>`
+                   ).join('')}
+                 </select>
+               </div>
+               <div class="form-col">
+                 <!-- Spacer -->
+               </div>
+             </div>
             
             <div class="form-row">
               <div class="form-col-full">
@@ -779,6 +837,7 @@ function submitAddActivity() {
   const stationId = document.getElementById('add-station').value;
   const participantId = document.getElementById('add-participant').value;
   const activityType = document.getElementById('add-activity-type').value;
+  const priorStationId = document.getElementById('add-prior-station').value;
   const notes = document.getElementById('add-notes').value.trim();
   
   if (!stationId) {
@@ -794,6 +853,7 @@ function submitAddActivity() {
     participantId: participantId || null,
     activityType: activityType,
     stationId: stationId,
+    priorStationId: priorStationId || null,
     notes: notes || null
   };
   
