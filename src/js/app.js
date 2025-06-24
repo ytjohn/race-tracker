@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   renderAidStationsSetup();
   renderCoursesSetup();
+  renderParticipantsSetup();
   
   // Add Enter key handlers
   setupEnterKeyHandlers();
@@ -76,6 +77,42 @@ function setupEnterKeyHandlers() {
   }
 }
 
+// Helper function to find participant's course
+function getParticipantCourse(participantId) {
+  const participant = eventData.participants.find(p => p.id === participantId);
+  return participant ? participant.courseId : null;
+}
+
+// Helper function to check if a station belongs to a course
+function isStationInCourse(stationId, courseId) {
+  if (stationId === 'dnf' || stationId === 'dns') {
+    return true; // Status stations are available to all courses
+  }
+  
+  const course = eventData.courses.find(c => c.id === courseId);
+  if (!course) return false;
+  
+  return course.stations.some(cs => cs.stationId === stationId);
+}
+
+// Helper function to assign participant to course
+function assignParticipantToCourse(participantId, courseId) {
+  let participant = eventData.participants.find(p => p.id === participantId);
+  if (!participant) {
+    participant = { 
+      id: participantId, 
+      name: participantId, 
+      type: 'race', 
+      active: true, 
+      courseId: courseId 
+    };
+    eventData.participants.push(participant);
+  } else {
+    participant.courseId = courseId;
+  }
+  return participant;
+}
+
 // Page Navigation
 function showPage(pageId) {
   // Hide all pages
@@ -99,8 +136,18 @@ function showPage(pageId) {
       showPage('courses-setup');
       return;
     }
+    if (eventData.participants.length === 0) {
+      alert('Please add participants before accessing the race tracker.');
+      showPage('participants-setup');
+      return;
+    }
     renderRaceTracker();
     updateRaceTrackerHeader();
+  }
+  
+  // Special handling for participants setup page
+  if (pageId === 'participants-setup') {
+    renderParticipantsSetup();
   }
 }
 
@@ -119,9 +166,9 @@ function updateNavigation() {
   // Enable/disable race tracker based on setup completion
   const trackerBtn = document.getElementById('tracker-nav');
   if (trackerBtn) {
-    if (eventData.courses.length === 0) {
+    if (eventData.courses.length === 0 || eventData.participants.length === 0) {
       trackerBtn.style.opacity = '0.5';
-      trackerBtn.title = 'Complete event setup first';
+      trackerBtn.title = 'Complete setup: courses and participants required';
     } else {
       trackerBtn.style.opacity = '1';
       trackerBtn.title = '';
@@ -253,12 +300,31 @@ function renderCoursesSetup() {
               <div class="station-sequence-item">
                 <div class="station-info">
                   <strong>${index + 1}. ${station ? station.name : 'Unknown'}</strong>
-                  <span class="station-distance">
-                    ${cs.distanceFromPrevious ? `+${cs.distanceFromPrevious}mi` : ''} 
-                    ${cs.totalDistance ? `(${cs.totalDistance}mi total)` : ''}
-                  </span>
+                  <div class="station-distance-edit">
+                    <input type="number" 
+                           class="distance-input-inline" 
+                           value="${cs.distanceFromPrevious || ''}" 
+                           placeholder="Distance" 
+                           step="0.1" 
+                           min="0"
+                           onchange="updateStationDistance('${course.id}', ${index}, this.value)"
+                           ${index === 0 ? 'disabled title="Start station distance is always 0"' : ''}>
+                    <span class="total-distance">
+                      ${cs.totalDistance ? `(${cs.totalDistance}mi total)` : ''}
+                    </span>
+                  </div>
                 </div>
-                <button onclick="removeCourseStation('${course.id}', ${index})" style="background: #e74c3c; color: white; border: none; border-radius: 3px; padding: 0.2rem 0.4rem; cursor: pointer;">×</button>
+                <div class="station-actions">
+                  <button onclick="insertStationBefore('${course.id}', ${index})" 
+                          class="btn-insert" 
+                          title="Insert station before">⬆️</button>
+                  <button onclick="insertStationAfter('${course.id}', ${index})" 
+                          class="btn-insert" 
+                          title="Insert station after">⬇️</button>
+                  <button onclick="removeCourseStation('${course.id}', ${index})" 
+                          class="btn-remove" 
+                          title="Remove station">×</button>
+                </div>
               </div>
             `;
           }).join('')}
@@ -378,19 +444,587 @@ function removeCourseStation(courseId, stationIndex) {
   course.stations.splice(stationIndex, 1);
   
   // Recalculate total distances
-  let runningTotal = 0;
-  course.stations.forEach(cs => {
-    runningTotal += cs.distanceFromPrevious || 0;
-    cs.totalDistance = runningTotal;
-  });
+  recalculateCourseDistances(courseId);
   
   renderCoursesSetup();
   saveData();
 }
 
+function updateStationDistance(courseId, stationIndex, newDistance) {
+  const course = eventData.courses.find(c => c.id === courseId);
+  if (!course) return;
+  
+  const distance = parseFloat(newDistance) || 0;
+  course.stations[stationIndex].distanceFromPrevious = distance;
+  
+  // Recalculate total distances
+  recalculateCourseDistances(courseId);
+  
+  renderCoursesSetup();
+  saveData();
+}
+
+function insertStationBefore(courseId, stationIndex) {
+  showInsertStationModal(courseId, stationIndex);
+}
+
+function insertStationAfter(courseId, stationIndex) {
+  showInsertStationModal(courseId, stationIndex + 1);
+}
+
+function showInsertStationModal(courseId, insertIndex) {
+  const course = eventData.courses.find(c => c.id === courseId);
+  if (!course) return;
+  
+  // Check if course has Finish station
+  const hasFinish = course.stations.some(cs => cs.stationId === 'finish');
+  
+  // Filter available stations
+  const availableStations = eventData.aidStations.filter(station => {
+    if (station.id === 'dnf' || station.id === 'dns') {
+      return hasFinish; // Only show DNF/DNS if Finish is already in the course
+    }
+    return true;
+  });
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Insert Station at Position ${insertIndex + 1}</h3>
+        <button class="modal-close" onclick="closeInsertModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Select Station:</label>
+          <select id="insert-station-select">
+            <option value="">Choose a station...</option>
+            ${availableStations.map(station => 
+              `<option value="${station.id}">${station.name}</option>`
+            ).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Distance from Previous Station:</label>
+          <input type="number" id="insert-distance-input" placeholder="Distance in miles" step="0.1" min="0">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeInsertModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmInsertStation('${courseId}', ${insertIndex})">Insert Station</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Focus on the select
+  setTimeout(() => {
+    document.getElementById('insert-station-select').focus();
+  }, 100);
+}
+
+function confirmInsertStation(courseId, insertIndex) {
+  const stationSelect = document.getElementById('insert-station-select');
+  const distanceInput = document.getElementById('insert-distance-input');
+  
+  const stationId = stationSelect.value;
+  const distance = parseFloat(distanceInput.value) || 0;
+  
+  if (!stationId) {
+    alert('Please select a station');
+    return;
+  }
+  
+  const course = eventData.courses.find(c => c.id === courseId);
+  if (!course) return;
+  
+  // Insert the new station
+  course.stations.splice(insertIndex, 0, {
+    stationId: stationId,
+    distanceFromPrevious: distance,
+    totalDistance: 0 // Will be recalculated
+  });
+  
+  // Recalculate total distances
+  recalculateCourseDistances(courseId);
+  
+  closeInsertModal();
+  renderCoursesSetup();
+  saveData();
+}
+
+function closeInsertModal() {
+  const modal = document.querySelector('.modal-overlay');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+function recalculateCourseDistances(courseId) {
+  const course = eventData.courses.find(c => c.id === courseId);
+  if (!course) return;
+  
+  let runningTotal = 0;
+  course.stations.forEach(cs => {
+    runningTotal += cs.distanceFromPrevious || 0;
+    cs.totalDistance = runningTotal;
+  });
+}
+
 function saveCourses() {
   saveData();
   alert('Courses saved successfully!');
+}
+
+// Participants Setup Functions
+function renderParticipantsSetup() {
+  // Populate course dropdowns
+  const newParticipantCourse = document.getElementById('new-participant-course');
+  const bulkParticipantCourse = document.getElementById('bulk-participant-course');
+  
+  if (newParticipantCourse && bulkParticipantCourse) {
+    const courseOptions = eventData.courses.map(course => 
+      `<option value="${course.id}">${course.name}</option>`
+    ).join('');
+    
+    newParticipantCourse.innerHTML = '<option value="">Select Course</option>' + courseOptions;
+    bulkParticipantCourse.innerHTML = '<option value="">Select Course for All</option>' + courseOptions;
+  }
+  
+  // Render participants list
+  renderParticipantsList();
+}
+
+function renderParticipantsList() {
+  const container = document.getElementById('participants-container');
+  if (!container) return;
+  
+  if (eventData.participants.length === 0) {
+    container.innerHTML = '<p style="color: #666; text-align: center;">No participants added yet.</p>';
+    return;
+  }
+  
+  // Group participants by course
+  const participantsByCourse = {};
+  eventData.participants.forEach(participant => {
+    const courseId = participant.courseId || 'unassigned';
+    if (!participantsByCourse[courseId]) {
+      participantsByCourse[courseId] = [];
+    }
+    participantsByCourse[courseId].push(participant);
+  });
+  
+  let html = '';
+  
+  // Show participants grouped by course
+  Object.keys(participantsByCourse).forEach(courseId => {
+    const courseName = courseId === 'unassigned' ? 'Unassigned' : 
+      (eventData.courses.find(c => c.id === courseId)?.name || 'Unknown Course');
+    
+    html += `
+      <div class="course-participants">
+        <div class="course-participants-header">
+          <h4>${courseName} (${participantsByCourse[courseId].length} participants)</h4>
+          <div class="course-bulk-actions">
+            <label>
+              <input type="checkbox" onchange="toggleAllParticipants('${courseId}', this.checked)"> 
+              Select All
+            </label>
+            <button class="btn btn-small btn-danger" onclick="clearAllParticipantsFromCourse('${courseId}')">
+              Clear All
+            </button>
+          </div>
+        </div>
+        
+        <div class="participants-table">
+          <div class="participants-table-header">
+            <div class="col-checkbox"></div>
+            <div class="col-id">ID</div>
+            <div class="col-name">Name</div>
+          </div>
+          <div class="participants-table-body">
+            ${participantsByCourse[courseId].map(participant => `
+              <div class="participant-row course-${courseId}">
+                <div class="col-checkbox">
+                  <input type="checkbox" class="participant-checkbox" data-participant-id="${participant.id}" data-course-id="${courseId}">
+                </div>
+                <div class="col-id">${participant.id}</div>
+                <div class="col-name">${participant.name !== participant.id ? participant.name : ''}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  
+  // Add bulk actions panel
+  html += `
+    <div class="bulk-actions-panel" id="bulk-actions-panel" style="display: none;">
+      <div class="bulk-actions-content">
+        <span id="selected-count">0 selected</span>
+        <div class="bulk-actions-buttons">
+          <select id="bulk-move-course">
+            <option value="">Move to course...</option>
+            ${eventData.courses.map(course => 
+              `<option value="${course.id}">${course.name}</option>`
+            ).join('')}
+          </select>
+          <button class="btn btn-small btn-primary" onclick="bulkMoveToCourse()">Move</button>
+          <button class="btn btn-small btn-danger" onclick="bulkRemoveParticipants()">Remove</button>
+          <button class="btn btn-small btn-secondary" onclick="clearSelection()">Clear Selection</button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  container.innerHTML = html;
+  
+  // Add event listeners for checkboxes
+  setupParticipantCheckboxes();
+}
+
+function addParticipant() {
+  const idInput = document.getElementById('new-participant-id');
+  const nameInput = document.getElementById('new-participant-name');
+  const courseSelect = document.getElementById('new-participant-course');
+  
+  if (!idInput || !courseSelect) return;
+  
+  const participantId = idInput.value.trim();
+  const participantName = nameInput ? nameInput.value.trim() : '';
+  const courseId = courseSelect.value;
+  
+  if (!participantId) {
+    alert('Please enter a participant ID/bib number');
+    return;
+  }
+  
+  if (!courseId) {
+    alert('Please select a course');
+    return;
+  }
+  
+  // Check if participant already exists
+  const existingParticipant = eventData.participants.find(p => p.id === participantId);
+  if (existingParticipant) {
+    alert(`Participant ${participantId} already exists`);
+    return;
+  }
+  
+  // Add participant
+  const participant = {
+    id: participantId,
+    name: participantName || participantId,
+    type: 'race',
+    active: true,
+    courseId: courseId
+  };
+  
+  eventData.participants.push(participant);
+  
+  // Clear inputs
+  idInput.value = '';
+  if (nameInput) nameInput.value = '';
+  courseSelect.value = '';
+  
+  renderParticipantsList();
+  saveData();
+}
+
+function bulkAddParticipants() {
+  const bulkInput = document.getElementById('bulk-participants');
+  const courseSelect = document.getElementById('bulk-participant-course');
+  
+  if (!bulkInput || !courseSelect) return;
+  
+  const participantsText = bulkInput.value.trim();
+  const courseId = courseSelect.value;
+  
+  if (!participantsText) {
+    alert('Please enter participant IDs or ranges');
+    return;
+  }
+  
+  if (!courseId) {
+    alert('Please select a course');
+    return;
+  }
+  
+  // Parse participants with range support
+  let participantIds;
+  try {
+    participantIds = parseParticipantRanges(participantsText);
+  } catch (error) {
+    alert(`Error parsing participant ranges: ${error.message}`);
+    return;
+  }
+  
+  if (participantIds.length === 0) {
+    alert('No valid participants found in input');
+    return;
+  }
+  
+  let addedCount = 0;
+  let skippedCount = 0;
+  
+  participantIds.forEach(participantId => {
+    // Check if participant already exists
+    const existingParticipant = eventData.participants.find(p => p.id === participantId);
+    if (existingParticipant) {
+      skippedCount++;
+      return;
+    }
+    
+    // Add participant
+    const participant = {
+      id: participantId,
+      name: participantId,
+      type: 'race',
+      active: true,
+      courseId: courseId
+    };
+    
+    eventData.participants.push(participant);
+    addedCount++;
+  });
+  
+  // Clear inputs
+  bulkInput.value = '';
+  courseSelect.value = '';
+  
+  renderParticipantsList();
+  saveData();
+  
+  // Show summary with preview
+  let message = `Added ${addedCount} participants`;
+  if (skippedCount > 0) {
+    message += `. Skipped ${skippedCount} duplicates`;
+  }
+  
+  // Show preview of first few and last few if many participants
+  if (addedCount > 0) {
+    const addedIds = participantIds.filter(id => 
+      eventData.participants.some(p => p.id === id && p.courseId === courseId)
+    );
+    
+    if (addedIds.length <= 10) {
+      message += `\n\nAdded: ${addedIds.join(', ')}`;
+    } else {
+      const preview = addedIds.slice(0, 5).join(', ') + 
+                     ` ... ${addedIds.slice(-5).join(', ')}`;
+      message += `\n\nAdded: ${preview}`;
+    }
+  }
+  
+  alert(message);
+}
+
+// Parse participant ranges like "100-148,150-179" or "101,103,105-110"
+function parseParticipantRanges(input) {
+  const participantIds = [];
+  const segments = input.split(',').map(s => s.trim()).filter(Boolean);
+  
+  segments.forEach(segment => {
+    if (segment.includes('-')) {
+      // Handle range like "100-148"
+      const parts = segment.split('-');
+      if (parts.length !== 2) {
+        throw new Error(`Invalid range format: "${segment}". Use format like "100-148"`);
+      }
+      
+      const [start, end] = parts.map(s => s.trim());
+      
+      // Check if it's a numeric range
+      const startNum = parseInt(start);
+      const endNum = parseInt(end);
+      
+      if (!isNaN(startNum) && !isNaN(endNum)) {
+        if (startNum > endNum) {
+          throw new Error(`Invalid range: "${segment}". Start number must be less than or equal to end number`);
+        }
+        
+        if (endNum - startNum > 1000) {
+          throw new Error(`Range too large: "${segment}". Maximum range size is 1000 participants`);
+        }
+        
+        // Generate numeric range
+        for (let i = startNum; i <= endNum; i++) {
+          participantIds.push(i.toString());
+        }
+      } else {
+        // If not numeric, treat as individual item (e.g., "HM Sweep 1-2" as a name)
+        participantIds.push(segment);
+      }
+    } else {
+      // Handle individual participant
+      if (segment.length > 0) {
+        participantIds.push(segment);
+      }
+    }
+  });
+  
+  // Remove duplicates
+  return [...new Set(participantIds)];
+}
+
+function changeParticipantCourse(participantId, newCourseId) {
+  if (!newCourseId) return;
+  
+  const participant = eventData.participants.find(p => p.id === participantId);
+  if (participant) {
+    participant.courseId = newCourseId;
+    renderParticipantsList();
+    saveData();
+  }
+}
+
+function removeParticipant(participantId) {
+  if (confirm(`Are you sure you want to remove participant ${participantId}?`)) {
+    eventData.participants = eventData.participants.filter(p => p.id !== participantId);
+    
+    // Also remove from station assignments
+    Object.keys(eventData.stationAssignments).forEach(stationId => {
+      eventData.stationAssignments[stationId] = eventData.stationAssignments[stationId].filter(id => id !== participantId);
+    });
+    
+    renderParticipantsList();
+    saveData();
+  }
+}
+
+// Bulk action functions
+function setupParticipantCheckboxes() {
+  const checkboxes = document.querySelectorAll('.participant-checkbox');
+  checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', updateBulkActionsPanel);
+  });
+}
+
+function updateBulkActionsPanel() {
+  const selectedCheckboxes = document.querySelectorAll('.participant-checkbox:checked');
+  const panel = document.getElementById('bulk-actions-panel');
+  const countSpan = document.getElementById('selected-count');
+  
+  if (selectedCheckboxes.length > 0) {
+    panel.style.display = 'block';
+    countSpan.textContent = `${selectedCheckboxes.length} selected`;
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+function toggleAllParticipants(courseId, checked) {
+  const checkboxes = document.querySelectorAll(`[data-course-id="${courseId}"]`);
+  checkboxes.forEach(checkbox => {
+    checkbox.checked = checked;
+  });
+  updateBulkActionsPanel();
+}
+
+function clearSelection() {
+  const checkboxes = document.querySelectorAll('.participant-checkbox');
+  checkboxes.forEach(checkbox => {
+    checkbox.checked = false;
+  });
+  updateBulkActionsPanel();
+}
+
+function bulkMoveToCourse() {
+  const selectedCheckboxes = document.querySelectorAll('.participant-checkbox:checked');
+  const targetCourseId = document.getElementById('bulk-move-course').value;
+  
+  if (!targetCourseId) {
+    alert('Please select a target course');
+    return;
+  }
+  
+  if (selectedCheckboxes.length === 0) {
+    alert('Please select participants to move');
+    return;
+  }
+  
+  const targetCourse = eventData.courses.find(c => c.id === targetCourseId);
+  const participantIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.participantId);
+  
+  if (confirm(`Move ${participantIds.length} participants to ${targetCourse.name}?`)) {
+    participantIds.forEach(participantId => {
+      const participant = eventData.participants.find(p => p.id === participantId);
+      if (participant) {
+        participant.courseId = targetCourseId;
+      }
+    });
+    
+    renderParticipantsList();
+    saveData();
+    alert(`Moved ${participantIds.length} participants to ${targetCourse.name}`);
+  }
+}
+
+function bulkRemoveParticipants() {
+  const selectedCheckboxes = document.querySelectorAll('.participant-checkbox:checked');
+  
+  if (selectedCheckboxes.length === 0) {
+    alert('Please select participants to remove');
+    return;
+  }
+  
+  const participantIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.participantId);
+  
+  if (confirm(`Remove ${participantIds.length} participants? This will also remove any race activity for these participants.`)) {
+    // Remove participants
+    eventData.participants = eventData.participants.filter(p => !participantIds.includes(p.id));
+    
+    // Remove from station assignments
+    Object.keys(eventData.stationAssignments).forEach(stationId => {
+      eventData.stationAssignments[stationId] = eventData.stationAssignments[stationId].filter(id => !participantIds.includes(id));
+    });
+    
+    // Remove from activity log
+    eventData.activityLog = eventData.activityLog.filter(activity => !participantIds.includes(activity.participantId));
+    
+    renderParticipantsList();
+    saveData();
+    alert(`Removed ${participantIds.length} participants and their race activity`);
+  }
+}
+
+function clearAllParticipantsFromCourse(courseId) {
+  const courseName = courseId === 'unassigned' ? 'Unassigned' : 
+    (eventData.courses.find(c => c.id === courseId)?.name || 'Unknown Course');
+  
+  const participantsInCourse = eventData.participants.filter(p => p.courseId === courseId || (courseId === 'unassigned' && !p.courseId));
+  
+  if (participantsInCourse.length === 0) {
+    alert('No participants to remove from this course');
+    return;
+  }
+  
+  if (confirm(`Remove ALL ${participantsInCourse.length} participants from ${courseName}? This will also remove any race activity for these participants.`)) {
+    const participantIds = participantsInCourse.map(p => p.id);
+    
+    // Remove participants
+    eventData.participants = eventData.participants.filter(p => p.courseId !== courseId && !(courseId === 'unassigned' && !p.courseId));
+    
+    // Remove from station assignments
+    Object.keys(eventData.stationAssignments).forEach(stationId => {
+      eventData.stationAssignments[stationId] = eventData.stationAssignments[stationId].filter(id => !participantIds.includes(id));
+    });
+    
+    // Remove from activity log
+    eventData.activityLog = eventData.activityLog.filter(activity => !participantIds.includes(activity.participantId));
+    
+    renderParticipantsList();
+    saveData();
+    alert(`Removed all participants from ${courseName} and their race activity`);
+  }
+}
+
+function saveParticipants() {
+  saveData();
+  alert('Participants saved successfully!');
 }
 
 // Race Tracker Functions (multi-course aware version)
@@ -404,15 +1038,10 @@ function renderRaceTracker() {
       eventData.stationAssignments[station.id] = [];
     });
     
-    // Add some sample participants to Start
-    eventData.stationAssignments['start'] = ['101', '102', '103', '201', '202'];
-    eventData.participants = [
-      { id: '101', name: '101', type: 'race', active: true },
-      { id: '102', name: '102', type: 'race', active: true },
-      { id: '103', name: '103', type: 'race', active: true },
-      { id: '201', name: '201', type: 'race', active: true },
-      { id: '202', name: '202', type: 'race', active: true }
-    ];
+    // Start all registered participants at the Start station
+    if (eventData.participants.length > 0) {
+      eventData.stationAssignments['start'] = eventData.participants.map(p => p.id);
+    }
   }
   
   // Create multi-course layout
@@ -440,9 +1069,16 @@ function renderRaceTracker() {
                   <span class="add-icon">+</span>
                 </div>
                 <div class="column-body">
-                  ${(eventData.stationAssignments[station.id] || []).map(participantId => 
-                    `<div class="bib-card" draggable="true" data-participant="${participantId}">${participantId}</div>`
-                  ).join('')}
+                  ${(eventData.stationAssignments[station.id] || [])
+                    .filter(participantId => {
+                      const participantCourse = getParticipantCourse(participantId);
+                      return participantCourse === course.id;
+                    })
+                    .map(participantId => {
+                      const participant = eventData.participants.find(p => p.id === participantId);
+                      const displayName = participant ? participant.name : participantId;
+                      return `<div class="bib-card course-${course.id}" draggable="true" data-participant="${participantId}" title="Course: ${course.name}">${displayName}</div>`;
+                    }).join('')}
                 </div>
               </div>
             `;
@@ -469,9 +1105,16 @@ function renderRaceTracker() {
                 <span class="add-icon">+</span>
               </div>
               <div class="column-body">
-                ${(eventData.stationAssignments[station.id] || []).map(participantId => 
-                  `<div class="bib-card" draggable="true" data-participant="${participantId}">${participantId}</div>`
-                ).join('')}
+                ${(eventData.stationAssignments[station.id] || []).map(participantId => {
+                  const participant = eventData.participants.find(p => p.id === participantId);
+                  const participantCourse = getParticipantCourse(participantId);
+                  const course = eventData.courses.find(c => c.id === participantCourse);
+                  const displayName = participant ? participant.name : participantId;
+                  const courseClass = participantCourse ? `course-${participantCourse}` : '';
+                  const courseTitle = course ? `Course: ${course.name}` : 'No course assigned';
+                  
+                  return `<div class="bib-card ${courseClass}" draggable="true" data-participant="${participantId}" title="${courseTitle}">${displayName}</div>`;
+                }).join('')}
               </div>
             </div>
           `).join('')}
@@ -544,6 +1187,18 @@ function handleDrop(e) {
   
   const targetStationId = column.dataset.station;
   const participantId = draggedElement.dataset.participant;
+  const participantCourseId = getParticipantCourse(participantId);
+  
+  // Check if the target station is valid for this participant's course
+  if (participantCourseId && !isStationInCourse(targetStationId, participantCourseId)) {
+    // Show error message
+    const participant = eventData.participants.find(p => p.id === participantId);
+    const course = eventData.courses.find(c => c.id === participantCourseId);
+    const station = eventData.aidStations.find(s => s.id === targetStationId);
+    
+    alert(`Cannot move ${participant ? participant.name : participantId} to ${station ? station.name : targetStationId}.\n\nParticipant is assigned to ${course ? course.name : 'unknown course'} and can only move to stations in that course.`);
+    return;
+  }
   
   // Move participant between stations
   moveParticipant(participantId, targetStationId);
@@ -593,7 +1248,13 @@ function openBatchModal(stationId) {
   // Clear and setup batch entries
   const batchEntries = document.getElementById('batch-entries');
   if (batchEntries) {
+    const station = eventData.aidStations.find(s => s.id === stationId);
+    
     batchEntries.innerHTML = `
+      <div style="background: #e8f5e8; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.9rem;">
+        <strong>📍 Moving participants to:</strong> ${station ? station.name : stationId}<br>
+        <em>Note: Course assignments are managed in the Participants Setup page</em>
+      </div>
       <div class="batch-entry">
         <label>Participants (comma separated)</label>
         <textarea id="batch-participants" placeholder="101, 102, 103, 50k Sweep" rows="3"></textarea>
@@ -652,11 +1313,26 @@ function submitBatchEntry() {
     }
     eventData.stationAssignments[stationId].push(participantId);
     
-    // Create or update participant
+    // Create participant if doesn't exist (but don't assign course during race operations)
     let participant = eventData.participants.find(p => p.id === participantId);
     if (!participant) {
-      participant = { id: participantId, name: participantId, type: 'race', active: true };
+      // Show warning about unregistered participant
+      console.warn(`Participant ${participantId} not found in participants list. Adding without course assignment.`);
+      
+      participant = { 
+        id: participantId, 
+        name: participantId, 
+        type: 'race', 
+        active: true,
+        courseId: null // No course assignment during race operations
+      };
       eventData.participants.push(participant);
+    }
+    
+    // Validate that participant can be at this station
+    const participantCourseId = participant.courseId;
+    if (participantCourseId && !isStationInCourse(stationId, participantCourseId)) {
+      console.warn(`Participant ${participantId} assigned to different course but being moved to ${stationId}. This may be intentional (e.g., course change).`);
     }
     
     // Log the activity

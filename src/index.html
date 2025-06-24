@@ -15,6 +15,7 @@
       <button class="nav-btn" onclick="showPage('event-setup')">Event Setup</button>
       <button class="nav-btn" onclick="showPage('aid-stations-setup')">Aid Stations</button>
       <button class="nav-btn" onclick="showPage('courses-setup')">Courses</button>
+      <button class="nav-btn" onclick="showPage('participants-setup')">Participants</button>
       <button class="nav-btn" onclick="showPage('race-tracker')" id="tracker-nav">Race Tracker</button>
     </div>
   </nav>
@@ -113,6 +114,56 @@
       <div class="form-actions">
         <button class="btn btn-secondary" onclick="showPage('aid-stations-setup')">← Back: Aid Stations</button>
         <button class="btn btn-primary" onclick="saveCourses()">Save Courses</button>
+        <button class="btn btn-secondary" onclick="showPage('participants-setup')">Next: Participants →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Participants Setup Page -->
+  <div id="participants-setup" class="page">
+    <div class="page-header">
+      <h1>Participants Setup</h1>
+      <p>Assign participants to courses</p>
+    </div>
+    
+    <div class="setup-form">
+      <div class="participants-management">
+        <div class="add-participant-form">
+          <h3>Add Participants</h3>
+          <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+            <input type="text" id="new-participant-id" placeholder="Participant ID/Bib (e.g., 101)">
+            <input type="text" id="new-participant-name" placeholder="Name (optional)">
+            <select id="new-participant-course">
+              <option value="">Select Course</option>
+            </select>
+            <button class="btn btn-small" onclick="addParticipant()">Add</button>
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <label>Bulk Add (ranges and comma separated):</label>
+            <textarea id="bulk-participants" placeholder="100-148, 150-179, HM Sweep 1, HM Sweep 2" rows="3"></textarea>
+            <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem; margin-bottom: 0.5rem;">
+              Examples: <code>100-148,150-179</code> (ranges) or <code>101,103,105-110</code> (mixed) or <code>HM Sweep 1, HM Sweep 2</code> (names)
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+              <select id="bulk-participant-course">
+                <option value="">Select Course for All</option>
+              </select>
+              <button class="btn btn-small" onclick="bulkAddParticipants()">Add All</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="participants-list">
+          <h3>Current Participants</h3>
+          <div id="participants-container">
+            <!-- Participants will be listed here -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="showPage('courses-setup')">← Back: Courses</button>
+        <button class="btn btn-primary" onclick="saveParticipants()">Save Participants</button>
         <button class="btn btn-secondary" onclick="showPage('race-tracker')">Next: Race Tracker →</button>
       </div>
     </div>

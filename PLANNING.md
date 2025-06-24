@@ -21,7 +21,7 @@ This project is a portable, offline-first race tracking tool for amateur radio o
 
 - **Visual Indicators**
   - Mark bibs as "departed" from a station
-  - Highlight recent activity (most recent updates)
+  - Highlight recent activity (most recent updates  )
 
 - **Logging**
   - Log messages (e.g., station closed, supply requests)
