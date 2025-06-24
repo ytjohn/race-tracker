@@ -669,6 +669,23 @@ function renderDisplayCourses(container) {
     return new Date(lastActivity.userTime || lastActivity.timestamp);
   }
 
+  // Helper function to get first arrival time for a station
+  function getStationFirstArrivalTime(stationId) {
+    if (!window.eventData.activityLog) return null;
+    
+    const arrivalActivities = window.eventData.activityLog.filter(entry => 
+      entry.stationId === stationId && entry.activityType === 'arrival'
+    );
+    
+    if (arrivalActivities.length === 0) return null;
+    
+    const firstArrival = arrivalActivities.sort((a, b) => 
+      new Date(a.userTime || a.timestamp) - new Date(b.userTime || b.timestamp)
+    )[0];
+    
+    return new Date(firstArrival.userTime || firstArrival.timestamp);
+  }
+
   // Helper function to format time ago
   function formatTimeAgo(date) {
     if (!date) return 'No activity';
@@ -683,6 +700,18 @@ function renderDisplayCourses(container) {
     if (diffHours < 24) return `${diffHours}h ${diffMinutes % 60}m ago`;
     
     return date.toLocaleDateString();
+  }
+
+  // Helper function to format first arrival time
+  function formatFirstArrivalTime(date) {
+    if (!date) return 'No arrivals';
+    
+    // Format as HH:MM AM/PM
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   }
 
   const coursesHTML = window.eventData.courses.map(course => {
@@ -721,6 +750,8 @@ function renderDisplayCourses(container) {
       const percentage = totalCourseParticipants > 0 ? Math.round((count / totalCourseParticipants) * 100) : 0;
       const lastActivity = getStationLastActivityTime(courseStation.stationId);
       const timeAgo = formatTimeAgo(lastActivity);
+      const firstArrival = getStationFirstArrivalTime(courseStation.stationId);
+      const firstArrivalTime = formatFirstArrivalTime(firstArrival);
 
       // Check if this is the final station for this course
       const isFinalStation = course.stations[course.stations.length - 1].stationId === courseStation.stationId;
@@ -738,6 +769,10 @@ function renderDisplayCourses(container) {
             <div class="station-stat">
               <div class="stat-number">${percentage}%</div>
               <div class="stat-label">Percentage</div>
+            </div>
+            <div class="station-stat">
+              <div class="stat-number">${firstArrivalTime}</div>
+              <div class="stat-label">First Arrival</div>
             </div>
             <div class="station-stat">
               <div class="stat-number">${timeAgo}</div>

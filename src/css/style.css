@@ -3137,7 +3137,7 @@ body {
 
 .stations-display {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 0.75rem;
 }
 
@@ -3206,15 +3206,21 @@ body {
   font-size: 1.1rem;
 }
 
+@media (max-width: 1600px) {
+  .stations-display {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  }
+}
+
 @media (max-width: 1400px) {
   .stations-display {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   }
 }
 
 @media (max-width: 1200px) {
   .stations-display {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
   
   .station-display-stats {
