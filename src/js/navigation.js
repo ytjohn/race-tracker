@@ -65,7 +65,7 @@ function updateNavigation() {
   });
   
   // Find the button for current page and mark as active
-  const currentBtn = document.querySelector(`[onclick="showPage('${currentPage}')"]`);
+  const currentBtn = document.querySelector(`[data-page="${currentPage}"]`);
   if (currentBtn) {
     currentBtn.classList.add('active');
   }
@@ -114,25 +114,19 @@ function loadEventDataIntoForms() {
 // Initialize navigation system
 function initializeNavigation() {
   // Navigation event listeners
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    const pageAttr = btn.getAttribute('onclick');
-    if (pageAttr && pageAttr.includes('showPage')) {
-      btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        const match = pageAttr.match(/showPage\('(.+?)'\)/);
-        if (match) {
-          const page = match[1];
-          
-          // Validate prerequisites
-          if (page === 'race-tracker' && (!eventData || !eventData.courses.length || !eventData.participants.length)) {
-            alert('Please complete Event Setup, Aid Stations, Courses, and Participants configuration first.');
-            return;
-          }
-          
-          showPage(page);
-        }
-      });
-    }
+  document.querySelectorAll('.nav-btn[data-page]').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const page = this.getAttribute('data-page');
+      
+      // Validate prerequisites
+      if (page === 'race-tracker' && (!eventData || !eventData.courses.length || !eventData.participants.length)) {
+        alert('Please complete Event Setup, Aid Stations, Courses, and Participants configuration first.');
+        return;
+      }
+      
+      showPage(page);
+    });
   });
   
   // Settings dropdown toggle

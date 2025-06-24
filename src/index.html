@@ -12,11 +12,11 @@
   <nav class="main-nav">
     <div class="nav-brand">Race Tracker</div>
     <div class="nav-links">
-      <button class="nav-btn" onclick="showPage('event-setup')">Event Setup</button>
-      <button class="nav-btn" onclick="showPage('aid-stations-setup')">Aid Stations</button>
-      <button class="nav-btn" onclick="showPage('courses-setup')">Courses</button>
-      <button class="nav-btn" onclick="showPage('participants-setup')">Participants</button>
-      <button class="nav-btn" onclick="showPage('race-tracker')" id="tracker-nav">Race Tracker</button>
+      <button class="nav-btn" data-page="event-setup">Event Setup</button>
+      <button class="nav-btn" data-page="aid-stations-setup">Aid Stations</button>
+      <button class="nav-btn" data-page="courses-setup">Courses</button>
+      <button class="nav-btn" data-page="participants-setup">Participants</button>
+      <button class="nav-btn" data-page="race-tracker" id="tracker-nav">Race Tracker</button>
       <div class="nav-dropdown">
         <button class="nav-btn dropdown-toggle" id="settings-toggle">Settings ▼</button>
         <div class="dropdown-menu" id="settings-dropdown">
@@ -59,8 +59,8 @@
       </div>
       
       <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveEventDetails()">Save Event Details</button>
-        <button class="btn btn-secondary" onclick="showPage('aid-stations-setup')">Next: Aid Stations →</button>
+        <button class="btn btn-primary" id="save-event-btn">Save Event Details</button>
+        <button class="btn btn-secondary" data-page="aid-stations-setup">Next: Aid Stations →</button>
       </div>
     </div>
   </div>
@@ -89,7 +89,7 @@
         <h3>Custom Aid Stations</h3>
         <div class="add-station-form">
           <input type="text" id="new-station-name" placeholder="Aid Station Name">
-          <button class="btn btn-small" onclick="addAidStation()">Add Station</button>
+          <button class="btn btn-small" id="add-station-btn">Add Station</button>
         </div>
         <div id="custom-stations-list" class="station-list">
           <!-- Custom stations will be added here -->
@@ -97,9 +97,9 @@
       </div>
       
       <div class="form-actions">
-        <button class="btn btn-secondary" onclick="showPage('event-setup')">← Back: Event</button>
-        <button class="btn btn-primary" onclick="saveAidStations()">Save Aid Stations</button>
-        <button class="btn btn-secondary" onclick="showPage('courses-setup')">Next: Courses →</button>
+        <button class="btn btn-secondary" data-page="event-setup">← Back: Event</button>
+        <button class="btn btn-primary" id="save-stations-btn">Save Aid Stations</button>
+        <button class="btn btn-secondary" data-page="courses-setup">Next: Courses →</button>
       </div>
     </div>
   </div>
@@ -115,7 +115,7 @@
       <div class="courses-list">
         <div class="add-course-form">
           <input type="text" id="new-course-name" placeholder="Course Name (e.g., 50 Mile)">
-          <button class="btn btn-small" onclick="addCourse()">Add Course</button>
+          <button class="btn btn-small" id="add-course-btn">Add Course</button>
         </div>
         <div id="courses-container">
           <!-- Courses will be added here -->
@@ -123,9 +123,9 @@
       </div>
       
       <div class="form-actions">
-        <button class="btn btn-secondary" onclick="showPage('aid-stations-setup')">← Back: Aid Stations</button>
-        <button class="btn btn-primary" onclick="saveCourses()">Save Courses</button>
-        <button class="btn btn-secondary" onclick="showPage('participants-setup')">Next: Participants →</button>
+        <button class="btn btn-secondary" data-page="aid-stations-setup">← Back: Aid Stations</button>
+        <button class="btn btn-primary" id="save-courses-btn">Save Courses</button>
+        <button class="btn btn-secondary" data-page="participants-setup">Next: Participants →</button>
       </div>
     </div>
   </div>
@@ -147,7 +147,7 @@
             <select id="new-participant-course">
               <option value="">Select Course</option>
             </select>
-            <button class="btn btn-small" onclick="addParticipant()">Add</button>
+            <button class="btn btn-small" id="add-participant-btn">Add</button>
           </div>
           <div style="margin-bottom: 1rem;">
             <label>Bulk Add (ranges and comma separated):</label>
@@ -159,7 +159,7 @@
               <select id="bulk-participant-course">
                 <option value="">Select Course for All</option>
               </select>
-              <button class="btn btn-small" onclick="bulkAddParticipants()">Add All</button>
+              <button class="btn btn-small" id="bulk-add-btn">Add All</button>
             </div>
           </div>
         </div>
@@ -173,9 +173,9 @@
       </div>
       
       <div class="form-actions">
-        <button class="btn btn-secondary" onclick="showPage('courses-setup')">← Back: Courses</button>
-        <button class="btn btn-primary" onclick="saveParticipants()">Save Participants</button>
-        <button class="btn btn-secondary" onclick="showPage('race-tracker')">Next: Race Tracker →</button>
+        <button class="btn btn-secondary" data-page="courses-setup">← Back: Courses</button>
+        <button class="btn btn-primary" id="save-participants-btn">Save Participants</button>
+        <button class="btn btn-secondary" data-page="race-tracker">Next: Race Tracker →</button>
       </div>
     </div>
   </div>

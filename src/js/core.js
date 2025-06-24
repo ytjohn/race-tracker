@@ -61,6 +61,11 @@ function switchToEvent(eventId) {
     eventData = appData.events[eventId];
     saveAppData();
     
+    // Refresh all setup pages to show new event data
+    if (window.refreshAllSetupPages) {
+      refreshAllSetupPages();
+    }
+    
     // Refresh current page to show new event data
     const currentPageId = document.querySelector('.page.active')?.id || 'event-setup';
     showPage(currentPageId);
@@ -153,6 +158,11 @@ function importEvent(event) {
       // Switch to imported event
       switchToEvent(newId);
       
+      // Refresh all setup pages to show imported data
+      if (window.refreshAllSetupPages) {
+        refreshAllSetupPages();
+      }
+      
       alert(`Event "${importedData.event.name || 'Imported Event'}" imported successfully!`);
       
     } catch (error) {
@@ -180,9 +190,9 @@ function clearEventForms() {
   if (eventDescriptionEl) eventDescriptionEl.value = '';
   
   // Re-render all setup pages
-  if (window.renderAidStationsSetup) renderAidStationsSetup();
-  if (window.renderCoursesSetup) renderCoursesSetup();
-  if (window.renderParticipantsSetup) renderParticipantsSetup();
+  if (window.refreshAllSetupPages) {
+    refreshAllSetupPages();
+  }
 }
 
 // Save app data to localStorage
