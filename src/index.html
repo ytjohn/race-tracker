@@ -17,6 +17,16 @@
       <button class="nav-btn" onclick="showPage('courses-setup')">Courses</button>
       <button class="nav-btn" onclick="showPage('participants-setup')">Participants</button>
       <button class="nav-btn" onclick="showPage('race-tracker')" id="tracker-nav">Race Tracker</button>
+      <div class="nav-dropdown">
+        <button class="nav-btn dropdown-toggle" id="settings-toggle">Settings ▼</button>
+        <div class="dropdown-menu" id="settings-dropdown">
+          <button class="dropdown-item" id="new-event-btn">New Event</button>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" id="export-event-btn">Export Event</button>
+          <button class="dropdown-item" id="import-event-btn">Import Event</button>
+          <input type="file" id="import-file" accept=".json" style="display: none;">
+        </div>
+      </div>
     </div>
   </nav>
 
@@ -227,6 +237,12 @@
     </div>
   </div>
 
+  <!-- JavaScript Modules -->
+  <script src="js/core.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/navigation.js"></script>
+  <script src="js/event-setup.js"></script>
+  <script src="js/participants.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html> 

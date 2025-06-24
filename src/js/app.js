@@ -1,57 +1,38 @@
-// Data structure for the race tracker
-let eventData = {
-  event: {
-    name: '',
-    date: '',
-    location: '',
-    description: ''
-  },
-  aidStations: [
-    { id: 'start', name: 'Start', isDefault: true },
-    { id: 'finish', name: 'Finish', isDefault: true },
-    { id: 'dnf', name: 'DNF', isDefault: true },
-    { id: 'dns', name: 'DNS', isDefault: true },
-    { id: 'suspect', name: 'Suspect Data', isDefault: true }
-  ],
-  courses: [],
-  participants: [],
-  stationAssignments: {}, // station_id: [participant_ids]
-  activityLog: []
-};
-
-// Current page state
-let currentPage = 'event-setup';
+// Main Application Initialization
+// This file coordinates all modules and initializes the app
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
+  // Load app data and initialize current event
   loadData();
-  updateNavigation();
   
-  // Load existing event data into forms
-  if (eventData.event.name) {
-    const eventNameEl = document.getElementById('event-name');
-    const eventDateEl = document.getElementById('event-date');
-    const eventLocationEl = document.getElementById('event-location');
-    const eventDescriptionEl = document.getElementById('event-description');
-    
-    if (eventNameEl) eventNameEl.value = eventData.event.name;
-    if (eventDateEl) eventDateEl.value = eventData.event.date;
-    if (eventLocationEl) eventLocationEl.value = eventData.event.location;
-    if (eventDescriptionEl) eventDescriptionEl.value = eventData.event.description;
-  }
+  // Initialize navigation system
+  initializeNavigation();
   
-  renderAidStationsSetup();
-  renderCoursesSetup();
-  renderParticipantsSetup();
-  
-  // Add Enter key handlers
+  // Setup keyboard handlers
   setupEnterKeyHandlers();
   
-  // Only render race tracker if we have courses configured
-  if (eventData.courses.length > 0) {
-    renderRaceTracker();
-  }
+  // Show initial page
+  showPage(currentPage);
+  
+  // Initialize all modules
+  initializeEventSetup();
+  initializeParticipants();
+  
+  // Update navigation state
+  updateNavigation();
 });
+
+// Placeholder initialization functions for modules not yet created
+function initializeEventSetup() {
+  // Will be implemented in event-setup.js
+  console.log('Event setup module not loaded yet');
+}
+
+function initializeParticipants() {
+  // Will be implemented in participants.js
+  console.log('Participants module not loaded yet');
+}
 
 // Setup Enter key handlers for inputs
 function setupEnterKeyHandlers() {
