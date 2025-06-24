@@ -2835,6 +2835,59 @@ body {
   color: #333;
 }
 
+.compact-participant.finishing {
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
+  color: white;
+  border: 1px solid #1b5e20;
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.7);
+  font-weight: 700;
+  animation: finishing-glow 3s infinite;
+}
+
+.compact-station.final-station {
+  border: 2px solid #4caf50;
+  box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(46, 125, 50, 0.1));
+}
+
+.compact-station.final-station .compact-station-header {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(46, 125, 50, 0.2));
+  border-radius: 6px;
+  margin: -0.5rem -0.5rem 0.75rem -0.5rem;
+  padding: 0.75rem;
+}
+
+.compact-station.final-station .compact-station-name {
+  color: white;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.compact-station.recent-activity {
+  border: 2px solid #ff9800;
+  box-shadow: 0 0 15px rgba(255, 152, 0, 0.3);
+}
+
+.compact-station.recent-activity .compact-station-header {
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.2), rgba(255, 193, 7, 0.2));
+}
+
+.compact-station.final-station.recent-activity {
+  border: 2px solid #4caf50;
+  box-shadow: 0 0 20px rgba(76, 175, 80, 0.4), 0 0 10px rgba(255, 152, 0, 0.3);
+}
+
+@keyframes finishing-glow {
+  0%, 100% { 
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.7);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 25px rgba(76, 175, 80, 0.9);
+    transform: scale(1.05);
+  }
+}
+
 .empty-station {
   color: rgba(255, 255, 255, 0.5);
   font-style: italic;
@@ -3039,5 +3092,192 @@ body {
   .compact-participant {
     font-size: 0.9rem;
     padding: 0.3rem 0.6rem;
+  }
+}
+
+/* Courses Display Styles - Horizontal & Dense Layout */
+.courses-display-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.course-display {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.course-display-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.course-display-header h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.course-display-stats {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.stations-display {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0.75rem;
+}
+
+.station-display-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.station-display-row:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.station-display-row.final-station-row {
+  border: 2px solid #4caf50;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(46, 125, 50, 0.1));
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+}
+
+.station-display-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  flex: 1;
+  margin-right: 1rem;
+}
+
+.station-display-stats {
+  display: flex;
+  gap: 1rem;
+}
+
+.station-stat {
+  text-align: center;
+  min-width: 50px;
+}
+
+.station-stat .stat-number {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.1rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.station-stat .stat-label {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.no-active-stations {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  padding: 2rem;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 1400px) {
+  .stations-display {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+}
+
+@media (max-width: 1200px) {
+  .stations-display {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  
+  .station-display-stats {
+    gap: 0.75rem;
+  }
+  
+  .station-stat {
+    min-width: 45px;
+  }
+  
+  .station-stat .stat-number {
+    font-size: 1rem;
+  }
+  
+  .station-stat .stat-label {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .stations-display {
+    grid-template-columns: 1fr;
+  }
+  
+  .station-display-row {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .station-display-name {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .course-display-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+  }
+  
+  .course-display-header h3 {
+    font-size: 1.2rem;
+  }
+  
+  .course-display-stats {
+    font-size: 0.85rem;
+  }
+  
+  .station-display-row {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+    padding: 0.5rem;
+  }
+  
+  .station-display-name {
+    margin-right: 0;
+    margin-bottom: 0.25rem;
+  }
+  
+  .station-display-stats {
+    justify-content: center;
   }
 }

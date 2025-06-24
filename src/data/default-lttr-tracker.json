@@ -12,11 +12,7 @@
       "name": "Start",
       "isDefault": true
     },
-    {
-      "id": "finish",
-      "name": "Finish",
-      "isDefault": true
-    },
+
     {
       "id": "dnf",
       "name": "DNF",

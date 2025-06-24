@@ -24,7 +24,6 @@ function createDefaultEventData() {
     },
     aidStations: [
       { id: 'start', name: 'Start', isDefault: true },
-      { id: 'finish', name: 'Finish', isDefault: true },
       { id: 'dnf', name: 'DNF', isDefault: true },
       { id: 'dns', name: 'DNS', isDefault: true },
       { id: 'suspect', name: 'Suspect Data', isDefault: true }

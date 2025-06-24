@@ -14,7 +14,7 @@ let lastActivityCount = 0;
 let lastDataHash = '';
 
 // View types and rotation sequence (removed recent-activity)
-const DISPLAY_VIEWS = ['kanban', 'statistics'];
+const DISPLAY_VIEWS = ['kanban', 'courses', 'statistics'];
 const VIEW_ROTATION_TIME = 30000; // 30 seconds per view
 const TICKER_UPDATE_TIME = 3000; // Update ticker every 3 seconds
 const REFRESH_TIME = 2000; // Refresh data every 2 seconds
@@ -138,6 +138,7 @@ function updateCountdownDisplay() {
     const nextView = DISPLAY_VIEWS[(DISPLAY_VIEWS.indexOf(currentDisplayView) + 1) % DISPLAY_VIEWS.length];
     const viewNames = {
       'kanban': 'Board',
+      'courses': 'Courses',
       'statistics': 'Stats'
     };
     toggleBtn.textContent = `Next: ${viewNames[nextView]} in ${rotationCountdown}s`;
@@ -495,6 +496,9 @@ function renderDisplayView() {
     case 'kanban':
       renderCompactKanban(viewContainer);
       break;
+    case 'courses':
+      renderDisplayCourses(viewContainer);
+      break;
     case 'statistics':
       renderDisplayStatistics(viewContainer);
       break;
@@ -511,7 +515,7 @@ function renderCompactKanban(container) {
   }
   
   // Get all stations across all courses, in logical order
-  const stationOrder = ['start', 'lost-children', 'hairpin', 'burnt-house', 'windber', 'finish'];
+  const stationOrder = ['start', 'lost-children', 'hairpin', 'burnt-house', 'windber'];
   const allStations = new Set();
   
   // Add stations from courses first
@@ -524,8 +528,38 @@ function renderCompactKanban(container) {
   // Add default stations (excluding DNS/DNF/Suspect Data)
   stationOrder.forEach(id => allStations.add(id));
   
-  // Sort stations by the defined order
+  // Get last activity time for each station for sorting
+  function getStationLastActivity(stationId) {
+    if (!window.eventData.activityLog) return 0;
+    
+    const stationActivities = window.eventData.activityLog.filter(entry => 
+      entry.stationId === stationId
+    );
+    
+    if (stationActivities.length === 0) return 0;
+    
+    const lastActivity = stationActivities.sort((a, b) => 
+      new Date(b.userTime || b.timestamp) - new Date(a.userTime || a.timestamp)
+    )[0];
+    
+    return new Date(lastActivity.userTime || lastActivity.timestamp).getTime();
+  }
+
+  // Sort stations by recent activity (most recent first), then by defined order
   const sortedStations = Array.from(allStations).sort((a, b) => {
+    const aLastActivity = getStationLastActivity(a);
+    const bLastActivity = getStationLastActivity(b);
+    
+    // If both have recent activity, sort by most recent first
+    if (aLastActivity > 0 && bLastActivity > 0) {
+      return bLastActivity - aLastActivity;
+    }
+    
+    // If only one has activity, it comes first
+    if (aLastActivity > 0) return -1;
+    if (bLastActivity > 0) return 1;
+    
+    // If neither has activity, sort by defined order
     const aIndex = stationOrder.indexOf(a);
     const bIndex = stationOrder.indexOf(b);
     if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
@@ -534,6 +568,20 @@ function renderCompactKanban(container) {
     return aIndex - bIndex;
   });
   
+  // Identify final aid stations for each course
+  const finalStations = new Map(); // stationId -> array of course names
+  window.eventData.courses.forEach(course => {
+    if (course.stations.length > 0) {
+      const finalStationId = course.stations[course.stations.length - 1].stationId;
+      if (!['dnf', 'dns', 'suspect'].includes(finalStationId)) {
+        if (!finalStations.has(finalStationId)) {
+          finalStations.set(finalStationId, []);
+        }
+        finalStations.get(finalStationId).push(course.name);
+      }
+    }
+  });
+
   const stationsHTML = sortedStations.map(stationId => {
     const station = window.eventData.aidStations.find(s => s.id === stationId);
     if (!station) return '';
@@ -547,6 +595,12 @@ function renderCompactKanban(container) {
     if (['dns', 'dnf', 'suspect-data'].includes(stationId)) return '';
     
     const recentUpdates = getRecentParticipantUpdates(participants);
+    const isFinalStation = finalStations.has(stationId);
+    const finalForCourses = finalStations.get(stationId) || [];
+    
+    // Check if station has recent activity (last 30 minutes)
+    const thirtyMinutesAgo = Date.now() - (30 * 60 * 1000);
+    const hasRecentActivity = getStationLastActivity(stationId) > thirtyMinutesAgo;
     
     // Group participants for compact display
     const participantsHTML = participants.map(participantId => {
@@ -554,13 +608,31 @@ function renderCompactKanban(container) {
       const displayName = participant ? (participant.name || participant.id) : participantId;
       const isRecent = recentUpdates.includes(participantId);
       
-      return `<span class="compact-participant${isRecent ? ' recent-update' : ''}" title="${displayName}">${displayName}</span>`;
+      // Check if this participant is "finishing" (at their course's final station)
+      const isFinishing = isFinalStation && participant && 
+        window.eventData.courses.some(course => 
+          course.id === participant.courseId && 
+          course.stations.length > 0 && 
+          course.stations[course.stations.length - 1].stationId === stationId
+        );
+      
+      let participantClass = 'compact-participant';
+      if (isRecent) participantClass += ' recent-update';
+      if (isFinishing) participantClass += ' finishing';
+      
+      return `<span class="${participantClass}" title="${displayName}${isFinishing ? ' - Finishing!' : ''}">${displayName}</span>`;
     }).join('');
     
+    let stationClasses = 'compact-station';
+    if (isFinalStation) stationClasses += ' final-station';
+    if (hasRecentActivity) stationClasses += ' recent-activity';
+
     return `
-      <div class="compact-station">
+      <div class="${stationClasses}">
         <div class="compact-station-header">
-          <span class="compact-station-name">${station.name}</span>
+          <span class="compact-station-name">
+            ${hasRecentActivity ? '🔥 ' : ''}${isFinalStation ? '🏁 ' : ''}${station.name}${isFinalStation ? ` (${finalForCourses.join(', ')} Final)` : ''}
+          </span>
           <span class="compact-station-count">${participants.length}</span>
         </div>
         <div class="compact-participants">
@@ -571,6 +643,125 @@ function renderCompactKanban(container) {
   }).filter(html => html !== '').join(''); // Remove empty strings
   
   container.innerHTML = `<div class="compact-kanban">${stationsHTML}</div>`;
+}
+
+// Render Courses view - shows progression by course with detailed station stats
+function renderDisplayCourses(container) {
+  if (!window.eventData.courses || window.eventData.courses.length === 0) {
+    container.innerHTML = '<div class="empty-state">No courses configured</div>';
+    return;
+  }
+
+  // Helper function to get last activity time for a station
+  function getStationLastActivityTime(stationId) {
+    if (!window.eventData.activityLog) return null;
+    
+    const stationActivities = window.eventData.activityLog.filter(entry => 
+      entry.stationId === stationId
+    );
+    
+    if (stationActivities.length === 0) return null;
+    
+    const lastActivity = stationActivities.sort((a, b) => 
+      new Date(b.userTime || b.timestamp) - new Date(a.userTime || a.timestamp)
+    )[0];
+    
+    return new Date(lastActivity.userTime || lastActivity.timestamp);
+  }
+
+  // Helper function to format time ago
+  function formatTimeAgo(date) {
+    if (!date) return 'No activity';
+    
+    const now = new Date();
+    const diffMinutes = Math.floor((now - date) / 60000);
+    
+    if (diffMinutes < 1) return 'Just now';
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours}h ${diffMinutes % 60}m ago`;
+    
+    return date.toLocaleDateString();
+  }
+
+  const coursesHTML = window.eventData.courses.map(course => {
+    // Get total participants for this course
+    const courseParticipants = window.eventData.participants.filter(p => p.courseId === course.id && p.active);
+    const totalCourseParticipants = courseParticipants.length;
+
+    if (totalCourseParticipants === 0) {
+      return `
+        <div class="course-display">
+          <div class="course-display-header">
+            <h3>${course.name}</h3>
+            <div class="course-display-stats">No participants assigned</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Get station stats for this course
+    const stationStatsHTML = course.stations.map(courseStation => {
+      const station = window.eventData.aidStations.find(s => s.id === courseStation.stationId);
+      if (!station) return '';
+
+      // Get participants at this station for this course
+      const stationParticipants = (window.eventData.stationAssignments[courseStation.stationId] || [])
+        .filter(participantId => {
+          const participant = window.eventData.participants.find(p => p.id === participantId);
+          return participant && participant.courseId === course.id;
+        });
+
+      const count = stationParticipants.length;
+
+      // Skip stations with no participants
+      if (count === 0) return '';
+
+      const percentage = totalCourseParticipants > 0 ? Math.round((count / totalCourseParticipants) * 100) : 0;
+      const lastActivity = getStationLastActivityTime(courseStation.stationId);
+      const timeAgo = formatTimeAgo(lastActivity);
+
+      // Check if this is the final station for this course
+      const isFinalStation = course.stations[course.stations.length - 1].stationId === courseStation.stationId;
+
+      return `
+        <div class="station-display-row${isFinalStation ? ' final-station-row' : ''}">
+          <div class="station-display-name">
+            ${isFinalStation ? '🏁 ' : ''}${station.name}${isFinalStation ? ' (Final)' : ''}
+          </div>
+          <div class="station-display-stats">
+            <div class="station-stat">
+              <div class="stat-number">${count}</div>
+              <div class="stat-label">Count</div>
+            </div>
+            <div class="station-stat">
+              <div class="stat-number">${percentage}%</div>
+              <div class="stat-label">Percentage</div>
+            </div>
+            <div class="station-stat">
+              <div class="stat-number">${timeAgo}</div>
+              <div class="stat-label">Last Update</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).filter(html => html !== '').join('');
+
+    return `
+      <div class="course-display">
+        <div class="course-display-header">
+          <h3>${course.name}</h3>
+          <div class="course-display-stats">${totalCourseParticipants} participants</div>
+        </div>
+        <div class="stations-display">
+          ${stationStatsHTML || '<div class="no-active-stations">No active stations</div>'}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `<div class="courses-display-container">${coursesHTML}</div>`;
 }
 
 // Render Recent Activity view (unchanged but more compact)
@@ -624,7 +815,44 @@ function renderDisplayRecentActivity(container) {
   container.innerHTML = `<div class="display-recent-activity">${activitiesHTML}</div>`;
 }
 
-// Render Statistics view (unchanged)
+// Get participants who are "finishing" (at their course's final aid station)
+function getFinishingParticipants() {
+  if (!window.eventData.courses || !window.eventData.stationAssignments || !window.eventData.participants) {
+    return [];
+  }
+  
+  const finishingParticipants = [];
+  
+  // For each course, find participants at the final aid station
+  window.eventData.courses.forEach(course => {
+    if (course.stations.length === 0) return;
+    
+    // Get the last station in the course (final aid station before finish line)
+    const finalStationId = course.stations[course.stations.length - 1].stationId;
+    
+    // Skip if final station is a status station (DNF/DNS)
+    if (['dnf', 'dns', 'suspect'].includes(finalStationId)) return;
+    
+    // Get participants at this final station
+    const participantsAtFinalStation = window.eventData.stationAssignments[finalStationId] || [];
+    
+    // Add course participants who are at the final station
+    participantsAtFinalStation.forEach(participantId => {
+      const participant = window.eventData.participants.find(p => p.id === participantId);
+      if (participant && participant.courseId === course.id) {
+        finishingParticipants.push({
+          participantId,
+          course: course.name,
+          finalStation: window.eventData.aidStations.find(s => s.id === finalStationId)?.name || 'Unknown'
+        });
+      }
+    });
+  });
+  
+  return finishingParticipants;
+}
+
+// Render Statistics view with "Finishing" logic
 function renderDisplayStatistics(container) {
   if (!window.eventData) {
     container.innerHTML = '<div class="empty-state">No data available</div>';
@@ -635,14 +863,15 @@ function renderDisplayStatistics(container) {
   const totalParticipants = window.eventData.participants?.filter(p => p.active).length || 0;
   const totalActivities = window.eventData.activityLog?.length || 0;
   
-  // Calculate finishers
-  const finishers = window.eventData.stationAssignments?.finish?.length || 0;
+  // Calculate finishing participants (at final aid station)
+  const finishingParticipants = getFinishingParticipants();
+  const finishing = finishingParticipants.length;
   
   // Calculate DNFs
   const dnfs = window.eventData.stationAssignments?.dnf?.length || 0;
   
   // Calculate still racing
-  const stillRacing = totalParticipants - finishers - dnfs;
+  const stillRacing = totalParticipants - finishing - dnfs;
   
   // Recent activity rate (last hour)
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
@@ -650,8 +879,8 @@ function renderDisplayStatistics(container) {
     new Date(entry.userTime || entry.timestamp) > oneHourAgo
   ).length || 0;
   
-  // Calculate progress percentage
-  const progressPercentage = totalParticipants > 0 ? Math.round((finishers / totalParticipants) * 100) : 0;
+  // Calculate progress percentage based on finishing participants
+  const progressPercentage = totalParticipants > 0 ? Math.round((finishing / totalParticipants) * 100) : 0;
   
   const statsHTML = `
     <div class="display-stat-card">
@@ -659,8 +888,8 @@ function renderDisplayStatistics(container) {
       <div class="display-stat-label">Total Participants</div>
     </div>
     <div class="display-stat-card">
-      <div class="display-stat-number">${finishers}</div>
-      <div class="display-stat-label">Finishers</div>
+      <div class="display-stat-number">${finishing}</div>
+      <div class="display-stat-label">Finishing</div>
     </div>
     <div class="display-stat-card">
       <div class="display-stat-number">${stillRacing}</div>
@@ -668,7 +897,7 @@ function renderDisplayStatistics(container) {
     </div>
     <div class="display-stat-card">
       <div class="display-stat-number">${progressPercentage}%</div>
-      <div class="display-stat-label">Race Complete</div>
+      <div class="display-stat-label">Approaching Finish</div>
     </div>
     <div class="display-stat-card">
       <div class="display-stat-number">${recentActivity}</div>
