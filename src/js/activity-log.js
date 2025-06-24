@@ -158,10 +158,10 @@ function renderActivityLogManagement() {
             <th class="activity-column">Activity</th>
             <th class="station-column">Station</th>
             <th class="prior-station-column">Prior Station</th>
-            <th class="course-analysis-column">Course Analysis</th>
             <th class="distance-column">Distance</th>
             <th class="duration-column">Duration</th>
             <th class="notes-column">Notes</th>
+            <th class="course-analysis-column">Analysis</th>
             <th class="actions-column">Actions</th>
           </tr>
         </thead>
@@ -267,11 +267,6 @@ function renderActivityLogRows(logEntries) {
             </select>
           </div>
         </td>
-        <td class="course-analysis-cell">
-          <div class="course-analysis-display">
-            ${courseAnalysis ? renderCourseAnalysis(courseAnalysis) : '—'}
-          </div>
-        </td>
         <td class="distance-cell">
           <div class="distance-display">
             ${courseAnalysis && courseAnalysis.cumulativeDistance != null ? 
@@ -288,6 +283,11 @@ function renderActivityLogRows(logEntries) {
           <div class="notes-edit hidden">
             <textarea onchange="updateEntryNotes('${entry.id}', this.value)" 
                       placeholder="Add notes...">${entry.notes || ''}</textarea>
+          </div>
+        </td>
+        <td class="course-analysis-cell">
+          <div class="course-analysis-display">
+            ${courseAnalysis ? renderCourseAnalysisIcon(courseAnalysis, participant) : '—'}
           </div>
         </td>
         <td class="actions-cell">
@@ -857,10 +857,10 @@ function applyBulkEdit() {
 
 // Open Add Activity Modal (reuse batch entry modal)
 function openAddActivityModal() {
-  // Check if the batch modal functions exist
-  if (window.openBatchModal && window.renderBatchModal) {
+  // Check if the batch modal functions exist from race-tracker.js
+  if (typeof openBatchModal === 'function') {
     // Open the batch modal for general activity logging
-    window.openBatchModal();
+    openBatchModal();
   } else {
     // Create a simplified add activity modal if batch modal isn't available
     createStandaloneAddActivityModal();
@@ -1132,6 +1132,27 @@ function renderCourseAnalysis(analysis) {
   `;
 }
 
+// Render course analysis as clickable icon
+function renderCourseAnalysisIcon(analysis, participant) {
+  if (!analysis) return '—';
+  
+  const statusIcons = {
+    valid: '✅',
+    warning: '⚠️',
+    error: '❌'
+  };
+  
+  const participantId = participant ? participant.id : '';
+  
+  return `
+    <div class="course-analysis-icon course-analysis-${analysis.status}" 
+         title="${analysis.message} (Click to filter by this participant)"
+         onclick="filterByParticipant('${participantId}')">
+      ${statusIcons[analysis.status]}
+    </div>
+  `;
+}
+
 // Calculate duration since last event for a participant
 function calculateDurationSinceLastEvent(participantId, currentEntry) {
   const participantEntries = eventData.activityLog
@@ -1163,4 +1184,35 @@ function formatDuration(durationMs) {
   } else {
     return '<1m';
   }
+}
+
+// Filter activity log by specific participant
+function filterByParticipant(participantId) {
+  if (!participantId) return;
+  
+  // Clear all participant checkboxes first
+  const participantCheckboxes = document.querySelectorAll('#participant-filter-list input[type="checkbox"]');
+  participantCheckboxes.forEach(cb => cb.checked = false);
+  
+  // Check only the specific participant
+  const targetCheckbox = document.querySelector(`#participant-filter-list input[value="${participantId}"]`);
+  if (targetCheckbox) {
+    targetCheckbox.checked = true;
+  }
+  
+  // Update the participant filter display
+  updateParticipantFilter();
+  
+  // Clear other filters to focus on this participant
+  const stationFilter = document.getElementById('filter-station');
+  const courseFilter = document.getElementById('filter-course');
+  const activityFilter = document.getElementById('filter-activity-type');
+  const courseIssuesFilter = document.getElementById('filter-course-issues');
+  if (stationFilter) stationFilter.value = '';
+  if (courseFilter) courseFilter.value = '';
+  if (activityFilter) activityFilter.value = '';
+  if (courseIssuesFilter) courseIssuesFilter.value = '';
+  
+  // Apply the filter
+  filterActivityLog();
 } 
