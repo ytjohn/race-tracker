@@ -15,7 +15,12 @@ Race Tracker is a specialized tool designed for amateur radio operators who prov
 - 📊 **Activity logging** with timestamps and distance tracking
 - 🖱️ **Drag-and-drop** interface for individual moves
 - 💾 **Browser storage** - no server required
-- 📺 **Display-friendly** for public viewing screens
+- 📺 **Display Mode** with live updates for public viewing screens
+- 🔄 **Real-time data** with auto-refresh and live notifications
+
+## Screenshots
+
+See the [Screenshots Guide](docs/screenshots.md) for detailed visual documentation of all features and interfaces.
 
 ## Quick Start
 
@@ -115,14 +120,29 @@ View comprehensive race activity:
 - **Course analysis** showing progression validation
 - **Export-ready format** for race officials
 
+### Display Mode
+Specialized interface for public viewing screens:
+- **Live Activity Ticker:** Scrolling banner with recent participant movements
+- **Auto-Refresh:** Updates every 2 seconds with live data polling
+- **Three Display Views:**
+  - **Board View:** Compact train-schedule layout showing all stations
+  - **Courses View:** Detailed progression stats per course and station
+  - **Statistics View:** High-level race metrics and totals
+- **Auto-Rotation:** Cycles between views every 30 seconds
+- **Manual Navigation:** Click view buttons to switch immediately
+- **Fullscreen Support:** Dedicated fullscreen mode for monitors
+- **Live Updates:** Red notification banners when new data arrives
+- **Recent Highlighting:** Golden glow for participants with recent activity
+- **No User Interaction:** Perfect for passive spectator viewing
+
 ## Use Cases
 
 ### Typical Race Day Workflow
 
 1. **Pre-race Setup:**
    - Configure event, stations, courses, and participants
-   - Display on TV/monitor for public viewing
-   - Test with radio operators
+   - Set up Display Mode on TV/monitor for public viewing
+   - Test with radio operators and verify live updates
 
 2. **During Race:**
    - Radio operators report: "Net control, Hairpin station, runners 101, 102, 103 arrived at 10:15"
@@ -131,7 +151,8 @@ View comprehensive race activity:
    - Activity log captures all movements with timestamps
 
 3. **Race Monitoring:**
-   - Visitors can view progress on display screen
+   - Spectators view live progress on Display Mode screens
+   - Auto-rotating views show board, course stats, and race metrics
    - Course analysis helps identify issues (wrong course, missed stations)
    - Activity log provides official record for race coordinators
 
