@@ -10,7 +10,8 @@ let eventData = {
     { id: 'start', name: 'Start', isDefault: true },
     { id: 'finish', name: 'Finish', isDefault: true },
     { id: 'dnf', name: 'DNF', isDefault: true },
-    { id: 'dns', name: 'DNS', isDefault: true }
+    { id: 'dns', name: 'DNS', isDefault: true },
+    { id: 'suspect', name: 'Suspect Data', isDefault: true }
   ],
   courses: [],
   participants: [],
@@ -85,7 +86,7 @@ function getParticipantCourse(participantId) {
 
 // Helper function to check if a station belongs to a course
 function isStationInCourse(stationId, courseId) {
-  if (stationId === 'dnf' || stationId === 'dns') {
+  if (stationId === 'dnf' || stationId === 'dns' || stationId === 'suspect') {
     return true; // Status stations are available to all courses
   }
   
@@ -725,6 +726,12 @@ function addParticipant() {
   
   eventData.participants.push(participant);
   
+  // Assign to Start station
+  if (!eventData.stationAssignments['start']) {
+    eventData.stationAssignments['start'] = [];
+  }
+  eventData.stationAssignments['start'].push(participantId);
+  
   // Clear inputs
   idInput.value = '';
   if (nameInput) nameInput.value = '';
@@ -788,6 +795,13 @@ function bulkAddParticipants() {
     };
     
     eventData.participants.push(participant);
+    
+    // Assign to Start station
+    if (!eventData.stationAssignments['start']) {
+      eventData.stationAssignments['start'] = [];
+    }
+    eventData.stationAssignments['start'].push(participantId);
+    
     addedCount++;
   });
   
@@ -1049,12 +1063,15 @@ function renderRaceTracker() {
   
   // Add course swimlanes
   eventData.courses.forEach(course => {
+    // Count participants in this course
+    const participantCount = eventData.participants.filter(p => p.courseId === course.id).length;
+    
     html += `
       <div class="course-swimlane">
         <div class="course-swimlane-header">
           <h3>${course.name}</h3>
           <div class="course-stats">
-            ${course.stations.length} stations • ${course.stations[course.stations.length - 1]?.totalDistance || 0}mi total
+            ${participantCount} participants • ${course.stations.length} stations • ${course.stations[course.stations.length - 1]?.totalDistance || 0}mi total
           </div>
         </div>
         <div class="course-stations">
@@ -1088,8 +1105,8 @@ function renderRaceTracker() {
     `;
   });
   
-  // Add shared stations (DNF/DNS) at the bottom
-  const sharedStations = eventData.aidStations.filter(s => s.id === 'dnf' || s.id === 'dns');
+  // Add shared stations (DNF/DNS/Suspect) at the bottom
+  const sharedStations = eventData.aidStations.filter(s => s.id === 'dnf' || s.id === 'dns' || s.id === 'suspect');
   if (sharedStations.length > 0) {
     html += `
       <div class="shared-stations">
@@ -1205,6 +1222,38 @@ function handleDrop(e) {
 }
 
 function moveParticipant(participantId, targetStationId) {
+  const participantCourseId = getParticipantCourse(participantId);
+  const participant = eventData.participants.find(p => p.id === participantId);
+  const targetStation = eventData.aidStations.find(s => s.id === targetStationId);
+  
+  // Check for cross-course movement (suspect data)
+  if (participantCourseId && !isStationInCourse(targetStationId, participantCourseId) && 
+      targetStationId !== 'dnf' && targetStationId !== 'dns' && targetStationId !== 'suspect') {
+    
+    const course = eventData.courses.find(c => c.id === participantCourseId);
+    
+    const result = confirm(
+      `⚠️ CROSS-COURSE MOVEMENT DETECTED\n\n` +
+      `Participant: ${participant ? participant.name : participantId}\n` +
+      `Assigned Course: ${course ? course.name : 'Unknown'}\n` +
+      `Target Station: ${targetStation ? targetStation.name : targetStationId}\n\n` +
+      `This station is NOT on their assigned course.\n\n` +
+      `Possible causes:\n` +
+      `• Wrong bib number entered\n` +
+      `• Participant took wrong turn\n` +
+      `• Course change needed\n\n` +
+      `Click OK to move to SUSPECT DATA for review\n` +
+      `Click Cancel to abort this movement`
+    );
+    
+    if (!result) {
+      return; // User cancelled
+    }
+    
+    // Move to suspect data instead
+    targetStationId = 'suspect';
+  }
+  
   // Remove from current station
   Object.keys(eventData.stationAssignments).forEach(stationId => {
     eventData.stationAssignments[stationId] = eventData.stationAssignments[stationId].filter(id => id !== participantId);
@@ -1216,14 +1265,18 @@ function moveParticipant(participantId, targetStationId) {
   }
   eventData.stationAssignments[targetStationId].push(participantId);
   
-  // Log the movement
+  // Log the movement with appropriate notes
+  const notes = targetStationId === 'suspect' ? 
+    'Moved to Suspect Data due to cross-course movement' : 
+    'Moved via drag and drop';
+  
   logActivity({
     participantId: participantId,
     activity: 'arrival',
     station: targetStationId,
     timestamp: new Date().toISOString(),
     userTime: new Date().toLocaleTimeString(),
-    notes: 'Moved via drag and drop'
+    notes: notes
   });
   
   renderRaceTracker();
@@ -1594,20 +1647,40 @@ function submitBatchEntry() {
   }
   
   let totalProcessed = 0;
+  let newParticipants = [];
+  let suspectMovements = [];
   
   batchEntryState.entries.forEach(entry => {
     if (entry.updateType === 'race-update') {
       entry.participants.forEach(participantId => {
+        let targetStationId = entry.station;
+        
+        // Check for cross-course movement (suspect data)
+        const participantCourseId = getParticipantCourse(participantId);
+        const participantData = eventData.participants.find(p => p.id === participantId);
+        
+        if (participantCourseId && !isStationInCourse(targetStationId, participantCourseId) && 
+            targetStationId !== 'dnf' && targetStationId !== 'dns' && targetStationId !== 'suspect') {
+          
+          // Move to suspect data instead
+          targetStationId = 'suspect';
+          suspectMovements.push({
+            participantId: participantId,
+            participantName: participantData ? participantData.name : participantId,
+            originalStation: entry.station,
+            course: eventData.courses.find(c => c.id === participantCourseId)?.name || 'Unknown'
+          });
+        }
         // Remove from current station
         Object.keys(eventData.stationAssignments).forEach(sId => {
           eventData.stationAssignments[sId] = eventData.stationAssignments[sId].filter(id => id !== participantId);
         });
         
         // Add to target station
-        if (!eventData.stationAssignments[entry.station]) {
-          eventData.stationAssignments[entry.station] = [];
+        if (!eventData.stationAssignments[targetStationId]) {
+          eventData.stationAssignments[targetStationId] = [];
         }
-        eventData.stationAssignments[entry.station].push(participantId);
+        eventData.stationAssignments[targetStationId].push(participantId);
         
         // Create participant if doesn't exist
         let participant = eventData.participants.find(p => p.id === participantId);
@@ -1620,16 +1693,24 @@ function submitBatchEntry() {
             courseId: null
           };
           eventData.participants.push(participant);
+          
+          // Track new participants for warning
+          if (!newParticipants) newParticipants = [];
+          newParticipants.push(participantId);
         }
         
         // Log the activity
+        const activityNotes = targetStationId === 'suspect' ? 
+          `Moved to Suspect Data (intended: ${eventData.aidStations.find(s => s.id === entry.station)?.name})` :
+          (entry.notes || 'Batch entry');
+          
         logActivity({
           participantId: participantId,
           activity: entry.action,
-          station: entry.station,
+          station: targetStationId,
           timestamp: new Date().toISOString(),
           userTime: parseTimeInput(entry.time),
-          notes: entry.notes || 'Batch entry'
+          notes: activityNotes
         });
         
         totalProcessed++;
@@ -1653,7 +1734,22 @@ function submitBatchEntry() {
   renderRaceTracker();
   closeBatchModal();
   
-  alert(`Processed ${totalProcessed} entries successfully`);
+  let message = `Processed ${totalProcessed} entries successfully`;
+  
+  if (suspectMovements.length > 0) {
+    message += `\n\n🚨 SUSPECT DATA DETECTED: ${suspectMovements.length} cross-course movements:\n`;
+    suspectMovements.forEach(sm => {
+      const originalStation = eventData.aidStations.find(s => s.id === sm.originalStation)?.name || sm.originalStation;
+      message += `• ${sm.participantName} (${sm.course}) → ${originalStation}\n`;
+    });
+    message += `\nThese participants were moved to SUSPECT DATA for review.\nPossible causes: wrong bib number, wrong turn, or course change needed.`;
+  }
+  
+  if (newParticipants.length > 0) {
+    message += `\n\n⚠️ WARNING: Created ${newParticipants.length} new participants without course assignments:\n${newParticipants.join(', ')}\n\nThese participants are now UNASSIGNED and appear only in the Participants Setup page. Please assign them to courses if needed.`;
+  }
+  
+  alert(message);
 }
 
 function showActivityLog() {
@@ -1705,7 +1801,8 @@ function clearAllData() {
         { id: 'start', name: 'Start', isDefault: true },
         { id: 'finish', name: 'Finish', isDefault: true },
         { id: 'dnf', name: 'DNF', isDefault: true },
-        { id: 'dns', name: 'DNS', isDefault: true }
+        { id: 'dns', name: 'DNS', isDefault: true },
+        { id: 'suspect', name: 'Suspect Data', isDefault: true }
       ],
       courses: [],
       participants: [],

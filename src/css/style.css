@@ -524,6 +524,20 @@ body {
   background: #7f8c8d;
 }
 
+/* Suspect Data station styling */
+.column[data-station="suspect"] .column-header {
+  background: #f39c12 !important;
+  color: white;
+}
+
+.column[data-station="suspect"] .column-header:hover {
+  background: #e67e22 !important;
+}
+
+.column[data-station="suspect"] {
+  border: 2px solid #f39c12;
+}
+
 .add-icon {
   font-size: 1.2rem;
   font-weight: bold;
