@@ -169,6 +169,30 @@ function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
+// Round distance to avoid floating point precision issues
+function roundDistance(distance, decimals = 2) {
+  if (typeof distance !== 'number') {
+    distance = parseFloat(distance) || 0;
+  }
+  return Math.round(distance * Math.pow(10, decimals)) / Math.pow(10, decimals);
+}
+
+// Calculate total course distance with proper rounding
+function calculateCourseDistance(course) {
+  if (!course || !course.stations || course.stations.length === 0) {
+    return 0;
+  }
+  
+  let total = 0;
+  for (const station of course.stations) {
+    if (station.distance && !isNaN(station.distance)) {
+      total += parseFloat(station.distance);
+    }
+  }
+  
+  return roundDistance(total);
+}
+
 // Log activity
 function logActivity(activity) {
   if (!eventData) return;
@@ -260,4 +284,8 @@ function setupEnterKeyHandlers() {
       }
     });
   }
-} 
+}
+
+// Make utility functions globally accessible
+window.roundDistance = roundDistance;
+window.calculateCourseDistance = calculateCourseDistance;

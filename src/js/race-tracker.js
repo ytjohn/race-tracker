@@ -216,7 +216,7 @@ function renderRaceTracker() {
         <div class="course-swimlane-header">
           <h3>${course.name}</h3>
           <div class="course-stats">
-            ${courseParticipants.length} participants • ${course.totalDistance || 0} miles
+            ${courseParticipants.length} participants • ${roundDistance(course.totalDistance || 0)} miles
           </div>
         </div>
         <div class="course-stations">

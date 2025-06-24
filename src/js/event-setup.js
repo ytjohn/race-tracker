@@ -159,7 +159,7 @@ function renderCoursesSetup() {
                     Distance: <input type="number" class="distance-input-inline" 
                            value="${cs.distance || 0}" step="0.1" min="0"
                            onchange="updateStationDistance('${course.id}', ${index}, this.value)"> miles
-                    (Total: ${cs.cumulative || 0} miles)
+                    (Total: ${roundDistance(cs.cumulative || 0)} miles)
                   </div>
                 </div>
                 <div class="station-actions">
@@ -173,7 +173,7 @@ function renderCoursesSetup() {
         </div>
         
         <div class="total-distance">
-          <strong>Total Course Distance: ${course.totalDistance || 0} miles</strong>
+          <strong>Total Course Distance: ${roundDistance(course.totalDistance || 0)} miles</strong>
         </div>
         
         <div class="add-station-to-course">
@@ -347,14 +347,25 @@ function recalculateCourseDistances(courseId) {
     if (index === 0) {
       station.cumulative = 0;
     } else {
-      cumulative += station.distance || 0;
-      station.cumulative = cumulative;
+      cumulative += parseFloat(station.distance) || 0;
+      station.cumulative = roundDistance(cumulative);
     }
   });
   
-  course.totalDistance = cumulative;
+  course.totalDistance = roundDistance(cumulative);
 }
 
 function saveCourses() {
   saveData();
-} 
+}
+
+// Make functions globally accessible
+window.addAidStation = addAidStation;
+window.removeAidStation = removeAidStation;
+window.addCourse = addCourse;
+window.removeCourse = removeCourse;
+window.addStationToCourse = addStationToCourse;
+window.removeCourseStation = removeCourseStation;
+window.updateStationDistance = updateStationDistance;
+window.insertStationBefore = insertStationBefore;
+window.insertStationAfter = insertStationAfter;
