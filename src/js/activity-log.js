@@ -1237,7 +1237,7 @@ function updateParticipantFilter() {
 
 // Course analysis functions
 function analyzeCourseProgression(participant, entry, priorStation) {
-  if (!participant || !participant.courseId || entry.activityType !== 'arrival') {
+  if (!participant || !participant.courseId || !['arrival', 'departed'].includes(entry.activityType)) {
     return null;
   }
   
@@ -1264,9 +1264,10 @@ function analyzeCourseProgression(participant, entry, priorStation) {
   // DNF and DNS can be reached from anywhere
   const flexibleStations = ['dnf', 'dns'];
   if (flexibleStations.includes(entry.stationId)) {
+    const activityMessage = entry.activityType === 'departed' ? 'Valid departure to status' : 'Valid transition';
     return {
       status: 'valid',
-      message: 'Valid transition',
+      message: activityMessage,
       cumulativeDistance: priorStationIndex >= 0 ? (course.stations[priorStationIndex].cumulative || 0) : 0
     };
   }
@@ -1282,6 +1283,16 @@ function analyzeCourseProgression(participant, entry, priorStation) {
   
   // Check progression order
   if (priorStationIndex >= 0) {
+    // For departures, same station is valid (departing where you arrived)
+    if (entry.activityType === 'departed' && currentStationIndex === priorStationIndex) {
+      return {
+        status: 'valid',
+        message: 'Valid departure from arrival station',
+        cumulativeDistance: course.stations[currentStationIndex].cumulative || 0
+      };
+    }
+    
+    // For arrivals, moving backwards or to same station is a warning
     if (currentStationIndex <= priorStationIndex) {
       return {
         status: 'warning',
@@ -1310,9 +1321,10 @@ function analyzeCourseProgression(participant, entry, priorStation) {
   }
   
   // Valid progression
+  const activityMessage = entry.activityType === 'departed' ? 'Valid departure' : 'Valid course progression';
   return {
     status: 'valid',
-    message: 'Valid course progression',
+    message: activityMessage,
     cumulativeDistance: course.stations[currentStationIndex].cumulative || 0
   };
 }

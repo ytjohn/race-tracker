@@ -598,10 +598,31 @@ body {
   border: 2px solid #f39c12;
 }
 
+.column-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .add-icon {
   font-size: 1.2rem;
   font-weight: bold;
   opacity: 0.8;
+}
+
+.bulk-departure-btn {
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  transition: background-color 0.2s ease;
+  opacity: 0.8;
+}
+
+.bulk-departure-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+  opacity: 1;
 }
 
 .column-body {
@@ -680,6 +701,18 @@ body {
 .bib-card.course-6 {
   border-left-color: #1abc9c; /* Teal */
   background: #f8fffc;
+}
+
+/* Departed participant styling */
+.bib-card.departed {
+  background-color: #95a5a6 !important;
+  color: #2c3e50;
+  opacity: 0.8;
+  font-style: italic;
+}
+
+.bib-card.departed:hover {
+  background-color: #7f8c8d !important;
 }
 
 /* Participants Setup Styles */

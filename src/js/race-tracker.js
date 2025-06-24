@@ -43,8 +43,54 @@ function getCurrentParticipantStation(participantId) {
   return null;
 }
 
+// Helper function to check if participant has departed from their current station
+function hasParticipantDeparted(participantId) {
+  if (!eventData || !eventData.activityLog) return false;
+  
+  const currentStation = getCurrentParticipantStation(participantId);
+  if (!currentStation) return false;
+  
+  // Find the most recent activity for this participant at their current station
+  const participantActivities = eventData.activityLog
+    .filter(entry => entry.participantId === participantId && entry.stationId === currentStation)
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  
+  if (participantActivities.length === 0) return false;
+  
+  // Check if the most recent activity is a departure
+  const mostRecentActivity = participantActivities[0];
+  return mostRecentActivity.activityType === 'departed';
+}
+
+// Helper function to validate if a participant can depart from a station
+function canParticipantDepartFromStation(participantId, stationId) {
+  if (!eventData || !eventData.activityLog) return { valid: false, reason: 'No activity log available' };
+  
+  // Get all activities for this participant at this station, sorted by time
+  const stationActivities = eventData.activityLog
+    .filter(entry => entry.participantId === participantId && entry.stationId === stationId)
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  
+  if (stationActivities.length === 0) {
+    return { valid: false, reason: 'Participant has not arrived at this station' };
+  }
+  
+  // Check the most recent activity at this station
+  const mostRecentActivity = stationActivities[stationActivities.length - 1];
+  
+  if (mostRecentActivity.activityType === 'departed') {
+    return { valid: false, reason: 'Participant has already departed from this station' };
+  }
+  
+  if (mostRecentActivity.activityType === 'arrival') {
+    return { valid: true, reason: 'Valid departure - participant has arrived and not yet departed' };
+  }
+  
+  return { valid: false, reason: 'Invalid station activity state' };
+}
+
 // Helper function to analyze participant move for course progression
-function analyzeParticipantMove(participant, targetStationId, currentStationId) {
+function analyzeParticipantMove(participant, targetStationId, currentStationId, activityType = 'arrival') {
   if (!participant || !participant.courseId) {
     return {
       status: 'error',
@@ -57,6 +103,15 @@ function analyzeParticipantMove(participant, targetStationId, currentStationId) 
     return {
       status: 'error',
       message: 'Participant course not found'
+    };
+  }
+  
+  // Special handling for departures
+  if (activityType === 'departed') {
+    const departureValidation = canParticipantDepartFromStation(participant.id, targetStationId);
+    return {
+      status: departureValidation.valid ? 'valid' : 'error',
+      message: departureValidation.reason
     };
   }
   
@@ -145,6 +200,7 @@ function updateParticipantTagsDisplay(entryId) {
   if (!entry || !tagsContainer) return;
   
   const targetStationId = entry.stationId;
+  const activityType = entry.action ? entry.action.toLowerCase() : 'arrival';
   
   tagsContainer.innerHTML = entry.participants.map(participantId => {
     const participant = eventData.participants.find(p => p.id === participantId);
@@ -161,7 +217,7 @@ function updateParticipantTagsDisplay(entryId) {
     const stationName = currentStation ? getStationName(currentStation) : 'Not Started';
     
     // Analyze course progression for this participant
-    const analysis = targetStationId ? analyzeParticipantMove(participant, targetStationId, currentStation) : null;
+    const analysis = targetStationId ? analyzeParticipantMove(participant, targetStationId, currentStation, activityType) : null;
     const analysisClass = analysis ? `course-analysis-${analysis.status}` : '';
     const analysisIcon = analysis ? getAnalysisIcon(analysis.status) : '';
     
@@ -269,13 +325,20 @@ function renderRaceTracker() {
 function renderStationColumn(station, participantIds, courseClass, isShared) {
   const stationClass = isShared ? 'shared-station' : 'course-station';
   
+  // Add bulk departure button for Start station
+  const bulkDepartureButton = station.id === 'start' && participantIds.length > 0 ? 
+    `<span class="bulk-departure-btn" onclick="event.stopPropagation(); bulkDepartureFromStart('${station.id}', '${courseClass}')" title="Mark all as departed">⏱️</span>` : '';
+  
   return `
     <div class="column ${stationClass} ${courseClass}" 
          data-station="${station.id}" 
          data-course-class="${courseClass}">
       <div class="column-header" onclick="openBatchModal('${station.id}')">
         <span>${station.name}</span>
-        <span class="add-icon">+</span>
+        <div class="column-actions">
+          <span class="add-icon">+</span>
+          ${bulkDepartureButton}
+        </div>
         <div class="participant-count">${participantIds.length}</div>
       </div>
       <div class="column-body">
@@ -293,12 +356,16 @@ function renderParticipantGrid(participantIds, courseClass) {
     const participant = eventData.participants.find(p => p.id === participantId);
     if (!participant) return '';
     
+    const hasDeparted = hasParticipantDeparted(participantId);
+    const departedClass = hasDeparted ? 'departed' : '';
+    const departedIndicator = hasDeparted ? '→' : '';
+    
     return `
-      <div class="bib-card ${courseClass}" 
+      <div class="bib-card ${courseClass} ${departedClass}" 
            draggable="true" 
            data-participant-id="${participantId}"
-           title="${participant.name}">
-        ${participant.id}
+           title="${participant.name}${hasDeparted ? ' (Departed)' : ''}">
+        ${participant.id}${departedIndicator}
       </div>
     `;
   }).join('');
@@ -450,6 +517,78 @@ function openBatchModal(stationId) {
 
 // Make function globally accessible
 window.openBatchModal = openBatchModal;
+
+// Bulk departure function for Start station
+function bulkDepartureFromStart(stationId, courseClass) {
+  if (!eventData || stationId !== 'start') return;
+  
+  // Get all participants at the start station for this course
+  const startParticipants = (eventData.stationAssignments[stationId] || [])
+    .filter(participantId => {
+      const participant = eventData.participants.find(p => p.id === participantId);
+      if (!participant) return false;
+      
+      // Check if participant belongs to the course based on courseClass
+      const course = eventData.courses.find(c => c.id === participant.courseId);
+      if (!course) return false;
+      
+      // Match course class (course-1, course-2, etc.)
+      const courseIndex = eventData.courses.indexOf(course) + 1;
+      return courseClass === `course-${courseIndex}`;
+    });
+  
+  if (startParticipants.length === 0) {
+    alert('No participants found at Start for this course.');
+    return;
+  }
+  
+  // Confirm bulk departure
+  const courseName = eventData.courses.find((course, index) => {
+    const courseIndex = index + 1;
+    return courseClass === `course-${courseIndex}`;
+  })?.name || 'Unknown Course';
+  
+  const currentTime = new Date().toLocaleTimeString('en-US', { 
+    hour12: false, 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  });
+  
+  const timePrompt = prompt(
+    `Mark all ${startParticipants.length} participants in ${courseName} as departed from Start?\n\nEnter departure time (HH:MM format, or leave blank for ${currentTime}):`,
+    currentTime
+  );
+  
+  if (timePrompt === null) return; // User cancelled
+  
+  const departureTime = timePrompt.trim() || currentTime;
+  
+  // Validate time format
+  if (!/^\d{1,2}:\d{2}$/.test(departureTime)) {
+    alert('Invalid time format. Please use HH:MM format (e.g., 09:30)');
+    return;
+  }
+  
+  // Log departure for each participant
+  startParticipants.forEach(participantId => {
+    logActivity({
+      participantId: participantId,
+      activityType: 'departed',
+      stationId: stationId,
+      priorStationId: null,
+      notes: `Bulk departure - ${courseName}`,
+      userTime: departureTime
+    });
+  });
+  
+  alert(`✅ Marked ${startParticipants.length} participants as departed from Start at ${departureTime}`);
+  
+  saveData();
+  renderRaceTracker();
+}
+
+// Make function globally accessible
+window.bulkDepartureFromStart = bulkDepartureFromStart;
 
 // Add a new batch entry row
 function addBatchRow() {
@@ -700,6 +839,7 @@ function showParticipantSuggestions(event, entryId) {
   if (suggestions.length > 0) {
     const entry = batchEntries.find(e => e.id === entryId);
     const targetStationId = entry ? entry.stationId : null;
+    const activityType = entry && entry.action ? entry.action.toLowerCase() : 'arrival';
     
     suggestionsContainer.innerHTML = suggestions.map(p => {
       const currentStation = getCurrentParticipantStation(p.id);
@@ -708,7 +848,7 @@ function showParticipantSuggestions(event, entryId) {
       const stationName = currentStation ? getStationName(currentStation) : 'Not Started';
       
       // Analyze course progression for this potential move
-      const analysis = targetStationId ? analyzeParticipantMove(p, targetStationId, currentStation) : null;
+      const analysis = targetStationId ? analyzeParticipantMove(p, targetStationId, currentStation, activityType) : null;
       const analysisClass = analysis ? `course-analysis-${analysis.status}` : '';
       const analysisIcon = analysis ? getAnalysisIcon(analysis.status) : '';
       
