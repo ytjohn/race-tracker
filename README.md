@@ -11,12 +11,14 @@ Race Tracker is a specialized tool designed for amateur radio operators who prov
 **Key Features:**
 - 🏃‍♂️ **Multi-course support** with swimlane layout
 - 📱 **Offline-first** - works without internet connection
-- 🎯 **Batch entry** for quick participant updates
+- 🎯 **Batch entry** for quick participant updates with intelligent autocomplete
 - 📊 **Activity logging** with timestamps and distance tracking
 - 🖱️ **Drag-and-drop** interface for individual moves
 - 💾 **Browser storage** - no server required
 - 📺 **Display Mode** with live updates for public viewing screens
 - 🔄 **Real-time data** with auto-refresh and live notifications
+- ⏰ **Pace tracking** with ETA calculations and visual indicators
+- 🎨 **Smart visual coding** - colors show ETA proximity, icons show pace performance
 
 ## Screenshots
 
@@ -113,6 +115,15 @@ Notes: All runners looking good, requesting water resupply
 - Useful for single participant updates
 - Maintains activity log automatically
 
+### Pace Tracking & ETA System
+Advanced pace analysis provides actionable intelligence for race volunteers:
+- **ETA-Based Sorting**: Participants sorted by soonest arrival time (not fastest pace)
+- **Visual Color Coding**: 🟢 Green (arriving <10 min), 🟡 Yellow (10-30 min), 🟠 Orange (30+ min)
+- **Pace Performance Icons**: 🚀 Ahead of pace, ⚠️ Behind pace, 🚨 Significantly overdue
+- **Intelligent Predictions**: Uses participant's own pace history for personalized ETAs
+- **Course Distance Integration**: Calculates accurate pace and ETA using configured station distances
+- **Hover Tooltips**: Detailed pace information, ETA predictions, and confidence levels
+
 ### Activity Log
 View comprehensive race activity:
 - **Chronological listing** of all movements and messages
@@ -122,7 +133,11 @@ View comprehensive race activity:
 
 ### Display Mode
 Specialized interface for public viewing screens:
-- **Live Activity Ticker:** Scrolling banner with recent participant movements
+- **Live Activity Ticker:** Scrolling banner with detailed participant movements
+- **Enhanced Live Updates:** Vertical layout for multiple activities with specific details
+- **Pace-Based Visual System:** Same ETA colors and pace icons as race tracker
+- **Activity-Based Sorting:** Most recent activity first (optimized for spectator engagement)
+- **Built-in Legend:** Shows ETA colors and pace icons for easy interpretation
 - **Auto-Refresh:** Updates every 2 seconds with live data polling
 - **Three Display Views:**
   - **Board View:** Compact train-schedule layout showing all stations
@@ -130,9 +145,8 @@ Specialized interface for public viewing screens:
   - **Statistics View:** High-level race metrics and totals
 - **Auto-Rotation:** Cycles between views every 30 seconds
 - **Manual Navigation:** Click view buttons to switch immediately
-- **Fullscreen Support:** Dedicated fullscreen mode for monitors
+- **Fullscreen Support:** Dedicated fullscreen mode with hidden navigation
 - **Live Updates:** Red notification banners when new data arrives
-- **Recent Highlighting:** Golden glow for participants with recent activity
 - **No User Interaction:** Perfect for passive spectator viewing
 
 ## Use Cases
@@ -147,11 +161,16 @@ Specialized interface for public viewing screens:
 2. **During Race:**
    - Radio operators report: "Net control, Hairpin station, runners 101, 102, 103 arrived at 10:15"
    - Operator enters batch update via station header click
+   - Intelligent autocomplete prioritizes valid moves for faster entry
    - Participants automatically move from previous station to current
    - Activity log captures all movements with timestamps
+   - Pace tracking system calculates ETAs and updates visual indicators
 
 3. **Race Monitoring:**
-   - Spectators view live progress on Display Mode screens
+   - Race tracker shows participants sorted by soonest arrival ETA
+   - Visual color coding helps volunteers prioritize attention (green = arriving soon)
+   - Pace performance icons identify participants who may need extra support
+   - Spectators view live progress on Display Mode screens with pace-based visual system
    - Auto-rotating views show board, course stats, and race metrics
    - Course analysis helps identify issues (wrong course, missed stations)
    - Activity log provides official record for race coordinators

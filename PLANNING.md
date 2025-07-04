@@ -4,7 +4,7 @@
 
 This project is a portable, offline-first race tracking tool for amateur radio operators supporting trail races. The tool allows operators to quickly update runner locations at aid stations, log key events, and generate reports for race control. The primary interface is a Kanban-style board, with columns for each aid station and cards for each participant (bib number).
 
-**STATUS: MVP COMPLETE ✅** - All core features implemented and tested. Project is race-day ready.
+**STATUS: ADVANCED SYSTEM COMPLETE ✅** - All core features plus advanced pace tracking implemented and tested. Project is race-day ready with intelligent operational support.
 
 ---
 
@@ -80,21 +80,41 @@ This project is a portable, offline-first race tracking tool for amateur radio o
   - Event duplication and deletion
   - Default data loading from JSON templates
 
+### RECENTLY COMPLETED ADVANCED FEATURES ✅
+
+- **✅ Pace Tracking & ETA System**
+  - Complete pace analysis using participant movement history
+  - ETA calculations with participant-specific pace data
+  - Visual coding: ETA proximity colors (green/yellow/orange) and pace performance icons
+  - ETA-based sorting in race tracker (soonest arrival first)
+  - Activity-based sorting in display mode (most recent activity first)
+  - Hover tooltips with detailed pace information and confidence levels
+
+- **✅ Enhanced Batch Entry**
+  - Intelligent autocomplete with validity-based prioritization
+  - Smart sorting: valid moves first, then by match quality
+  - Real-time course analysis with color-coded feedback
+
+- **✅ Advanced Display Mode**
+  - Pace-based visual system integrated into display mode
+  - Enhanced live updates with vertical layout for multiple activities
+  - Built-in legend for ETA colors and pace icons
+  - Fullscreen mode with hidden navigation
+  - Auto-rotation between board, courses, and statistics views
+
+- **✅ Activity Log Enhancements**
+  - Fixed clearing bug that properly resets participant positions
+  - Improved live update notifications with specific activity details
+  - Enhanced participant identification (no redundant ID display)
+
 ### PARTIALLY IMPLEMENTED 🔄
 
 - **🔄 Reporting/Export**
   - Activity log viewing implemented
   - CSV/PDF export: Not yet implemented (future enhancement)
 
-- **🔄 Estimated Arrival Windows & Overdue Flags**
-  - Distance calculations implemented
-  - Calculate once they reach first stop, update with each additional stop.
-  - Overdue flagging: Not yet implemented (future enhancement)
-
 ### NOT YET IMPLEMENTED ❌
 
-- **❌ Sort participants in column by speed*
-  - As pace is re-evaluated at each stop, move faster participants to top of card.
 - **❌ Thermal Printer Support**
   - Would require additional browser APIs or native app wrapper
 
@@ -135,30 +155,41 @@ This project is a portable, offline-first race tracking tool for amateur radio o
 
 ## Race Day Readiness ✅
 
-**READY FOR DEPLOYMENT**
+**READY FOR DEPLOYMENT - ADVANCED SYSTEM**
 - All core MVP features implemented and tested
+- Advanced pace tracking with ETA calculations and visual intelligence
 - Comprehensive event setup workflow
 - Multi-course support for complex races
+- Enhanced batch entry with intelligent autocomplete
+- Advanced display mode with pace-based visual system
 - Offline-first architecture
 - Browser-based deployment (no installation required)
 
 **How to Deploy:**
 1. Download project files
 2. Open `src/index.html` in any modern browser
-3. Complete event setup workflow
-4. Begin race tracking operations
+3. Complete event setup workflow (Event → Aid Stations → Courses → Participants)
+4. Configure course distances for optimal pace tracking
+5. Begin race tracking operations with intelligent visual support
+
+**Operational Benefits:**
+- Race volunteers can prioritize attention using ETA-based sorting and color coding
+- Spectators get enhanced visual feedback with pace performance indicators
+- Improved data entry efficiency with smart autocomplete
+- Better decision-making support through pace analysis and overdue flagging
 
 ---
 
-## Future Enhancements (Post-MVP)
+## Future Enhancements (Post-Advanced System)
 
-- CSV/PDF export functionality
-- Overdue runner flagging with estimated arrival times
-- Thermal printer integration
-- Multi-user sync capabilities
-- Mobile app wrapper
-- Advanced reporting dashboard
+- **CSV/PDF Export**: Export activity logs and race reports for officials
+- **Thermal Printer Integration**: Print runner status reports for physical posting
+- **Multi-User Sync**: Real-time synchronization across multiple devices
+- **Mobile App Wrapper**: Native mobile app with offline-first capabilities
+- **Advanced Analytics Dashboard**: Historical pace analysis and race insights
+- **Weather Integration**: Factor weather conditions into pace predictions
+- **Predictive Alerts**: Proactive notifications for potential issues
 
 ---
 
-*Project completed and ready for race operations. All original goals exceeded with additional advanced features implemented.*
+*Project completed and ready for race operations. All original goals exceeded with advanced pace tracking and intelligent operational support implemented. The system now provides actionable intelligence for race volunteers while maintaining the visual clarity and efficiency that made the original system successful.*

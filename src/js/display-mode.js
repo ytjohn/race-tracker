@@ -25,6 +25,12 @@ const COUNTDOWN_UPDATE_TIME = 1000; // Update countdown every second
 function initializeDisplayMode() {
   console.log('Display mode module initialized');
   
+  // Set up fullscreen change listener
+  document.addEventListener('fullscreenchange', handleFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', handleFullscreenChange); // Safari
+  document.addEventListener('mozfullscreenchange', handleFullscreenChange); // Firefox
+  document.addEventListener('MSFullscreenChange', handleFullscreenChange); // IE/Edge
+  
   // Make functions globally accessible
   window.toggleDisplayMode = toggleDisplayMode;
   window.toggleFullscreen = toggleFullscreen;
@@ -60,6 +66,30 @@ function toggleFullscreen() {
     if (document.exitFullscreen) {
       document.exitFullscreen();
     }
+  }
+}
+
+// Handle fullscreen changes (including ESC key exits)
+function handleFullscreenChange() {
+  const navBar = document.querySelector('.main-nav');
+  if (!navBar) return;
+  
+  // Check for fullscreen element across different browsers
+  const isFullscreen = !!(
+    document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.mozFullScreenElement ||
+    document.msFullscreenElement
+  );
+  
+  if (isFullscreen) {
+    // Entering fullscreen - hide nav bar
+    navBar.style.display = 'none';
+    console.log('Fullscreen entered: Nav bar hidden');
+  } else {
+    // Exiting fullscreen - show nav bar
+    navBar.style.display = '';
+    console.log('Fullscreen exited: Nav bar restored');
   }
 }
 
@@ -574,21 +604,38 @@ function renderCompactKanban(container) {
   stationOrder.forEach(id => allStations.add(id));
   
   // Get last activity time for each station for sorting
-  function getStationLastActivity(stationId) {
-    if (!window.eventData.activityLog) return 0;
-    
-    const stationActivities = window.eventData.activityLog.filter(entry => 
-      entry.stationId === stationId
-    );
-    
-    if (stationActivities.length === 0) return 0;
-    
-    const lastActivity = stationActivities.sort((a, b) => 
-      new Date(b.userTime || b.timestamp) - new Date(a.userTime || a.timestamp)
-    )[0];
-    
-    return new Date(lastActivity.userTime || lastActivity.timestamp).getTime();
-  }
+function getStationLastActivity(stationId) {
+  if (!window.eventData.activityLog) return 0;
+  
+  const stationActivities = window.eventData.activityLog.filter(entry => 
+    entry.stationId === stationId
+  );
+  
+  if (stationActivities.length === 0) return 0;
+  
+  const lastActivity = stationActivities.sort((a, b) => 
+    new Date(b.userTime || b.timestamp) - new Date(a.userTime || a.timestamp)
+  )[0];
+  
+  return new Date(lastActivity.userTime || lastActivity.timestamp).getTime();
+}
+
+// Get last activity time for a specific participant for sorting
+function getParticipantLastActivityTime(participantId) {
+  if (!window.eventData.activityLog) return 0;
+  
+  const participantActivities = window.eventData.activityLog.filter(entry => 
+    entry.participantId === participantId
+  );
+  
+  if (participantActivities.length === 0) return 0;
+  
+  const lastActivity = participantActivities.sort((a, b) => 
+    new Date(b.userTime || b.timestamp) - new Date(a.userTime || a.timestamp)
+  )[0];
+  
+  return new Date(lastActivity.userTime || lastActivity.timestamp).getTime();
+}
 
   // Sort stations by recent activity (most recent first), then by defined order
   const sortedStations = Array.from(allStations).sort((a, b) => {
@@ -647,8 +694,20 @@ function renderCompactKanban(container) {
     const thirtyMinutesAgo = Date.now() - (30 * 60 * 1000);
     const hasRecentActivity = getStationLastActivity(stationId) > thirtyMinutesAgo;
     
+    // Sort participants by most recent activity (newest first) for display mode
+    const sortedParticipants = [...participants].sort((a, b) => {
+      const aLastActivity = getParticipantLastActivityTime(a);
+      const bLastActivity = getParticipantLastActivityTime(b);
+      
+      // Most recent activity first, then by participant ID as tiebreaker
+      if (aLastActivity !== bLastActivity) {
+        return bLastActivity - aLastActivity;
+      }
+      return a.localeCompare(b);
+    });
+    
     // Group participants for compact display with pace-based styling
-    const participantsHTML = participants.map(participantId => {
+    const participantsHTML = sortedParticipants.map(participantId => {
       const participant = window.eventData.participants.find(p => p.id === participantId);
       const displayName = participant ? (participant.name || participant.id) : participantId;
       const isRecent = recentUpdates.includes(participantId);
@@ -1106,4 +1165,7 @@ window.stopDisplayMode = stopDisplayMode;
 window.toggleFullscreen = toggleFullscreen;
 window.switchDisplayToEvent = switchDisplayToEvent;
 window.getDisplayedEventId = getDisplayedEventId;
-window.debugDisplayMode = debugDisplayMode; 
+window.debugDisplayMode = debugDisplayMode;
+
+// Initialize the display mode module when this script loads
+initializeDisplayMode(); 

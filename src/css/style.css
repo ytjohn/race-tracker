@@ -2565,6 +2565,56 @@ body {
   color: white;
 }
 
+/* Fullscreen mode adjustments - remove side whitespace */
+:fullscreen .page {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100vh !important;
+}
+
+:-webkit-full-screen .page {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100vh !important;
+}
+
+:-moz-full-screen .page {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100vh !important;
+}
+
+:-ms-fullscreen .page {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100vh !important;
+}
+
+/* Fullscreen display mode container adjustments */
+:fullscreen .display-mode-container {
+  height: 100vh !important;
+}
+
+:-webkit-full-screen .display-mode-container {
+  height: 100vh !important;
+}
+
+:-moz-full-screen .display-mode-container {
+  height: 100vh !important;
+}
+
+:-ms-fullscreen .display-mode-container {
+  height: 100vh !important;
+}
+
 /* Activity Ticker */
 .activity-ticker {
   background: rgba(0, 0, 0, 0.8);
@@ -3590,7 +3640,7 @@ body {
   z-index: 10;
 }
 
-/* Pace legend for reference */
+/* Pace legend for reference - only show on race tracker page */
 .pace-legend {
   position: fixed;
   top: 20px;
@@ -3604,6 +3654,12 @@ body {
   backdrop-filter: blur(10px);
   border: 1px solid rgba(0, 0, 0, 0.1);
   max-width: 200px;
+  display: none; /* Hidden by default */
+}
+
+/* Only show pace legend on race tracker page */
+#race-tracker .pace-legend {
+  display: block;
 }
 
 .pace-legend-title {
@@ -3644,7 +3700,7 @@ body {
   font-size: 0.75rem;
 }
 
-/* Toggle button for pace legend */
+/* Toggle button for pace legend - only show on race tracker page */
 .pace-legend-toggle {
   position: fixed;
   top: 20px;
@@ -3660,6 +3716,12 @@ body {
   box-shadow: 0 4px 16px rgba(52, 152, 219, 0.3);
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  display: none; /* Hidden by default */
+}
+
+/* Only show pace legend toggle on race tracker page */
+#race-tracker .pace-legend-toggle {
+  display: block;
 }
 
 .pace-legend-toggle:hover {
@@ -3678,14 +3740,14 @@ body {
     font-size: 0.85rem;
   }
   
-  .pace-legend {
+  #race-tracker .pace-legend {
     top: 10px;
     right: 10px;
     padding: 0.75rem;
     max-width: 180px;
   }
   
-  .pace-legend-toggle {
+  #race-tracker .pace-legend-toggle {
     top: 10px;
     right: 10px;
     padding: 0.4rem;

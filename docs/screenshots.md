@@ -8,21 +8,27 @@ This page showcases the key features and interfaces of the Race Tracker applicat
 
 **Main Race Tracking Interface** - The heart of the application showing:
 - **Course Swimlanes**: Separate horizontal sections for each race course (50K, Half Marathon)
-- **Aid Station Columns**: Stations arranged in course order with participant counts
-- **Participant Cards**: Individual runners displayed with bib numbers and course colors
+- **Aid Station Columns**: Stations arranged in course order with participant counts and ETA sorting indicators (⏰)
+- **Participant Cards**: Individual runners with intelligent pace-based visual coding:
+  - **ETA Colors**: 🟢 Green (arriving <10 min), 🟡 Yellow (10-30 min), 🟠 Orange (30+ min)
+  - **Pace Icons**: 🚀 Ahead of pace, ⚠️ Behind pace, 🚨 Significantly overdue
+  - **ETA Sorting**: Participants sorted by soonest arrival time (not fastest pace)
 - **Drag & Drop**: Move individual participants between stations
 - **Station Headers**: Click any station header to open batch entry modal
-- **Recent Activity**: Golden highlighting shows participants with recent updates
+- **Pace Legend**: Toggle button (visible only on race tracker) shows pace coding reference
 - **Final Station Indicators**: Green glow and 🏁 emoji mark course finish points
 
-The interface provides an at-a-glance view of race progress with all participants organized by their current location and course assignment.
+The interface provides race volunteers with actionable intelligence - who needs attention first (green at top), who's coming soon (yellow), and who's still far out (orange). The pace performance icons help identify participants who may need extra attention without casting negative judgment.
 
 ## Batch Entry System
 
 ![Batch Entry Modal](images/batch-entry.png)
 
 **Batch Entry Modal** - Efficient bulk participant updates featuring:
-- **Participant Input**: Comma-separated list with autocomplete suggestions
+- **Participant Input**: Comma-separated list with intelligent autocomplete
+  - **Smart Prioritization**: Valid moves appear first, invalid moves at bottom
+  - **Match Quality Sorting**: Exact matches, then "starts with", then contains
+  - **Validity Indicators**: Green checkmarks for valid moves, warnings for invalid
 - **Time Entry**: Flexible time formats (10:15, 1015, 2PM, 14:30)
 - **Course Analysis**: Real-time validation with color-coded feedback
   - ✅ **Blue checkmark**: Valid course progression
@@ -31,7 +37,7 @@ The interface provides an at-a-glance view of race progress with all participant
 - **Notes Field**: Optional messages and details
 - **Preview Mode**: Review all entries before submission
 
-This system allows radio operators to quickly process multiple participant updates from station reports like "Hairpin station, runners 101, 102, 103 arrived at 10:15".
+This system allows radio operators to quickly process multiple participant updates from station reports like "Hairpin station, runners 101, 102, 103 arrived at 10:15". The intelligent autocomplete ensures valid participants appear first, making data entry faster and more accurate.
 
 ## Activity Log Management
 
@@ -55,15 +61,17 @@ The activity log serves as the official record of all race activities and provid
 
 **Display Mode Board View** - Optimized for public viewing featuring:
 - **Compact Layout**: Train-schedule style display showing all stations without scrolling
-- **Live Activity Ticker**: Scrolling banner at top with recent participant movements
+- **Live Activity Ticker**: Scrolling banner with detailed participant movements
+- **Enhanced Live Updates**: Vertical layout for multiple activities with specific details
+- **Pace-Based Visual Coding**: Same ETA colors and pace icons as race tracker
+- **Activity-Based Sorting**: Most recent activity appears first (different from race tracker's ETA sorting)
 - **Auto-Refresh**: Updates every 2 seconds with live data polling
-- **Recent Highlights**: Golden glow for participants with updates in last 5 minutes
-- **Final Station Indicators**: Special styling for course endpoints
+- **Pace Legend**: Built-in legend showing ETA colors and pace icons
 - **Station Activity**: 🔥 emoji and orange glow for stations with recent activity (30 minutes)
 - **Auto-Rotation**: Cycles between Board, Courses, and Stats views every 30 seconds
-- **Fullscreen Support**: ⛶ button for full-screen display mode
+- **Fullscreen Support**: ⛶ button for full-screen display with hidden navigation
 
-Perfect for public monitors where spectators can track race progress passively.
+Perfect for public monitors where spectators can track race progress passively. The pace-based visual system helps spectators understand participant status at a glance.
 
 ## Display Mode - Statistics View
 

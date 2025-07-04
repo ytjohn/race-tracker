@@ -467,6 +467,48 @@ function formatETA(etaTime) {
   }
 }
 
+// Format ETA for display with context (handles finish line differently)
+function formatETAWithContext(participantId) {
+  const etaData = paceTracker.participantETAs.get(participantId);
+  if (!etaData || !etaData.etaTime) return '--';
+  
+  const etaTime = etaData.etaTime;
+  const now = new Date();
+  const diffMs = etaTime - now;
+  
+  if (isNaN(diffMs)) return '--';
+  
+  const absDiffMs = Math.abs(diffMs);
+  const hours = Math.floor(absDiffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((absDiffMs % (1000 * 60 * 60)) / (1000 * 60));
+  
+  if (isNaN(hours) || isNaN(minutes)) return '--';
+  
+  let timeStr;
+  if (hours > 0) {
+    timeStr = `${hours}h ${minutes}m`;
+  } else {
+    timeStr = `${minutes}m`;
+  }
+  
+  if (diffMs < 0) {
+    if (etaData.isFinishLine) {
+      // For finish line, show estimated completion time instead of "overdue"
+      const finishTimeStr = etaTime.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      });
+      return `Est. Finished @ ${finishTimeStr}`;
+    } else {
+      // Regular station - show overdue
+      return `${timeStr} overdue`;
+    }
+  } else {
+    return timeStr;
+  }
+}
+
 // Get pace-based color class for bib cards (based on ETA proximity)
 function getPaceColorClass(participantId) {
   const etaData = paceTracker.participantETAs.get(participantId);
@@ -475,6 +517,11 @@ function getPaceColorClass(participantId) {
   const now = new Date();
   const timeToETA = etaData.etaTime - now;
   const minutesToETA = timeToETA / (1000 * 60);
+  
+  // Special handling for finish line - keep them green since they're likely done
+  if (etaData.isFinishLine && minutesToETA < 0) {
+    return 'pace-arriving-soon'; // Green - likely finished
+  }
   
   // Color coding based on ETA proximity (how soon they'll arrive)
   if (minutesToETA < 10) {
@@ -493,7 +540,16 @@ function getPacePerformanceIcon(participantId) {
   
   if (!paceData || !etaData) return '';
   
-  // If overdue based on their own pace, show alert
+  // Special handling for finish line - don't show overdue icons since we don't track finish arrivals
+  if (etaData.isFinishLine) {
+    // For finish line, only show ahead icon if they're doing better than expected
+    if (paceData.recentPaceMPH > paceData.averagePaceMPH * 1.1) {
+      return 'pace-icon-ahead'; // 🚀 - ahead of their own pace
+    }
+    return ''; // No overdue icons for finish line
+  }
+  
+  // Regular station logic - show overdue indicators
   const now = new Date();
   const timeToETA = etaData.etaTime - now;
   const minutesToETA = timeToETA / (1000 * 60);
@@ -524,7 +580,22 @@ function getPacePerformanceIconText(participantId) {
   return ''; // No icon
 }
 
-// Sort participants by pace (fastest first)
+// Sort participants by ETA (soonest arrival first)
+function sortParticipantsByETA(participantIds) {
+  return [...participantIds].sort((a, b) => {
+    const etaA = paceTracker.participantETAs.get(a);
+    const etaB = paceTracker.participantETAs.get(b);
+    
+    if (!etaA && !etaB) return a.localeCompare(b); // Fallback to ID sort
+    if (!etaA) return 1; // No ETA goes to end
+    if (!etaB) return -1; // No ETA goes to end
+    
+    // Sort by ETA time (earliest first)
+    return etaA.etaTime - etaB.etaTime;
+  });
+}
+
+// Sort participants by pace (fastest first) - kept for legacy/other uses
 function sortParticipantsByPace(participantIds) {
   return [...participantIds].sort((a, b) => {
     const paceA = paceTracker.participantPaces.get(a);
@@ -636,7 +707,7 @@ function showPaceTooltip(bibCard, event) {
       </div>
       <div class="eta-info">
         <span class="label">ETA:</span>
-        <span class="value">${formatETA(paceInfo.eta)} ${getPacePerformanceIconText(participantId)}</span>
+        <span class="value">${formatETAWithContext(participantId)} ${getPacePerformanceIconText(participantId)}</span>
       </div>
       <div class="confidence-info">
         <span class="confidence-${paceInfo.confidence}">
@@ -700,8 +771,8 @@ function updateBibCardSorting() {
     
     if (participantIds.length <= 1) return;
     
-    // Sort by pace
-    const sortedIds = sortParticipantsByPace(participantIds);
+    // Sort by ETA (soonest arrival first)
+    const sortedIds = sortParticipantsByETA(participantIds);
     
     // Reorder DOM elements
     sortedIds.forEach(participantId => {
@@ -937,9 +1008,11 @@ window.paceTracker = {
   getParticipantPaceInfo,
   formatPace,
   formatETA,
+  formatETAWithContext,
   getPaceColorClass,
   getPacePerformanceIcon,
   getPacePerformanceIconText,
+  sortParticipantsByETA,
   sortParticipantsByPace,
   startBackgroundRefresh,
   stopBackgroundRefresh,

@@ -355,9 +355,9 @@ function renderStationColumn(station, participantIds, courseClass, isShared) {
   const bulkDepartureButton = station.id === 'start' && participantIds.length > 0 ? 
     `<span class="bulk-departure-btn" onclick="event.stopPropagation(); bulkDepartureFromStart('${station.id}', '${courseClass}')" title="Mark all as departed">⏱️</span>` : '';
   
-  // Add pace sorting indicator
-  const paceSortingIndicator = participantIds.length > 1 ? 
-    `<span class="sorting-indicator" title="Sorted by pace (fastest first)">🏃</span>` : '';
+  // Add ETA sorting indicator
+  const etaSortingIndicator = participantIds.length > 1 ? 
+    `<span class="sorting-indicator" title="Sorted by ETA (soonest arrival first)">⏰</span>` : '';
   
   return `
     <div class="column ${stationClass} ${courseClass}" 
@@ -368,7 +368,7 @@ function renderStationColumn(station, participantIds, courseClass, isShared) {
         <div class="column-actions">
           <span class="add-icon">+</span>
           ${bulkDepartureButton}
-          ${paceSortingIndicator}
+          ${etaSortingIndicator}
         </div>
         <div class="participant-count">${participantIds.length}</div>
       </div>
@@ -383,10 +383,10 @@ function renderStationColumn(station, participantIds, courseClass, isShared) {
 function renderParticipantGrid(participantIds, courseClass) {
   if (!participantIds.length) return '';
   
-  // Sort participants by pace if pace tracker is available
+  // Sort participants by ETA (soonest arrival first) if pace tracker is available
   let sortedParticipants = participantIds;
-  if (window.paceTracker && window.paceTracker.sortParticipantsByPace) {
-    sortedParticipants = window.paceTracker.sortParticipantsByPace(participantIds);
+  if (window.paceTracker && window.paceTracker.sortParticipantsByETA) {
+    sortedParticipants = window.paceTracker.sortParticipantsByETA(participantIds);
   }
   
   return sortedParticipants.map(participantId => {
