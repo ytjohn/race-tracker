@@ -2,7 +2,7 @@
 
 **Offline-first, browser-based race tracking system for amateur radio operators supporting trail races.**
 
-![Race Tracker Screenshot](old/screenshots/screenshot-nullboard.png)
+![Race Tracker Screenshot](docs/images/race-tracker.png)
 
 ## Overview
 
