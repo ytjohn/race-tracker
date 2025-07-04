@@ -676,6 +676,7 @@ body {
   white-space: normal;
   overflow-wrap: break-word;
   hyphens: auto;
+  position: relative; /* Needed for absolute positioning of pace icons */
 }
 
 .bib-card:hover {
@@ -3345,35 +3346,26 @@ body {
 
 /* Pace Tracking Styles */
 
-/* Pace-based color coding for bib cards */
-.bib-card.pace-overdue {
-  background: linear-gradient(135deg, #ff6b6b, #ff4757) !important;
-  color: white !important;
-  border: 2px solid #e55252 !important;
-  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3) !important;
-  animation: pulse-urgent 2s infinite;
-}
-
+/* Pace-based color coding for bib cards - based on ETA proximity */
 .bib-card.pace-arriving-soon {
-  background: linear-gradient(135deg, #ffa726, #ff9800) !important;
+  background: linear-gradient(135deg, #66bb6a, #4caf50) !important;
   color: white !important;
-  border: 2px solid #f57c00 !important;
-  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3) !important;
-  animation: pulse-attention 3s infinite;
+  border: 2px solid #388e3c !important;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3) !important;
 }
 
-.bib-card.pace-arriving-later {
+.bib-card.pace-arriving-closer {
   background: linear-gradient(135deg, #ffeb3b, #ffc107) !important;
   color: #333 !important;
   border: 2px solid #ff8f00 !important;
   box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3) !important;
 }
 
-.bib-card.pace-on-track {
-  background: linear-gradient(135deg, #66bb6a, #4caf50) !important;
+.bib-card.pace-arriving-later {
+  background: linear-gradient(135deg, #ffa726, #ff9800) !important;
   color: white !important;
-  border: 2px solid #388e3c !important;
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3) !important;
+  border: 2px solid #f57c00 !important;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3) !important;
 }
 
 /* Animation for urgent attention */
@@ -3524,52 +3516,21 @@ body {
   position: relative;
 }
 
-.bib-card.pace-overdue:hover {
-  box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4) !important;
-}
-
 .bib-card.pace-arriving-soon:hover {
-  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4) !important;
-}
-
-.bib-card.pace-arriving-later:hover {
-  box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4) !important;
-}
-
-.bib-card.pace-on-track:hover {
   box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4) !important;
 }
 
-/* Pace indicator icons for bib cards */
-.bib-card::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  opacity: 0.8;
+.bib-card.pace-arriving-closer:hover {
+  box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4) !important;
 }
 
-.bib-card.pace-overdue::after {
-  background: #ff1744;
-  box-shadow: 0 0 4px rgba(255, 23, 68, 0.6);
+.bib-card.pace-arriving-later:hover {
+  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4) !important;
 }
 
-.bib-card.pace-arriving-soon::after {
-  background: #ff9800;
-  box-shadow: 0 0 4px rgba(255, 152, 0, 0.6);
-}
-
-.bib-card.pace-arriving-later::after {
-  background: #ffeb3b;
-  box-shadow: 0 0 4px rgba(255, 235, 59, 0.6);
-}
-
-.bib-card.pace-on-track::after {
-  background: #4caf50;
-  box-shadow: 0 0 4px rgba(76, 175, 80, 0.6);
+/* Pace performance icons for bib cards - now using DOM elements for better rendering */
+.pace-icon {
+  z-index: 10;
 }
 
 /* Pace legend for reference */
@@ -3609,20 +3570,16 @@ body {
   flex-shrink: 0;
 }
 
-.pace-legend-color.overdue {
-  background: #ff4757;
-}
-
 .pace-legend-color.arriving-soon {
-  background: #ff9800;
+  background: #4caf50;
 }
 
-.pace-legend-color.arriving-later {
+.pace-legend-color.arriving-closer {
   background: #ffeb3b;
 }
 
-.pace-legend-color.on-track {
-  background: #4caf50;
+.pace-legend-color.arriving-later {
+  background: #ff9800;
 }
 
 .pace-legend-text {
@@ -3679,19 +3636,7 @@ body {
   }
 }
 
-/* Sorting indicator for fastest participants */
-.column-body .bib-card:first-child {
-  position: relative;
-}
-
-.column-body .bib-card:first-child::before {
-  content: '🚀';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  font-size: 0.7rem;
-  opacity: 0.7;
-}
+/* Sorting indicator for fastest participants (removed - using pace performance icons instead) */
 
 /* Background refresh indicator */
 .refresh-indicator {
@@ -3726,16 +3671,16 @@ body {
 }
 
 /* Pace-based gradient backgrounds for enhanced visual hierarchy */
-.bib-card.pace-overdue {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ff4757 50%, #ff3742 100%) !important;
-  background-size: 200% 200% !important;
-  animation: gradientShift 3s ease-in-out infinite;
-}
-
-.bib-card.pace-arriving-soon {
+.bib-card.pace-arriving-later {
   background: linear-gradient(135deg, #ffa726 0%, #ff9800 50%, #f57c00 100%) !important;
   background-size: 200% 200% !important;
   animation: gradientShift 4s ease-in-out infinite;
+}
+
+.bib-card.pace-arriving-closer {
+  background: linear-gradient(135deg, #ffeb3b 0%, #ffc107 50%, #ff8f00 100%) !important;
+  background-size: 200% 200% !important;
+  animation: gradientShift 5s ease-in-out infinite;
 }
 
 @keyframes gradientShift {

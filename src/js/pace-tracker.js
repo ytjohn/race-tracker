@@ -73,6 +73,11 @@ function calculateAllETAs() {
       paceTracker.participantETAs.set(participant.id, eta);
     }
   });
+  
+  // Update bib card colors and icons after calculations
+  setTimeout(() => {
+    updateBibCardColors();
+  }, 100);
 }
 
 // Calculate pace for a specific participant
@@ -462,7 +467,7 @@ function formatETA(etaTime) {
   }
 }
 
-// Get pace-based color class for bib cards
+// Get pace-based color class for bib cards (based on ETA proximity)
 function getPaceColorClass(participantId) {
   const etaData = paceTracker.participantETAs.get(participantId);
   if (!etaData) return '';
@@ -471,16 +476,52 @@ function getPaceColorClass(participantId) {
   const timeToETA = etaData.etaTime - now;
   const minutesToETA = timeToETA / (1000 * 60);
   
-  // Color coding based on expected arrival time
-  if (minutesToETA < 0) {
-    return 'pace-overdue'; // Red - overdue
+  // Color coding based on ETA proximity (how soon they'll arrive)
+  if (minutesToETA < 10) {
+    return 'pace-arriving-soon'; // Green - arriving soon (< 10 min)
   } else if (minutesToETA < 30) {
-    return 'pace-arriving-soon'; // Orange - arriving soon
-  } else if (minutesToETA < 60) {
-    return 'pace-arriving-later'; // Yellow - arriving within an hour
+    return 'pace-arriving-closer'; // Yellow - getting closer (10-30 min)
   } else {
-    return 'pace-on-track'; // Green - on track
+    return 'pace-arriving-later'; // Orange - still far out (30+ min)
   }
+}
+
+// Get pace performance icon based on individual pace vs their own history
+function getPacePerformanceIcon(participantId) {
+  const paceData = paceTracker.participantPaces.get(participantId);
+  const etaData = paceTracker.participantETAs.get(participantId);
+  
+  if (!paceData || !etaData) return '';
+  
+  // If overdue based on their own pace, show alert
+  const now = new Date();
+  const timeToETA = etaData.etaTime - now;
+  const minutesToETA = timeToETA / (1000 * 60);
+  
+  if (minutesToETA < -30) {
+    return 'pace-icon-alert'; // 🚨 - significantly overdue
+  } else if (minutesToETA < -10) {
+    return 'pace-icon-warning'; // ⚠️ - behind pace but not critical
+  } else if (paceData.recentPaceMPH > paceData.averagePaceMPH * 1.1) {
+    return 'pace-icon-ahead'; // 🚀 - ahead of their own pace
+  }
+  
+  return ''; // No icon - on track with their own pace
+}
+
+// Get pace performance icon text for tooltip display
+function getPacePerformanceIconText(participantId) {
+  const iconClass = getPacePerformanceIcon(participantId);
+  
+  if (iconClass === 'pace-icon-alert') {
+    return '🚨';
+  } else if (iconClass === 'pace-icon-warning') {
+    return '⚠️';
+  } else if (iconClass === 'pace-icon-ahead') {
+    return '🚀';
+  }
+  
+  return ''; // No icon
 }
 
 // Sort participants by pace (fastest first)
@@ -595,7 +636,7 @@ function showPaceTooltip(bibCard, event) {
       </div>
       <div class="eta-info">
         <span class="label">ETA:</span>
-        <span class="value">${formatETA(paceInfo.eta)}</span>
+        <span class="value">${formatETA(paceInfo.eta)} ${getPacePerformanceIconText(participantId)}</span>
       </div>
       <div class="confidence-info">
         <span class="confidence-${paceInfo.confidence}">
@@ -672,7 +713,7 @@ function updateBibCardSorting() {
   });
 }
 
-// Update bib card colors based on pace
+// Update bib card colors and icons based on pace
 function updateBibCardColors() {
   const bibCards = document.querySelectorAll('.bib-card');
   bibCards.forEach(card => {
@@ -680,12 +721,51 @@ function updateBibCardColors() {
     if (!participantId) return;
     
     // Remove existing pace color classes
-    card.classList.remove('pace-overdue', 'pace-arriving-soon', 'pace-arriving-later', 'pace-on-track');
+    card.classList.remove('pace-overdue', 'pace-arriving-soon', 'pace-arriving-closer', 'pace-arriving-later', 'pace-on-track');
     
-    // Add new pace color class
+    // Remove existing pace icon classes and elements
+    card.classList.remove('pace-icon-alert', 'pace-icon-warning', 'pace-icon-ahead');
+    const existingIcon = card.querySelector('.pace-icon');
+    if (existingIcon) {
+      existingIcon.remove();
+    }
+    
+    // Add new pace color class (for ETA proximity)
     const colorClass = getPaceColorClass(participantId);
     if (colorClass) {
       card.classList.add(colorClass);
+    }
+    
+    // Add pace performance icon as DOM element
+    const iconClass = getPacePerformanceIcon(participantId);
+    if (iconClass) {
+      card.classList.add(iconClass);
+      
+      // Create actual icon element instead of using CSS ::after
+      const iconElement = document.createElement('span');
+      iconElement.className = 'pace-icon';
+      
+      if (iconClass === 'pace-icon-alert') {
+        iconElement.textContent = '🚨';
+        iconElement.style.animation = 'pulse-urgent 2s infinite';
+      } else if (iconClass === 'pace-icon-warning') {
+        iconElement.textContent = '⚠️';
+        iconElement.style.animation = 'pulse-attention 3s infinite';
+      } else if (iconClass === 'pace-icon-ahead') {
+        iconElement.textContent = '🚀';
+      }
+      
+      // Position the icon to avoid covering bib number
+      iconElement.style.position = 'absolute';
+      iconElement.style.top = '-6px';
+      iconElement.style.right = '-6px';
+      iconElement.style.fontSize = '0.8rem';
+      iconElement.style.opacity = '0.9';
+      iconElement.style.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.5)';
+      iconElement.style.pointerEvents = 'none';
+      iconElement.style.zIndex = '5';
+      
+      card.appendChild(iconElement);
     }
   });
 }
@@ -805,10 +885,48 @@ function testFinishLineDistances() {
   });
 }
 
+// Debug function to manually test pace icon updates
+function debugPaceIcons() {
+  console.log('=== DEBUG: Testing Pace Icons ===');
+  
+  // Recalculate everything
+  calculateAllPaces();
+  calculateAllETAs();
+  
+  // Check a few participants
+  const bibCards = document.querySelectorAll('.bib-card');
+  console.log(`Found ${bibCards.length} bib cards`);
+  
+  bibCards.forEach(card => {
+    const participantId = card.getAttribute('data-participant-id');
+    if (!participantId) return;
+    
+    const paceData = paceTracker.participantPaces.get(participantId);
+    const etaData = paceTracker.participantETAs.get(participantId);
+    
+    if (etaData) {
+      const now = new Date();
+      const timeToETA = etaData.etaTime - now;
+      const minutesToETA = timeToETA / (1000 * 60);
+      
+      const colorClass = getPaceColorClass(participantId);
+      const iconClass = getPacePerformanceIcon(participantId);
+      
+      console.log(`${participantId}: ${minutesToETA.toFixed(1)}min to ETA, color=${colorClass}, icon=${iconClass}`);
+    }
+  });
+  
+  // Update colors
+  updateBibCardColors();
+  
+  console.log('=== DEBUG: Icons should now be visible ===');
+}
+
 // Make functions available globally
 window.configureCourseDistances = configureCourseDistances;
 window.setupSampleCourseDistances = setupSampleCourseDistances;
 window.testFinishLineDistances = testFinishLineDistances;
+window.debugPaceIcons = debugPaceIcons;
 
 // Export functions for use in other modules
 window.paceTracker = {
@@ -820,6 +938,8 @@ window.paceTracker = {
   formatPace,
   formatETA,
   getPaceColorClass,
+  getPacePerformanceIcon,
+  getPacePerformanceIconText,
   sortParticipantsByPace,
   startBackgroundRefresh,
   stopBackgroundRefresh,

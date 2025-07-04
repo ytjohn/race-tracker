@@ -1173,22 +1173,21 @@ function showPaceLegend() {
   legend.id = 'pace-legend';
   legend.className = 'pace-legend';
   legend.innerHTML = `
-    <div class="pace-legend-title">Pace Status</div>
-    <div class="pace-legend-item">
-      <div class="pace-legend-color overdue"></div>
-      <div class="pace-legend-text">Overdue</div>
-    </div>
+    <div class="pace-legend-title">ETA Status & Pace Icons</div>
     <div class="pace-legend-item">
       <div class="pace-legend-color arriving-soon"></div>
-      <div class="pace-legend-text">Arriving Soon</div>
+      <div class="pace-legend-text">Arriving Soon (&lt;10 min)</div>
+    </div>
+    <div class="pace-legend-item">
+      <div class="pace-legend-color arriving-closer"></div>
+      <div class="pace-legend-text">Getting Closer (10-30 min)</div>
     </div>
     <div class="pace-legend-item">
       <div class="pace-legend-color arriving-later"></div>
-      <div class="pace-legend-text">Within Hour</div>
+      <div class="pace-legend-text">Still Far Out (30+ min)</div>
     </div>
-    <div class="pace-legend-item">
-      <div class="pace-legend-color on-track"></div>
-      <div class="pace-legend-text">On Track</div>
+    <div style="margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid #ddd; font-size: 0.7rem; color: #666;">
+      Icons: 🚀 Ahead of pace • ⚠️ Behind pace • 🚨 Overdue
     </div>
   `;
   
