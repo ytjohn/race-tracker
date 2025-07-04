@@ -228,12 +228,12 @@ function renderActivityLogRows(logEntries) {
         </td>
         <td class="participant-cell">
           ${participant ? `
-            <div class="participant-display">${participant.name} (${participant.id})</div>
+            <div class="participant-display">${participant.name !== participant.id ? `${participant.name} (${participant.id})` : participant.name}</div>
             <div class="participant-edit hidden">
               <select onchange="updateEntryParticipant('${entry.id}', this.value)">
                 <option value="">No Participant</option>
                 ${eventData.participants.map(p => 
-                  `<option value="${p.id}" ${p.id === participant.id ? 'selected' : ''}>${p.name} (${p.id})</option>`
+                  `<option value="${p.id}" ${p.id === participant.id ? 'selected' : ''}>${p.name !== p.id ? `${p.name} (${p.id})` : p.name}</option>`
                 ).join('')}
               </select>
             </div>
@@ -243,7 +243,7 @@ function renderActivityLogRows(logEntries) {
               <select onchange="updateEntryParticipant('${entry.id}', this.value)">
                 <option value="">No Participant</option>
                 ${eventData.participants.map(p => 
-                  `<option value="${p.id}">${p.name} (${p.id})</option>`
+                  `<option value="${p.id}">${p.name !== p.id ? `${p.name} (${p.id})` : p.name}</option>`
                 ).join('')}
               </select>
             </div>
@@ -559,7 +559,8 @@ function saveEntryChanges(entryId) {
     // Update participant display
     const participantDisplay = row.querySelector('.participant-display');
     if (participantDisplay) {
-      participantDisplay.textContent = participant ? `${participant.name} (${participant.id})` : '—';
+      participantDisplay.textContent = participant ? 
+        (participant.name !== participant.id ? `${participant.name} (${participant.id})` : participant.name) : '—';
     }
     
     // Update course display
@@ -696,13 +697,28 @@ function deleteActivityEntry(entryId) {
 
 // Clear all activity logs
 function clearActivityLog() {
-  if (!confirm('Are you sure you want to clear ALL activity logs? This cannot be undone.')) {
+  if (!confirm('Are you sure you want to clear ALL activity logs? This will also reset participants to their starting positions and cannot be undone.')) {
     return;
   }
   
+  // Clear activity log
   eventData.activityLog = [];
+  
+  // Reset station assignments to put all participants back at start
+  eventData.stationAssignments = {};
+  
+  // Reset all participants to start station if they exist
+  if (eventData.participants.length > 0) {
+    eventData.stationAssignments['start'] = eventData.participants.map(p => p.id);
+  }
+  
   saveData();
   renderActivityLogManagement();
+  
+  // Re-render race tracker if it's the current page
+  if (window.currentPage === 'race-tracker' && window.renderRaceTracker) {
+    window.renderRaceTracker();
+  }
 }
 
 // Export activity log

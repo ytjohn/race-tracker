@@ -1,10 +1,10 @@
 {
-  "id": "event_1750777696772_keschmew1",
+  "id": "event_1751591001443_sy09cz802",
   "event": {
-    "name": "2025 LTTR Default",
-    "date": "2025-06-24",
-    "location": "my backyard",
-    "description": "This is the default event for the LTTR tracker. It is used to test the tracker and ensure it is working correctly."
+    "name": "LTTR Race",
+    "date": "2025-07-26",
+    "location": "Blue Knob PA",
+    "description": ""
   },
   "aidStations": [
     {
@@ -12,7 +12,6 @@
       "name": "Start",
       "isDefault": true
     },
-
     {
       "id": "dnf",
       "name": "DNF",
@@ -29,106 +28,88 @@
       "isDefault": true
     },
     {
-      "id": "station_1750729749724",
-      "name": "Hairpin",
-      "isDefault": false
-    },
-    {
-      "id": "station_1750729756160",
-      "name": "Lost Children",
-      "isDefault": false
-    },
-    {
-      "id": "station_1750729759812",
+      "id": "mco436szb8utejg1lwb",
       "name": "Skyline",
       "isDefault": false
     },
     {
-      "id": "station_1750729763845",
-      "name": "Windber",
+      "id": "mco43c0juvuqtva461d",
+      "name": "Burnt House",
       "isDefault": false
     },
     {
-      "id": "station_1750729771578",
-      "name": "Burnt House",
+      "id": "mco43h89qb0htxp2tss",
+      "name": "Lost Children",
+      "isDefault": false
+    },
+    {
+      "id": "mco453hd975g5j5cs7e",
+      "name": "Hairpin",
       "isDefault": false
     }
   ],
   "courses": [
     {
-      "id": "course_1750729780586",
-      "name": "50k",
+      "id": "mco43u8zd7xbwegzyni",
+      "name": "50K",
       "stations": [
         {
           "stationId": "start",
-          "distanceFromPrevious": 0,
-          "totalDistance": 0,
-          "cumulative": 0
+          "distance": 0,
+          "cumulative": 0,
+          "cumulativeDistance": 0
         },
         {
-          "stationId": "station_1750729756160",
-          "distanceFromPrevious": 3,
-          "totalDistance": 3,
-          "distance": 3,
-          "cumulative": 3
+          "stationId": "mco436szb8utejg1lwb",
+          "distance": 8.6,
+          "cumulative": 8.6,
+          "cumulativeDistance": 8.6
         },
         {
-          "stationId": "station_1750729749724",
-          "distanceFromPrevious": 3.2,
-          "totalDistance": 6.2,
-          "cumulative": 6.3,
-          "distance": 3.3
+          "stationId": "mco43c0juvuqtva461d",
+          "distance": 8.3,
+          "cumulative": 16.9,
+          "cumulativeDistance": 16.9
         },
         {
-          "stationId": "station_1750729771578",
-          "distanceFromPrevious": 4.1,
-          "totalDistance": 10.3,
-          "cumulative": 9.1,
-          "distance": 2.8
+          "stationId": "mco43h89qb0htxp2tss",
+          "distance": 6.6,
+          "cumulative": 23.5,
+          "cumulativeDistance": 23.5
         },
         {
-          "stationId": "finish",
-          "distanceFromPrevious": 3,
-          "totalDistance": 13.3,
-          "cumulative": 10.299999999999999,
-          "distance": 1.2
+          "stationId": "mco453hd975g5j5cs7e",
+          "distance": 3.5,
+          "cumulative": 27,
+          "cumulativeDistance": 27
         }
       ],
-      "totalDistance": 10.299999999999999
+      "totalDistance": 31
     },
     {
-      "id": "course_1750729834404",
-      "name": "Half Marathon",
+      "id": "mco46hd0qxgnt0hru0r",
+      "name": "Half-Marathon",
       "stations": [
         {
           "stationId": "start",
-          "distanceFromPrevious": 0,
-          "totalDistance": 0,
-          "cumulative": 0
+          "distance": 0,
+          "cumulative": 0,
+          "cumulativeDistance": 0
         },
         {
-          "stationId": "station_1750729763845",
-          "distanceFromPrevious": 4,
-          "totalDistance": 4,
-          "distance": 1.1,
-          "cumulative": 1.1
+          "stationId": "mco43h89qb0htxp2tss",
+          "distance": 5.7,
+          "cumulative": 5.7,
+          "cumulativeDistance": 5.7
         },
         {
-          "stationId": "station_1750729771578",
-          "distanceFromPrevious": 11,
-          "totalDistance": 15,
-          "cumulative": 3.3000000000000003,
-          "distance": 2.2
-        },
-        {
-          "stationId": "finish",
-          "distanceFromPrevious": 3,
-          "totalDistance": 18,
-          "cumulative": 6.300000000000001,
-          "distance": 3
+          "stationId": "mco453hd975g5j5cs7e",
+          "distance": 3.5,
+          "cumulative": 9.2,
+          "cumulativeDistance": 9.2
         }
       ],
-      "totalDistance": 6.300000000000001
+      "totalDistance": 13.1
     }
   ],
   "participants": [
@@ -137,250 +118,1389 @@
       "name": "100",
       "type": "race",
       "active": true,
-      "courseId": "course_1750729834404"
+      "courseId": "mco43u8zd7xbwegzyni"
     },
     {
       "id": "101",
       "name": "101",
       "type": "race",
       "active": true,
-      "courseId": "course_1750729834404"
+      "courseId": "mco43u8zd7xbwegzyni"
     },
     {
       "id": "102",
       "name": "102",
       "type": "race",
       "active": true,
-      "courseId": "course_1750729834404"
+      "courseId": "mco43u8zd7xbwegzyni"
     },
     {
       "id": "103",
       "name": "103",
       "type": "race",
       "active": true,
-      "courseId": "course_1750729834404"
+      "courseId": "mco43u8zd7xbwegzyni"
     },
     {
       "id": "104",
       "name": "104",
       "type": "race",
       "active": true,
-      "courseId": "course_1750729834404"
+      "courseId": "mco43u8zd7xbwegzyni"
     },
     {
       "id": "105",
       "name": "105",
       "type": "race",
       "active": true,
-      "courseId": "course_1750729834404"
+      "courseId": "mco43u8zd7xbwegzyni"
     },
     {
-      "id": "500",
-      "name": "500",
+      "id": "106",
+      "name": "106",
       "type": "race",
       "active": true,
-      "courseId": "course_1750729780586"
+      "courseId": "mco43u8zd7xbwegzyni"
     },
     {
-      "id": "501",
-      "name": "501",
+      "id": "107",
+      "name": "107",
       "type": "race",
       "active": true,
-      "courseId": "course_1750729780586"
+      "courseId": "mco43u8zd7xbwegzyni"
     },
     {
-      "id": "502",
-      "name": "502",
+      "id": "108",
+      "name": "108",
       "type": "race",
       "active": true,
-      "courseId": "course_1750729780586"
+      "courseId": "mco43u8zd7xbwegzyni"
     },
     {
-      "id": "503",
-      "name": "503",
+      "id": "109",
+      "name": "109",
       "type": "race",
       "active": true,
-      "courseId": "course_1750729780586"
+      "courseId": "mco43u8zd7xbwegzyni"
     },
     {
-      "id": "504",
-      "name": "504",
+      "id": "110",
+      "name": "110",
       "type": "race",
       "active": true,
-      "courseId": "course_1750729780586"
+      "courseId": "mco43u8zd7xbwegzyni"
     },
     {
-      "id": "505",
-      "name": "505",
+      "id": "111",
+      "name": "111",
       "type": "race",
       "active": true,
-      "courseId": "course_1750729780586"
+      "courseId": "mco43u8zd7xbwegzyni"
     },
     {
-      "id": "HM Sweep 1",
-      "name": "HM Sweep 1",
+      "id": "112",
+      "name": "112",
       "type": "race",
       "active": true,
-      "courseId": "course_1750729834404"
+      "courseId": "mco43u8zd7xbwegzyni"
     },
     {
-      "id": "HM Sweep 2",
-      "name": "HM Sweep 2",
+      "id": "113",
+      "name": "113",
       "type": "race",
       "active": true,
-      "courseId": "course_1750729834404"
+      "courseId": "mco43u8zd7xbwegzyni"
     },
     {
-      "id": "50K Sweep 1",
-      "name": "50K Sweep 1",
+      "id": "114",
+      "name": "114",
       "type": "race",
       "active": true,
-      "courseId": "course_1750729780586"
+      "courseId": "mco43u8zd7xbwegzyni"
     },
     {
-      "id": "50K Sweep 2",
-      "name": "50K Sweep 2",
+      "id": "115",
+      "name": "115",
       "type": "race",
       "active": true,
-      "courseId": "course_1750729780586"
+      "courseId": "mco43u8zd7xbwegzyni"
+    },
+    {
+      "id": "116",
+      "name": "116",
+      "type": "race",
+      "active": true,
+      "courseId": "mco43u8zd7xbwegzyni"
+    },
+    {
+      "id": "117",
+      "name": "117",
+      "type": "race",
+      "active": true,
+      "courseId": "mco43u8zd7xbwegzyni"
+    },
+    {
+      "id": "118",
+      "name": "118",
+      "type": "race",
+      "active": true,
+      "courseId": "mco43u8zd7xbwegzyni"
+    },
+    {
+      "id": "119",
+      "name": "119",
+      "type": "race",
+      "active": true,
+      "courseId": "mco43u8zd7xbwegzyni"
+    },
+    {
+      "id": "120",
+      "name": "120",
+      "type": "race",
+      "active": true,
+      "courseId": "mco43u8zd7xbwegzyni"
+    },
+    {
+      "id": "300",
+      "name": "300",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "301",
+      "name": "301",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "302",
+      "name": "302",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "303",
+      "name": "303",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "304",
+      "name": "304",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "305",
+      "name": "305",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "306",
+      "name": "306",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "307",
+      "name": "307",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "308",
+      "name": "308",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "309",
+      "name": "309",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "310",
+      "name": "310",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "311",
+      "name": "311",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "312",
+      "name": "312",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "313",
+      "name": "313",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "314",
+      "name": "314",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "315",
+      "name": "315",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "316",
+      "name": "316",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "317",
+      "name": "317",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "318",
+      "name": "318",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "319",
+      "name": "319",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "320",
+      "name": "320",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "321",
+      "name": "321",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "322",
+      "name": "322",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "323",
+      "name": "323",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "324",
+      "name": "324",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "325",
+      "name": "325",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "326",
+      "name": "326",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "327",
+      "name": "327",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "328",
+      "name": "328",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "329",
+      "name": "329",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "330",
+      "name": "330",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "331",
+      "name": "331",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "332",
+      "name": "332",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "333",
+      "name": "333",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "334",
+      "name": "334",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "335",
+      "name": "335",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "336",
+      "name": "336",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "337",
+      "name": "337",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "338",
+      "name": "338",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "339",
+      "name": "339",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "340",
+      "name": "340",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "341",
+      "name": "341",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "342",
+      "name": "342",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "343",
+      "name": "343",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "344",
+      "name": "344",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "345",
+      "name": "345",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "346",
+      "name": "346",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "347",
+      "name": "347",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "348",
+      "name": "348",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "349",
+      "name": "349",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
+    },
+    {
+      "id": "350",
+      "name": "350",
+      "type": "race",
+      "active": true,
+      "courseId": "mco46hd0qxgnt0hru0r"
     }
   ],
   "stationAssignments": {
     "start": [
       "100",
       "101",
-      "102",
       "103",
       "104",
       "105",
-      "500",
-      "501",
-      "502",
-      "503",
-      "504",
-      "505",
-      "HM Sweep 1",
-      "HM Sweep 2",
-      "50K Sweep 1",
-      "50K Sweep 2"
+      "106",
+      "107",
+      "108",
+      "109",
+      "110",
+      "111",
+      "112",
+      "113",
+      "114",
+      "115",
+      "116",
+      "117",
+      "118",
+      "119",
+      "120",
+      "300",
+      "301",
+      "302",
+      "303",
+      "304",
+      "305",
+      "306",
+      "307",
+      "308",
+      "309",
+      "310",
+      "311",
+      "312",
+      "313",
+      "314",
+      "315",
+      "316",
+      "317",
+      "318",
+      "319",
+      "320",
+      "321",
+      "322",
+      "323",
+      "324",
+      "325",
+      "326",
+      "327",
+      "328",
+      "329",
+      "330",
+      "331",
+      "332",
+      "333",
+      "334",
+      "335",
+      "336",
+      "337",
+      "338",
+      "339",
+      "340",
+      "341",
+      "342",
+      "343",
+      "344",
+      "345",
+      "346",
+      "347",
+      "348",
+      "349",
+      "350"
     ],
-    "station_1750729749724": [],
-    "station_1750729756160": [],
-    "station_1750729771578": [],
-    "station_1750729763845": [],
-    "finish": []
+    "mco436szb8utejg1lwb": [
+      "102"
+    ]
   },
   "activityLog": [
     {
-      "id": "mcajf1p0tbdbi9tmjs",
-      "timestamp": "2025-06-24T13:04:34.644Z",
-      "userTime": "2025-06-24T13:04:34.644Z",
-      "participantId": "506",
-      "activityType": "arrival",
-      "stationId": "station_1750729756160",
+      "id": "mco47y6pzouj0qyuwe",
+      "timestamp": "2025-07-04T01:07:55.729Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "100",
+      "activityType": "departed",
+      "stationId": "start",
       "reportingStation": "system",
-      "notes": null,
-      "priorStationId": "start"
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
     },
     {
-      "id": "mcajf2idchw2ogyoe0h",
-      "timestamp": "2025-06-24T13:04:35.701Z",
-      "userTime": "2025-06-24T13:04:35.701Z",
-      "participantId": "511",
-      "activityType": "arrival",
-      "stationId": "station_1750729756160",
+      "id": "mco47y6popyeiqdzix9",
+      "timestamp": "2025-07-04T01:07:55.729Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "101",
+      "activityType": "departed",
+      "stationId": "start",
       "reportingStation": "system",
-      "notes": null,
-      "priorStationId": "start"
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
     },
     {
-      "id": "mcajf47xr7kprld0cor",
-      "timestamp": "2025-06-24T13:04:37.917Z",
-      "userTime": "2025-06-24T13:04:37.917Z",
+      "id": "mco47y6p3j53scg7m6f",
+      "timestamp": "2025-07-04T01:07:55.729Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "102",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
+    },
+    {
+      "id": "mco47y6podjez6spnqf",
+      "timestamp": "2025-07-04T01:07:55.729Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "103",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
+    },
+    {
+      "id": "mco47y6q5qguzb6msq9",
+      "timestamp": "2025-07-04T01:07:55.730Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "104",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
+    },
+    {
+      "id": "mco47y6qsecx6o6kzz",
+      "timestamp": "2025-07-04T01:07:55.730Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
       "participantId": "105",
-      "activityType": "arrival",
-      "stationId": "station_1750729763845",
+      "activityType": "departed",
+      "stationId": "start",
       "reportingStation": "system",
-      "notes": null,
-      "priorStationId": "start"
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
     },
     {
-      "id": "mcajf4zml7olx5p2u3n",
-      "timestamp": "2025-06-24T13:04:38.914Z",
-      "userTime": "2025-06-24T13:04:38.914Z",
-      "participantId": "110",
-      "activityType": "arrival",
-      "stationId": "station_1750729763845",
-      "reportingStation": "system",
-      "notes": null,
-      "priorStationId": "start"
-    },
-    {
-      "id": "mcajf5r4ftafx1seq8",
-      "timestamp": "2025-06-24T13:04:39.904Z",
-      "userTime": "2025-06-24T13:04:39.904Z",
+      "id": "mco47y6qan94g23l51o",
+      "timestamp": "2025-07-04T01:07:55.730Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
       "participantId": "106",
-      "activityType": "arrival",
-      "stationId": "station_1750729763845",
+      "activityType": "departed",
+      "stationId": "start",
       "reportingStation": "system",
-      "notes": null,
-      "priorStationId": "start"
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
     },
     {
-      "id": "mcajf7m2ho31jj88yx7",
-      "timestamp": "2025-06-24T13:04:42.314Z",
-      "userTime": "2025-06-24T13:04:42.314Z",
+      "id": "mco47y6q48bm9oaer59",
+      "timestamp": "2025-07-04T01:07:55.730Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "107",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
+    },
+    {
+      "id": "mco47y6q6ct53mvpfto",
+      "timestamp": "2025-07-04T01:07:55.730Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "108",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
+    },
+    {
+      "id": "mco47y6q42c19fvbehs",
+      "timestamp": "2025-07-04T01:07:55.730Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "109",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
+    },
+    {
+      "id": "mco47y6q81dp89306r7",
+      "timestamp": "2025-07-04T01:07:55.730Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
       "participantId": "110",
-      "activityType": "arrival",
-      "stationId": "station_1750729771578",
+      "activityType": "departed",
+      "stationId": "start",
       "reportingStation": "system",
-      "notes": null,
-      "priorStationId": "station_1750729763845"
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
     },
     {
-      "id": "mcajygc2goizbdhtjvs",
-      "timestamp": "2025-06-24T13:19:40.082Z",
-      "userTime": "2025-06-24T13:19:40.082Z",
-      "participantId": "500",
-      "activityType": "arrival",
-      "stationId": "finish",
+      "id": "mco47y6qt68vppf8m2",
+      "timestamp": "2025-07-04T01:07:55.730Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "111",
+      "activityType": "departed",
+      "stationId": "start",
       "reportingStation": "system",
-      "notes": null,
-      "priorStationId": "station_1750729749724"
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
     },
     {
-      "id": "mcajyr1pkm4kfv8qf",
-      "timestamp": "2025-06-24T13:19:53.965Z",
-      "userTime": "2025-06-24T13:19:53.965Z",
-      "participantId": "532",
+      "id": "mco47y6qr37dn80zr29",
+      "timestamp": "2025-07-04T01:07:55.730Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "112",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
+    },
+    {
+      "id": "mco47y6qqwcjr73e1uc",
+      "timestamp": "2025-07-04T01:07:55.730Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "113",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
+    },
+    {
+      "id": "mco47y6roiqzwn6nqol",
+      "timestamp": "2025-07-04T01:07:55.731Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "114",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
+    },
+    {
+      "id": "mco47y6rgflm4v79azm",
+      "timestamp": "2025-07-04T01:07:55.731Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "115",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
+    },
+    {
+      "id": "mco47y6rmreouf7noqh",
+      "timestamp": "2025-07-04T01:07:55.731Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "116",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
+    },
+    {
+      "id": "mco47y6r1qi4ubdt8p8",
+      "timestamp": "2025-07-04T01:07:55.731Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "117",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
+    },
+    {
+      "id": "mco47y6rvnx3u45ie8b",
+      "timestamp": "2025-07-04T01:07:55.731Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "118",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
+    },
+    {
+      "id": "mco47y6r6y6h1mldlih",
+      "timestamp": "2025-07-04T01:07:55.731Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "119",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
+    },
+    {
+      "id": "mco47y6s5uljl3fvc8q",
+      "timestamp": "2025-07-04T01:07:55.732Z",
+      "userTime": "2025-07-04T00:00:00.000Z",
+      "participantId": "120",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - 50K",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tjq40du9oufpg",
+      "timestamp": "2025-07-04T01:08:05.623Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "300",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tkb84x9izwxqe",
+      "timestamp": "2025-07-04T01:08:05.624Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "301",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tkkho725aq8lo",
+      "timestamp": "2025-07-04T01:08:05.624Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "302",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tkwi0zzbpmcri",
+      "timestamp": "2025-07-04T01:08:05.624Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "303",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tk7vsch29f8hd",
+      "timestamp": "2025-07-04T01:08:05.624Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "304",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tkwkjnmjnfb9d",
+      "timestamp": "2025-07-04T01:08:05.624Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "305",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tkz4t78kmfhb",
+      "timestamp": "2025-07-04T01:08:05.624Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "306",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tkq7ah49ia5bs",
+      "timestamp": "2025-07-04T01:08:05.624Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "307",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tl58oipkc1rki",
+      "timestamp": "2025-07-04T01:08:05.625Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "308",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tlrnkmtcyhqi7",
+      "timestamp": "2025-07-04T01:08:05.625Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "309",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tl3t6lm2j3oqx",
+      "timestamp": "2025-07-04T01:08:05.625Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "310",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tl4ybcojdq8dc",
+      "timestamp": "2025-07-04T01:08:05.625Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "311",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tlcyca9om49rw",
+      "timestamp": "2025-07-04T01:08:05.625Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "312",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tlvxnjx67pr1s",
+      "timestamp": "2025-07-04T01:08:05.625Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "313",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tlhyb4npy364n",
+      "timestamp": "2025-07-04T01:08:05.625Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "314",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tlen86932qtom",
+      "timestamp": "2025-07-04T01:08:05.625Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "315",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tlawtxsz582rv",
+      "timestamp": "2025-07-04T01:08:05.625Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "316",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tmtwt5kz7cxmt",
+      "timestamp": "2025-07-04T01:08:05.626Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "317",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tmhtfkqpmz5bq",
+      "timestamp": "2025-07-04T01:08:05.626Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "318",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tmrcshe7wg5b",
+      "timestamp": "2025-07-04T01:08:05.626Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "319",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tm267a2pk4mnb",
+      "timestamp": "2025-07-04T01:08:05.626Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "320",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tmssb72hzzjb9",
+      "timestamp": "2025-07-04T01:08:05.626Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "321",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tmfwabimdfj8j",
+      "timestamp": "2025-07-04T01:08:05.626Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "322",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tnhea8xjhwqr",
+      "timestamp": "2025-07-04T01:08:05.627Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "323",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tn4eiki2aeqeb",
+      "timestamp": "2025-07-04T01:08:05.627Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "324",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tnzymrhv4ke6",
+      "timestamp": "2025-07-04T01:08:05.627Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "325",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tnugx53fj8z3p",
+      "timestamp": "2025-07-04T01:08:05.627Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "326",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485todfjlznqlho",
+      "timestamp": "2025-07-04T01:08:05.628Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "327",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485to1jiuqfcskaj",
+      "timestamp": "2025-07-04T01:08:05.628Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "328",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tootkzcp8vt9",
+      "timestamp": "2025-07-04T01:08:05.628Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "329",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485torteqwab2dr",
+      "timestamp": "2025-07-04T01:08:05.628Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "330",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tozs7p4oorws",
+      "timestamp": "2025-07-04T01:08:05.628Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "331",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485too1a9nyg5hxg",
+      "timestamp": "2025-07-04T01:08:05.628Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "332",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tp3wqto9y1pxa",
+      "timestamp": "2025-07-04T01:08:05.629Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "333",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tpp3zmkaa57nk",
+      "timestamp": "2025-07-04T01:08:05.629Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "334",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tpdf5wvgm0758",
+      "timestamp": "2025-07-04T01:08:05.629Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "335",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tpjgk3tdmbzgr",
+      "timestamp": "2025-07-04T01:08:05.629Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "336",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tp0hfa63yle8r",
+      "timestamp": "2025-07-04T01:08:05.629Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "337",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tpj6au3ybuw9e",
+      "timestamp": "2025-07-04T01:08:05.629Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "338",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tp0zyfd1fkoxdg",
+      "timestamp": "2025-07-04T01:08:05.629Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "339",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tp40fwh0yv1rj",
+      "timestamp": "2025-07-04T01:08:05.629Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "340",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tq39kzs099rvp",
+      "timestamp": "2025-07-04T01:08:05.630Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "341",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tqnywdb4tzzdk",
+      "timestamp": "2025-07-04T01:08:05.630Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "342",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tq3j0as2k8npv",
+      "timestamp": "2025-07-04T01:08:05.630Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "343",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tqdkk1u9iy245",
+      "timestamp": "2025-07-04T01:08:05.630Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "344",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tqmmjtboalzz",
+      "timestamp": "2025-07-04T01:08:05.630Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "345",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485tryoaistjovu",
+      "timestamp": "2025-07-04T01:08:05.631Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "346",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485trq5idfbi46te",
+      "timestamp": "2025-07-04T01:08:05.631Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "347",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485trg8atra04nbu",
+      "timestamp": "2025-07-04T01:08:05.631Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "348",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485trr51awqifco",
+      "timestamp": "2025-07-04T01:08:05.631Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "349",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco485trgskrjo7bpaq",
+      "timestamp": "2025-07-04T01:08:05.631Z",
+      "userTime": "2025-07-04T00:20:00.000Z",
+      "participantId": "350",
+      "activityType": "departed",
+      "stationId": "start",
+      "reportingStation": "system",
+      "notes": "Bulk departure - Half-Marathon",
+      "priorStationId": null
+    },
+    {
+      "id": "mco48fa4h0xeheya216",
+      "timestamp": "2025-07-04T01:08:17.884Z",
+      "userTime": "2025-07-04T01:08:17.884Z",
+      "participantId": "102",
       "activityType": "arrival",
-      "stationId": "station_1750729771578",
+      "stationId": "mco436szb8utejg1lwb",
       "reportingStation": "system",
       "notes": null,
       "priorStationId": "start"
-    },
-    {
-      "id": "mcajyy9ebp1jmgv1225",
-      "timestamp": "2025-06-24T13:20:03.315Z",
-      "userTime": "2025-06-24T13:20:03.314Z",
-      "participantId": "502",
-      "activityType": "arrival",
-      "stationId": "station_1750729763845",
-      "reportingStation": "system",
-      "notes": "",
-      "priorStationId": "station_1750729771578"
-    },
-    {
-      "id": "mcam1n3ujqfjuaiqqzp",
-      "timestamp": "2025-06-24T14:18:08.058Z",
-      "userTime": "2025-06-24T14:17:00.000Z",
-      "participantId": null,
-      "activityType": "other",
-      "stationId": "station_1750729749724",
-      "priorStationId": null,
-      "notes": "Water Requested"
     }
   ],
-  "exportedAt": "2025-06-24T15:11:22.406Z",
+  "exportedAt": "2025-07-04T01:10:33.489Z",
   "version": "1.0"
 }

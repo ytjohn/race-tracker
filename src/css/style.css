@@ -395,10 +395,30 @@ body {
 }
 
 .total-distance {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+  color: #2c3e50;
+}
+
+.total-distance label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.total-distance input {
+  width: 80px;
+  margin: 0;
+}
+
+.distance-help {
   color: #666;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-style: italic;
-  white-space: nowrap;
+  margin-top: 0.25rem;
 }
 
 .station-actions {
@@ -2730,6 +2750,41 @@ body {
   50% { transform: scale(1.2); }
 }
 
+/* Vertical layout for multiple activities */
+.alert-content.vertical {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.alert-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.alert-title {
+  font-size: 1rem;
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.alert-activities {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-left: 2rem;
+  max-width: 400px;
+}
+
+.alert-activity {
+  font-size: 0.9rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Compact Header Styles */
 .display-controls.compact {
   padding: 1rem 1.5rem;
@@ -3286,4 +3341,404 @@ body {
   .station-display-stats {
     justify-content: center;
   }
+}
+
+/* Pace Tracking Styles */
+
+/* Pace-based color coding for bib cards */
+.bib-card.pace-overdue {
+  background: linear-gradient(135deg, #ff6b6b, #ff4757) !important;
+  color: white !important;
+  border: 2px solid #e55252 !important;
+  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3) !important;
+  animation: pulse-urgent 2s infinite;
+}
+
+.bib-card.pace-arriving-soon {
+  background: linear-gradient(135deg, #ffa726, #ff9800) !important;
+  color: white !important;
+  border: 2px solid #f57c00 !important;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3) !important;
+  animation: pulse-attention 3s infinite;
+}
+
+.bib-card.pace-arriving-later {
+  background: linear-gradient(135deg, #ffeb3b, #ffc107) !important;
+  color: #333 !important;
+  border: 2px solid #ff8f00 !important;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3) !important;
+}
+
+.bib-card.pace-on-track {
+  background: linear-gradient(135deg, #66bb6a, #4caf50) !important;
+  color: white !important;
+  border: 2px solid #388e3c !important;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3) !important;
+}
+
+/* Animation for urgent attention */
+@keyframes pulse-urgent {
+  0%, 100% { 
+    transform: scale(1); 
+    box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
+  }
+  50% { 
+    transform: scale(1.05); 
+    box-shadow: 0 4px 16px rgba(255, 71, 87, 0.6);
+  }
+}
+
+/* Animation for attention */
+@keyframes pulse-attention {
+  0%, 100% { 
+    transform: scale(1); 
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+  }
+  50% { 
+    transform: scale(1.02); 
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.5);
+  }
+}
+
+/* Pace Tooltip Styles */
+.pace-tooltip {
+  position: absolute;
+  background: rgba(44, 62, 80, 0.95);
+  color: white;
+  padding: 0.75rem;
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  font-size: 0.8rem;
+  z-index: 10000;
+  max-width: 220px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.pace-tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.pace-tooltip-header strong {
+  font-size: 1.1rem;
+  color: #3498db;
+}
+
+.estimated-badge {
+  background: #e67e22;
+  color: white;
+  padding: 0.15rem 0.4rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.pace-tooltip-content {
+  margin-bottom: 0.5rem;
+}
+
+.pace-info,
+.eta-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+  align-items: center;
+}
+
+.pace-info .label,
+.eta-info .label {
+  color: #bdc3c7;
+  font-size: 0.85rem;
+}
+
+.pace-info .value,
+.eta-info .value {
+  font-weight: 600;
+  color: white;
+}
+
+.pace-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0.5rem 0;
+}
+
+.confidence-info {
+  text-align: center;
+  margin-top: 0.3rem;
+}
+
+.confidence-high {
+  color: #2ecc71;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.confidence-medium {
+  color: #f39c12;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.confidence-low {
+  color: #e74c3c;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.pace-tooltip-footer {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #95a5a6;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pace-tooltip-footer .status-message {
+  color: #f39c12;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.pace-tooltip-footer .help-message {
+  color: #3498db;
+  font-size: 0.7rem;
+  margin-top: 4px;
+  text-align: center;
+}
+
+/* Enhanced bib card hover effects with pace data */
+.bib-card:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15) !important;
+  z-index: 10;
+  position: relative;
+}
+
+.bib-card.pace-overdue:hover {
+  box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4) !important;
+}
+
+.bib-card.pace-arriving-soon:hover {
+  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4) !important;
+}
+
+.bib-card.pace-arriving-later:hover {
+  box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4) !important;
+}
+
+.bib-card.pace-on-track:hover {
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4) !important;
+}
+
+/* Pace indicator icons for bib cards */
+.bib-card::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  opacity: 0.8;
+}
+
+.bib-card.pace-overdue::after {
+  background: #ff1744;
+  box-shadow: 0 0 4px rgba(255, 23, 68, 0.6);
+}
+
+.bib-card.pace-arriving-soon::after {
+  background: #ff9800;
+  box-shadow: 0 0 4px rgba(255, 152, 0, 0.6);
+}
+
+.bib-card.pace-arriving-later::after {
+  background: #ffeb3b;
+  box-shadow: 0 0 4px rgba(255, 235, 59, 0.6);
+}
+
+.bib-card.pace-on-track::after {
+  background: #4caf50;
+  box-shadow: 0 0 4px rgba(76, 175, 80, 0.6);
+}
+
+/* Pace legend for reference */
+.pace-legend {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  font-size: 0.8rem;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  max-width: 200px;
+}
+
+.pace-legend-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+  text-align: center;
+}
+
+.pace-legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.3rem;
+}
+
+.pace-legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.pace-legend-color.overdue {
+  background: #ff4757;
+}
+
+.pace-legend-color.arriving-soon {
+  background: #ff9800;
+}
+
+.pace-legend-color.arriving-later {
+  background: #ffeb3b;
+}
+
+.pace-legend-color.on-track {
+  background: #4caf50;
+}
+
+.pace-legend-text {
+  color: #555;
+  font-size: 0.75rem;
+}
+
+/* Toggle button for pace legend */
+.pace-legend-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(52, 152, 219, 0.9);
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  z-index: 1001;
+  box-shadow: 0 4px 16px rgba(52, 152, 219, 0.3);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.pace-legend-toggle:hover {
+  background: rgba(52, 152, 219, 1);
+  transform: scale(1.1);
+}
+
+.pace-legend-toggle.active {
+  background: rgba(231, 76, 60, 0.9);
+}
+
+/* Responsive adjustments for pace features */
+@media (max-width: 768px) {
+  .pace-tooltip {
+    max-width: 250px;
+    font-size: 0.85rem;
+  }
+  
+  .pace-legend {
+    top: 10px;
+    right: 10px;
+    padding: 0.75rem;
+    max-width: 180px;
+  }
+  
+  .pace-legend-toggle {
+    top: 10px;
+    right: 10px;
+    padding: 0.4rem;
+    font-size: 1rem;
+  }
+}
+
+/* Sorting indicator for fastest participants */
+.column-body .bib-card:first-child {
+  position: relative;
+}
+
+.column-body .bib-card:first-child::before {
+  content: '🚀';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+/* Background refresh indicator */
+.refresh-indicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(46, 204, 113, 0.9);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  z-index: 1000;
+  animation: fadeInOut 3s ease-in-out;
+  backdrop-filter: blur(10px);
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0; transform: translateY(10px); }
+  10%, 90% { opacity: 1; transform: translateY(0); }
+}
+
+/* Enhanced column headers with pace sorting indicator */
+.column-header .sorting-indicator {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.column-header .sorting-indicator.active {
+  opacity: 1;
+  animation: pulse 2s infinite;
+}
+
+/* Pace-based gradient backgrounds for enhanced visual hierarchy */
+.bib-card.pace-overdue {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff4757 50%, #ff3742 100%) !important;
+  background-size: 200% 200% !important;
+  animation: gradientShift 3s ease-in-out infinite;
+}
+
+.bib-card.pace-arriving-soon {
+  background: linear-gradient(135deg, #ffa726 0%, #ff9800 50%, #f57c00 100%) !important;
+  background-size: 200% 200% !important;
+  animation: gradientShift 4s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }

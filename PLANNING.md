@@ -88,10 +88,13 @@ This project is a portable, offline-first race tracking tool for amateur radio o
 
 - **🔄 Estimated Arrival Windows & Overdue Flags**
   - Distance calculations implemented
+  - Calculate once they reach first stop, update with each additional stop.
   - Overdue flagging: Not yet implemented (future enhancement)
 
 ### NOT YET IMPLEMENTED ❌
 
+- **❌ Sort participants in column by speed*
+  - As pace is re-evaluated at each stop, move faster participants to top of card.
 - **❌ Thermal Printer Support**
   - Would require additional browser APIs or native app wrapper
 

@@ -12,6 +12,7 @@ let countdownInterval = null;
 let rotationCountdown = 0;
 let lastActivityCount = 0;
 let lastDataHash = '';
+let displayEventId = null; // Track which event ID this display should show
 
 // View types and rotation sequence (removed recent-activity)
 const DISPLAY_VIEWS = ['kanban', 'courses', 'statistics'];
@@ -157,9 +158,12 @@ function reloadEventData() {
     if (savedAppData) {
       const newAppData = JSON.parse(savedAppData);
       
-      // Get current event from the multi-event structure
-      if (newAppData.currentEventId && newAppData.events[newAppData.currentEventId]) {
-        const newEventData = newAppData.events[newAppData.currentEventId];
+      // Use the display event ID if set, otherwise use current event ID
+      const targetEventId = displayEventId || newAppData.currentEventId;
+      
+      // Get target event from the multi-event structure
+      if (targetEventId && newAppData.events[targetEventId]) {
+        const newEventData = newAppData.events[targetEventId];
         
         // Create a simple hash to detect data changes
         const newDataHash = JSON.stringify({
@@ -170,7 +174,7 @@ function reloadEventData() {
         
         // Check if data has changed
         if (newDataHash !== lastDataHash) {
-          console.log('Display mode: New data detected, updating...');
+          console.log(`Display mode: New data detected for event ${targetEventId}, updating...`);
           
           // Check for new activities
           const newActivityCount = newEventData.activityLog?.length || 0;
@@ -195,7 +199,7 @@ function reloadEventData() {
           return true; // Data was updated
         }
       } else {
-        console.log('Display mode: No current event found in appData');
+        console.log(`Display mode: Event ${targetEventId} not found in appData`);
       }
     }
     
@@ -245,23 +249,62 @@ function reloadEventData() {
 
 // Show live update alert
 function showLiveUpdateAlert(newUpdates) {
+  if (!window.eventData?.activityLog) return;
+  
+  // Get the most recent activities
+  const recentActivities = [...window.eventData.activityLog]
+    .sort((a, b) => new Date(b.userTime || b.timestamp) - new Date(a.userTime || a.timestamp))
+    .slice(0, Math.min(newUpdates, 3)); // Show up to 3 activities
+  
+  const activityTexts = recentActivities.map(entry => {
+    const participant = entry.participantId ? 
+      window.eventData.participants.find(p => p.id === entry.participantId) : null;
+    const station = window.eventData.aidStations.find(s => s.id === entry.stationId);
+    
+    if (entry.activityType === 'other' && entry.notes) {
+      return entry.notes;
+    } else if (participant && station) {
+      const participantName = participant.name || participant.id;
+      return `${participantName} → ${station.name}`;
+    } else if (station) {
+      return `Update at ${station.name}`;
+    }
+    return 'Race update';
+  });
+  
   const alertDiv = document.createElement('div');
   alertDiv.className = 'live-update-alert';
-  alertDiv.innerHTML = `
-    <div class="alert-content">
-      <span class="alert-icon">🔴</span>
-      <span class="alert-text">LIVE UPDATE: ${newUpdates} new ${newUpdates === 1 ? 'activity' : 'activities'}</span>
-    </div>
-  `;
+  
+  // For multiple activities, display vertically
+  if (activityTexts.length > 1) {
+    alertDiv.innerHTML = `
+      <div class="alert-content vertical">
+        <div class="alert-header">
+          <span class="alert-icon">🔴</span>
+          <span class="alert-title">LIVE UPDATE: ${activityTexts.length} activities</span>
+        </div>
+        <div class="alert-activities">
+          ${activityTexts.map(text => `<div class="alert-activity">• ${text}</div>`).join('')}
+        </div>
+      </div>
+    `;
+  } else {
+    alertDiv.innerHTML = `
+      <div class="alert-content">
+        <span class="alert-icon">🔴</span>
+        <span class="alert-text">LIVE UPDATE: ${activityTexts[0]}</span>
+      </div>
+    `;
+  }
   
   document.body.appendChild(alertDiv);
   
-  // Remove alert after 3 seconds
+  // Remove alert after 4 seconds (longer since there's more text)
   setTimeout(() => {
     if (alertDiv.parentNode) {
       alertDiv.parentNode.removeChild(alertDiv);
     }
-  }, 3000);
+  }, 4000);
 }
 
 // Refresh display data
@@ -320,6 +363,15 @@ function startDisplayMode() {
   if (displayModeActive) return;
   
   displayModeActive = true;
+  
+  // Capture the current event ID to stick to it for this display session
+  if (typeof eventData !== 'undefined' && eventData && eventData.id) {
+    displayEventId = eventData.id;
+    console.log(`Display mode: Locking to event ${displayEventId}`);
+  } else if (window.appData && window.appData.currentEventId) {
+    displayEventId = window.appData.currentEventId;
+    console.log(`Display mode: Locking to current event ${displayEventId}`);
+  }
   
   // Initialize eventData if not already set
   if (!window.eventData && window.eventData !== null) {
@@ -385,6 +437,9 @@ function stopDisplayMode() {
     refreshInterval = null;
   }
   
+  // Clear the locked event ID
+  displayEventId = null;
+  
   console.log('Display mode stopped');
 }
 
@@ -398,7 +453,8 @@ function updateDisplayStats() {
   const lastUpdateEl = document.getElementById('display-last-update');
   
   if (eventNameEl) {
-    eventNameEl.textContent = window.eventData.event?.name || 'Race Display';
+    const eventName = window.eventData.event?.name || 'Race Display';
+    eventNameEl.textContent = eventName;
   }
   
   if (timeEl) {
@@ -463,7 +519,8 @@ function updateActivityTicker() {
     const station = window.eventData.aidStations.find(s => s.id === entry.stationId);
     const time = new Date(entry.userTime || entry.timestamp);
     
-    const participantText = participant ? `${participant.name} (${participant.id})` : 'System';
+    const participantText = participant ? 
+      (participant.name !== participant.id ? `${participant.name} (${participant.id})` : participant.name) : 'System';
     const stationText = station ? station.name : 'Unknown Station';
     const activityText = formatActivityTypeShort(entry.activityType);
     
@@ -816,7 +873,8 @@ function renderDisplayRecentActivity(container) {
     const station = window.eventData.aidStations.find(s => s.id === entry.stationId);
     const time = new Date(entry.userTime || entry.timestamp);
     
-    const participantText = participant ? `${participant.name} (${participant.id})` : 'System';
+    const participantText = participant ? 
+      (participant.name !== participant.id ? `${participant.name} (${participant.id})` : participant.name) : 'System';
     const stationText = station ? station.name : 'Unknown Station';
     const activityText = formatActivityType(entry.activityType);
     
@@ -986,9 +1044,65 @@ function formatActivityTypeShort(activityType) {
   return types[activityType] || activityType;
 }
 
+// Switch display to a specific event
+function switchDisplayToEvent(eventId) {
+  if (!eventId) {
+    console.error('Display mode: No event ID provided');
+    return false;
+  }
+  
+  // Check if event exists
+  const savedAppData = localStorage.getItem('raceTrackerAppData');
+  if (savedAppData) {
+    const appData = JSON.parse(savedAppData);
+    if (!appData.events || !appData.events[eventId]) {
+      console.error(`Display mode: Event ${eventId} not found`);
+      return false;
+    }
+  }
+  
+  displayEventId = eventId;
+  console.log(`Display mode: Switched to event ${eventId}`);
+  
+  // Force reload of data
+  reloadEventData();
+  refreshDisplay();
+  
+  return true;
+}
+
+// Get currently displayed event ID
+function getDisplayedEventId() {
+  return displayEventId;
+}
+
+// Debug function to check display mode state
+function debugDisplayMode() {
+  console.log('=== Display Mode Debug Info ===');
+  console.log('Display Mode Active:', displayModeActive);
+  console.log('Display Event ID:', displayEventId);
+  console.log('Window Event Data:', window.eventData ? window.eventData.id : 'null');
+  console.log('Global Event Data:', typeof eventData !== 'undefined' ? eventData.id : 'undefined');
+  
+  // Check localStorage
+  const savedAppData = localStorage.getItem('raceTrackerAppData');
+  if (savedAppData) {
+    const appData = JSON.parse(savedAppData);
+    console.log('Current Event ID in localStorage:', appData.currentEventId);
+    console.log('Available Events:', Object.keys(appData.events || {}));
+  }
+  
+  console.log('Last Activity Count:', lastActivityCount);
+  console.log('Last Data Hash:', lastDataHash);
+  console.log('================================');
+}
+
 // Export functions for global access
 window.toggleDisplayMode = toggleDisplayMode;
 window.refreshDisplay = forceRefresh;
 window.startDisplayMode = startDisplayMode;
 window.stopDisplayMode = stopDisplayMode;
-window.toggleFullscreen = toggleFullscreen; 
+window.toggleFullscreen = toggleFullscreen;
+window.switchDisplayToEvent = switchDisplayToEvent;
+window.getDisplayedEventId = getDisplayedEventId;
+window.debugDisplayMode = debugDisplayMode; 

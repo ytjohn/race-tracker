@@ -8,6 +8,11 @@ let isPreviewMode = false;
 // Initialize race tracker module
 function initializeRaceTracker() {
   console.log('Race tracker module initialized');
+  
+  // Initialize pace tracking if available
+  if (window.paceTracker && window.paceTracker.initialize) {
+    window.paceTracker.initialize();
+  }
 }
 
 // Test function for debugging
@@ -251,6 +256,15 @@ function renderRaceTracker() {
     }
   }
   
+  // Initialize and update pace data if available
+  if (window.paceTracker) {
+    if (window.paceTracker.initialize) {
+      window.paceTracker.initialize();
+    }
+    window.paceTracker.calculateAllPaces();
+    window.paceTracker.calculateAllETAs();
+  }
+  
   // Group stations by course and shared stations
   const courseStations = {};
   const sharedStations = ['dnf', 'dns'];
@@ -319,6 +333,18 @@ function renderRaceTracker() {
   
   // Add drag and drop handlers
   addDragAndDropHandlers();
+  
+  // Apply pace-based colors if available
+  if (window.paceTracker) {
+    setTimeout(() => {
+      window.paceTracker.updateBibCardColors();
+    }, 100);
+  }
+  
+  // Add pace legend toggle
+  setTimeout(() => {
+    addPaceLegendToggle();
+  }, 100);
 }
 
 // Render a station column
@@ -329,6 +355,10 @@ function renderStationColumn(station, participantIds, courseClass, isShared) {
   const bulkDepartureButton = station.id === 'start' && participantIds.length > 0 ? 
     `<span class="bulk-departure-btn" onclick="event.stopPropagation(); bulkDepartureFromStart('${station.id}', '${courseClass}')" title="Mark all as departed">⏱️</span>` : '';
   
+  // Add pace sorting indicator
+  const paceSortingIndicator = participantIds.length > 1 ? 
+    `<span class="sorting-indicator" title="Sorted by pace (fastest first)">🏃</span>` : '';
+  
   return `
     <div class="column ${stationClass} ${courseClass}" 
          data-station="${station.id}" 
@@ -338,6 +368,7 @@ function renderStationColumn(station, participantIds, courseClass, isShared) {
         <div class="column-actions">
           <span class="add-icon">+</span>
           ${bulkDepartureButton}
+          ${paceSortingIndicator}
         </div>
         <div class="participant-count">${participantIds.length}</div>
       </div>
@@ -352,7 +383,13 @@ function renderStationColumn(station, participantIds, courseClass, isShared) {
 function renderParticipantGrid(participantIds, courseClass) {
   if (!participantIds.length) return '';
   
-  return participantIds.map(participantId => {
+  // Sort participants by pace if pace tracker is available
+  let sortedParticipants = participantIds;
+  if (window.paceTracker && window.paceTracker.sortParticipantsByPace) {
+    sortedParticipants = window.paceTracker.sortParticipantsByPace(participantIds);
+  }
+  
+  return sortedParticipants.map(participantId => {
     const participant = eventData.participants.find(p => p.id === participantId);
     if (!participant) return '';
     
@@ -360,8 +397,14 @@ function renderParticipantGrid(participantIds, courseClass) {
     const departedClass = hasDeparted ? 'departed' : '';
     const departedIndicator = hasDeparted ? '→' : '';
     
+    // Get pace-based color class if available
+    let paceColorClass = '';
+    if (window.paceTracker && window.paceTracker.getPaceColorClass) {
+      paceColorClass = window.paceTracker.getPaceColorClass(participantId);
+    }
+    
     return `
-      <div class="bib-card ${courseClass} ${departedClass}" 
+      <div class="bib-card ${courseClass} ${departedClass} ${paceColorClass}" 
            draggable="true" 
            data-participant-id="${participantId}"
            title="${participant.name}${hasDeparted ? ' (Departed)' : ''}">
@@ -484,6 +527,15 @@ function moveParticipant(participantId, targetStationId) {
     priorStationId: currentStationId,
     notes: notes
   });
+  
+  // Recalculate pace and ETA for this participant
+  if (window.paceTracker) {
+    setTimeout(() => {
+      window.paceTracker.calculateAllPaces();
+      window.paceTracker.calculateAllETAs();
+      window.paceTracker.updateBibCardColors();
+    }, 100);
+  }
   
   saveData();
   renderRaceTracker();
@@ -921,52 +973,24 @@ function submitBatchEntry() {
     
     if (entry.updateType === 'Race Update' && entry.participants.length > 0) {
       entry.participants.forEach(participantId => {
-        const participant = eventData.participants.find(p => p.id === participantId);
-        let finalStationId = entry.stationId;
-        let finalNotes = entry.notes;
-        // Map action to proper activity type
-        const actionToActivityType = {
-          'arrived': 'arrival',
-          'departed': 'departed'
-        };
-        let activityType = actionToActivityType[entry.action.toLowerCase()] || entry.action.toLowerCase();
-        
-        // Check for course validation
-        const sharedStations = ['dnf', 'dns'];
-        const isTargetShared = sharedStations.includes(entry.stationId);
-        
-        if (participant && !isTargetShared && !isStationInCourse(entry.stationId, participant.courseId)) {
-          // Skip invalid moves - they will be flagged in the activity log analysis
-          console.warn(`Skipping invalid move: ${participantId} to ${getStationName(entry.stationId)} - not in their course`);
-        }
-        
-        // Find current station
-        let currentStationId = null;
-        Object.keys(eventData.stationAssignments).forEach(stationId => {
-          if ((eventData.stationAssignments[stationId] || []).includes(participantId)) {
-            currentStationId = stationId;
-          }
-        });
-        
         // Move participant to station
         Object.keys(eventData.stationAssignments).forEach(stationId => {
           eventData.stationAssignments[stationId] = (eventData.stationAssignments[stationId] || [])
             .filter(id => id !== participantId);
         });
         
-        if (!eventData.stationAssignments[finalStationId]) {
-          eventData.stationAssignments[finalStationId] = [];
+        if (!eventData.stationAssignments[entry.stationId]) {
+          eventData.stationAssignments[entry.stationId] = [];
         }
-        eventData.stationAssignments[finalStationId].push(participantId);
+        eventData.stationAssignments[entry.stationId].push(participantId);
         
         // Log activity
         logActivity({
           participantId: participantId,
-          activityType: activityType,
-          stationId: finalStationId,
-          priorStationId: currentStationId,
+          activityType: entry.action.toLowerCase(),
+          stationId: entry.stationId,
           userTime: parsedTime.toISOString(),
-          notes: finalNotes
+          notes: entry.notes
         });
         
         processedCount++;
@@ -986,8 +1010,22 @@ function submitBatchEntry() {
   });
   
   saveData();
+  
+  // Recalculate pace and ETA data after batch update
+  if (window.paceTracker) {
+    setTimeout(() => {
+      window.paceTracker.calculateAllPaces();
+      window.paceTracker.calculateAllETAs();
+      window.paceTracker.updateBibCardColors();
+      window.paceTracker.updateBibCardSorting();
+    }, 100);
+  }
+  
   renderRaceTracker();
   closeBatchModal();
+  
+  // Show refresh indicator
+  showRefreshIndicator();
   
   alert(`Processed ${processedCount} updates successfully!`);
 }
@@ -1016,5 +1054,95 @@ window.hideParticipantSuggestions = hideParticipantSuggestions;
 window.togglePreview = togglePreview;
 window.submitBatchEntry = submitBatchEntry;
 window.addBatchRow = addBatchRow;
+
+// Add pace legend toggle functionality
+function addPaceLegendToggle() {
+  // Remove existing legend and toggle
+  const existingLegend = document.getElementById('pace-legend');
+  const existingToggle = document.getElementById('pace-legend-toggle');
+  
+  if (existingLegend) existingLegend.remove();
+  if (existingToggle) existingToggle.remove();
+  
+  // Only add if we're on the race tracker page
+  if (currentPage !== 'race-tracker') return;
+  
+  // Create toggle button
+  const toggleButton = document.createElement('button');
+  toggleButton.id = 'pace-legend-toggle';
+  toggleButton.className = 'pace-legend-toggle';
+  toggleButton.innerHTML = '🏃';
+  toggleButton.title = 'Toggle pace legend';
+  
+  let isLegendVisible = false;
+  
+  toggleButton.addEventListener('click', () => {
+    if (isLegendVisible) {
+      hidePaceLegend();
+      toggleButton.classList.remove('active');
+      isLegendVisible = false;
+    } else {
+      showPaceLegend();
+      toggleButton.classList.add('active');
+      isLegendVisible = true;
+    }
+  });
+  
+  document.body.appendChild(toggleButton);
+}
+
+// Show pace legend
+function showPaceLegend() {
+  const existingLegend = document.getElementById('pace-legend');
+  if (existingLegend) existingLegend.remove();
+  
+  const legend = document.createElement('div');
+  legend.id = 'pace-legend';
+  legend.className = 'pace-legend';
+  legend.innerHTML = `
+    <div class="pace-legend-title">Pace Status</div>
+    <div class="pace-legend-item">
+      <div class="pace-legend-color overdue"></div>
+      <div class="pace-legend-text">Overdue</div>
+    </div>
+    <div class="pace-legend-item">
+      <div class="pace-legend-color arriving-soon"></div>
+      <div class="pace-legend-text">Arriving Soon</div>
+    </div>
+    <div class="pace-legend-item">
+      <div class="pace-legend-color arriving-later"></div>
+      <div class="pace-legend-text">Within Hour</div>
+    </div>
+    <div class="pace-legend-item">
+      <div class="pace-legend-color on-track"></div>
+      <div class="pace-legend-text">On Track</div>
+    </div>
+  `;
+  
+  document.body.appendChild(legend);
+}
+
+// Hide pace legend
+function hidePaceLegend() {
+  const legend = document.getElementById('pace-legend');
+  if (legend) legend.remove();
+}
+
+// Show refresh indicator
+function showRefreshIndicator() {
+  const existingIndicator = document.getElementById('refresh-indicator');
+  if (existingIndicator) existingIndicator.remove();
+  
+  const indicator = document.createElement('div');
+  indicator.id = 'refresh-indicator';
+  indicator.className = 'refresh-indicator';
+  indicator.innerHTML = 'Pace data updated';
+  
+  document.body.appendChild(indicator);
+  
+  setTimeout(() => {
+    indicator.remove();
+  }, 3000);
+}
 
  

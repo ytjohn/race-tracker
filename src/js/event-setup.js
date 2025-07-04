@@ -173,7 +173,18 @@ function renderCoursesSetup() {
         </div>
         
         <div class="total-distance">
-          <strong>Total Course Distance: ${roundDistance(course.totalDistance || 0)} miles</strong>
+          <label for="total-distance-${course.id}">
+            <strong>Total Course Distance:</strong>
+            <input type="number" id="total-distance-${course.id}" 
+                   class="distance-input-inline" 
+                   value="${course.totalDistance || 0}" 
+                   step="0.1" min="0" 
+                   onchange="updateCourseTotalDistance('${course.id}', this.value)">
+            miles
+          </label>
+          <div class="distance-help">
+            <small>Total race distance from start to finish (may be beyond last aid station)</small>
+          </div>
         </div>
         
         <div class="add-station-to-course">
@@ -212,7 +223,7 @@ function addCourse() {
     stations: [
       { stationId: 'start', distance: 0, cumulative: 0 }
     ],
-    totalDistance: 0
+    totalDistance: 0 // Set this to the full race distance (start to finish)
   };
   
   eventData.courses.push(newCourse);
@@ -297,6 +308,28 @@ function updateStationDistance(courseId, stationIndex, newDistance) {
   
   saveData();
   renderCoursesSetup();
+}
+
+function updateCourseTotalDistance(courseId, newTotalDistance) {
+  if (!eventData) return;
+  
+  const course = eventData.courses.find(c => c.id === courseId);
+  if (!course) return;
+  
+  course.totalDistance = parseFloat(newTotalDistance) || 0;
+  
+  saveData();
+  
+  // Recalculate pace data if pace tracker is available
+  if (window.paceTracker && window.paceTracker.calculateAllPaces) {
+    window.paceTracker.calculateAllPaces();
+    window.paceTracker.calculateAllETAs();
+    if (window.paceTracker.updateBibCardColors) {
+      window.paceTracker.updateBibCardColors();
+    }
+  }
+  
+  console.log(`Updated total distance for ${course.name}: ${course.totalDistance} miles`);
 }
 
 function insertStationBefore(courseId, stationIndex) {
