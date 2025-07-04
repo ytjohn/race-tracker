@@ -883,27 +883,100 @@ function showParticipantSuggestions(event, entryId) {
   // Filter participants based on query (only show if query has content)
   let suggestions = [];
   if (query.length > 0) {
-    suggestions = eventData.participants
-      .filter(p => 
-        p.id.toLowerCase().includes(query) || 
-        p.name.toLowerCase().includes(query)
-      )
-      .slice(0, 10);
-  }
-  
-  if (suggestions.length > 0) {
     const entry = batchEntries.find(e => e.id === entryId);
     const targetStationId = entry ? entry.stationId : null;
     const activityType = entry && entry.action ? entry.action.toLowerCase() : 'arrival';
     
-    suggestionsContainer.innerHTML = suggestions.map(p => {
-      const currentStation = getCurrentParticipantStation(p.id);
+    // Filter and analyze all matching participants
+    const matchingParticipants = eventData.participants
+      .filter(p => 
+        p.id.toLowerCase().includes(query) || 
+        p.name.toLowerCase().includes(query)
+      )
+      .map(p => {
+        const currentStation = getCurrentParticipantStation(p.id);
+        const analysis = targetStationId ? analyzeParticipantMove(p, targetStationId, currentStation, activityType) : null;
+        
+        return {
+          participant: p,
+          currentStation: currentStation,
+          analysis: analysis
+        };
+      });
+    
+    // Separate valid moves from invalid moves for clearer sorting
+    const validMoves = [];
+    const warningMoves = [];
+    const errorMoves = [];
+    const unknownMoves = [];
+    
+    matchingParticipants.forEach(item => {
+      const status = item.analysis?.status || 'unknown';
+      
+
+      
+      switch (status) {
+        case 'valid':
+          validMoves.push(item);
+          break;
+        case 'warning':
+          warningMoves.push(item);
+          break;
+        case 'error':
+          errorMoves.push(item);
+          break;
+        default:
+          unknownMoves.push(item);
+      }
+    });
+    
+    // Sort each group internally by match quality and participant ID
+    const sortGroup = (group) => {
+      return group.sort((a, b) => {
+        const idA = a.participant.id.toLowerCase();
+        const idB = b.participant.id.toLowerCase();
+        const queryLower = query.toLowerCase();
+        
+        // Exact match first
+        if (idA === queryLower && idB !== queryLower) return -1;
+        if (idB === queryLower && idA !== queryLower) return 1;
+        
+        // Starts with query second
+        const aStartsWith = idA.startsWith(queryLower);
+        const bStartsWith = idB.startsWith(queryLower);
+        if (aStartsWith && !bStartsWith) return -1;
+        if (bStartsWith && !aStartsWith) return 1;
+        
+        // If same match quality, sort by participant ID numerically
+        const numA = parseInt(a.participant.id);
+        const numB = parseInt(b.participant.id);
+        
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB;
+        }
+        
+        return a.participant.id.localeCompare(b.participant.id);
+      });
+    };
+    
+    // Sort each group and combine: valid first, then warnings, then errors, then unknown
+    const sortedParticipants = [
+      ...sortGroup(validMoves),
+      ...sortGroup(warningMoves),
+      ...sortGroup(errorMoves),
+      ...sortGroup(unknownMoves)
+    ];
+    
+    // Take top 15 results after sorting to ensure valid moves are shown
+    suggestions = sortedParticipants.slice(0, 15);
+  }
+  
+  if (suggestions.length > 0) {
+    suggestionsContainer.innerHTML = suggestions.map(({ participant: p, currentStation, analysis }) => {
       const course = eventData.courses.find(c => c.id === p.courseId);
       const courseName = course ? course.name : 'No Course';
       const stationName = currentStation ? getStationName(currentStation) : 'Not Started';
       
-      // Analyze course progression for this potential move
-      const analysis = targetStationId ? analyzeParticipantMove(p, targetStationId, currentStation, activityType) : null;
       const analysisClass = analysis ? `course-analysis-${analysis.status}` : '';
       const analysisIcon = analysis ? getAnalysisIcon(analysis.status) : '';
       
