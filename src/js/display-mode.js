@@ -39,11 +39,13 @@ function toggleDisplayMode() {
   
   if (autoRotateEnabled) {
     startAutoRotation();
-    toggleBtn.textContent = 'Auto-Rotate: ON';
+    toggleBtn.textContent = '⏸️';
+    toggleBtn.title = 'Auto-Rotate: ON (Click to pause)';
     toggleBtn.style.background = 'rgba(76, 175, 80, 0.3)';
   } else {
     stopAutoRotation();
-    toggleBtn.textContent = 'Auto-Rotate: OFF';
+    toggleBtn.textContent = '⏯️';
+    toggleBtn.title = 'Auto-Rotate: OFF (Click to start)';
     toggleBtn.style.background = 'rgba(255, 255, 255, 0.2)';
   }
 }
@@ -142,11 +144,11 @@ function updateCountdownDisplay() {
       'courses': 'Courses',
       'statistics': 'Stats'
     };
-    toggleBtn.textContent = `Next: ${viewNames[nextView]} in ${rotationCountdown}s`;
+    toggleBtn.title = `Auto-Rotate: Next ${viewNames[nextView]} in ${rotationCountdown}s`;
   } else if (autoRotateEnabled) {
-    toggleBtn.textContent = 'Auto-Rotate: ON';
+    toggleBtn.title = 'Auto-Rotate: ON (Click to pause)';
   } else {
-    toggleBtn.textContent = 'Auto-Rotate: OFF';
+    toggleBtn.title = 'Auto-Rotate: OFF (Click to start)';
   }
 }
 
@@ -315,6 +317,12 @@ function refreshDisplay() {
   
   updateDisplayStats();
   
+  // Update pace data if pace tracker is available and data changed
+  if (dataChanged && window.paceTracker) {
+    window.paceTracker.calculateAllPaces();
+    window.paceTracker.calculateAllETAs();
+  }
+  
   // Only update ticker if data changed or it's been a while
   if (dataChanged || Math.random() < 0.1) { // 10% chance to update even if no changes
     updateActivityTicker();
@@ -411,6 +419,12 @@ function startDisplayMode() {
   refreshDisplay();
   updateNavButtons();
   
+  // Initialize pace tracker if available
+  if (window.paceTracker && !window.paceTracker.initialized) {
+    console.log('Display mode: Initializing pace tracker...');
+    window.paceTracker.initialize();
+  }
+  
   // Start ticker updates
   if (tickerInterval) clearInterval(tickerInterval);
   tickerInterval = setInterval(updateActivityTicker, TICKER_UPDATE_TIME);
@@ -450,7 +464,6 @@ function updateDisplayStats() {
   const eventNameEl = document.getElementById('display-event-name');
   const timeEl = document.getElementById('display-time');
   const participantCountEl = document.getElementById('display-participant-count');
-  const lastUpdateEl = document.getElementById('display-last-update');
   
   if (eventNameEl) {
     const eventName = window.eventData.event?.name || 'Race Display';
@@ -465,34 +478,9 @@ function updateDisplayStats() {
     const activeParticipants = window.eventData.participants?.filter(p => p.active).length || 0;
     participantCountEl.textContent = `${activeParticipants} Participants`;
   }
-  
-  if (lastUpdateEl) {
-    const lastActivity = getLastActivityTime();
-    lastUpdateEl.textContent = `Last update: ${lastActivity}`;
-  }
 }
 
-// Get last activity time
-function getLastActivityTime() {
-  if (!window.eventData?.activityLog || window.eventData.activityLog.length === 0) {
-    return 'None';
-  }
-  
-  const sortedLog = [...window.eventData.activityLog].sort((a, b) => 
-    new Date(b.userTime || b.timestamp) - new Date(a.userTime || a.timestamp)
-  );
-  
-  const lastEntry = sortedLog[0];
-  const lastTime = new Date(lastEntry.userTime || lastEntry.timestamp);
-  const now = new Date();
-  const diffMinutes = Math.floor((now - lastTime) / 60000);
-  
-  if (diffMinutes < 1) return 'Just now';
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
-  
-  const diffHours = Math.floor(diffMinutes / 60);
-  return `${diffHours}h ${diffMinutes % 60}m ago`;
-}
+
 
 // Update activity ticker with recent changes
 function updateActivityTicker() {
@@ -659,7 +647,7 @@ function renderCompactKanban(container) {
     const thirtyMinutesAgo = Date.now() - (30 * 60 * 1000);
     const hasRecentActivity = getStationLastActivity(stationId) > thirtyMinutesAgo;
     
-    // Group participants for compact display
+    // Group participants for compact display with pace-based styling
     const participantsHTML = participants.map(participantId => {
       const participant = window.eventData.participants.find(p => p.id === participantId);
       const displayName = participant ? (participant.name || participant.id) : participantId;
@@ -673,11 +661,24 @@ function renderCompactKanban(container) {
           course.stations[course.stations.length - 1].stationId === stationId
         );
       
+      // Get pace-based styling if pace tracker is available
+      let paceColorClass = '';
+      let paceIcon = '';
+      if (window.paceTracker && window.paceTracker.getPaceColorClass) {
+        paceColorClass = window.paceTracker.getPaceColorClass(participantId);
+        if (window.paceTracker.getPacePerformanceIconText) {
+          paceIcon = window.paceTracker.getPacePerformanceIconText(participantId);
+        }
+      }
+      
       let participantClass = 'compact-participant';
+      if (paceColorClass) participantClass += ` ${paceColorClass}`;
       if (isRecent) participantClass += ' recent-update';
       if (isFinishing) participantClass += ' finishing';
       
-      return `<span class="${participantClass}" title="${displayName}${isFinishing ? ' - Finishing!' : ''}">${displayName}</span>`;
+      const iconText = paceIcon ? ` ${paceIcon}` : '';
+      
+      return `<span class="${participantClass}" title="${displayName}${isFinishing ? ' - Finishing!' : ''}">${displayName}${iconText}</span>`;
     }).join('');
     
     let stationClasses = 'compact-station';

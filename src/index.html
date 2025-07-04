@@ -282,7 +282,7 @@
               <span class="divider">•</span>
               <span id="display-participant-count">-- Participants</span>
               <span class="divider">•</span>
-              <span id="display-last-update">Last updated: --</span>
+              <span id="display-legend">ETA: 🟢 Soon • 🟡 Close • 🟠 Far | Pace: 🚀 Ahead • ⚠️ Behind • 🚨 Overdue</span>
             </div>
           </div>
           <div class="display-actions">
@@ -297,14 +297,11 @@
                 📊 Stats
               </button>
             </div>
-            <button class="btn btn-small" onclick="toggleDisplayMode()" id="display-toggle-btn">
-              Auto-Rotate: OFF
+            <button class="btn btn-tiny" onclick="toggleDisplayMode()" id="display-toggle-btn" title="Toggle Auto-Rotate">
+              ⏯️
             </button>
-            <button class="btn btn-small" onclick="refreshDisplay()">
-              🔄 Refresh
-            </button>
-            <button class="btn btn-small" onclick="toggleFullscreen()" id="fullscreen-btn">
-              ⛶ Fullscreen
+            <button class="btn btn-tiny" onclick="toggleFullscreen()" id="fullscreen-btn" title="Toggle Fullscreen">
+              ⛶
             </button>
           </div>
         </div>

@@ -230,6 +230,13 @@ body {
   font-size: 0.9rem;
 }
 
+.btn-tiny {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  min-width: 32px;
+  text-align: center;
+}
+
 /* Aid Stations Setup */
 .default-stations,
 .custom-stations {
@@ -2817,6 +2824,12 @@ body {
   transform: translateY(-2px);
 }
 
+.display-actions .btn-tiny {
+  min-width: 36px;
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+
 /* Compact Kanban Board - fits everything on screen */
 .compact-kanban {
   display: grid;
@@ -2898,6 +2911,28 @@ body {
   box-shadow: 0 0 15px rgba(76, 175, 80, 0.7);
   font-weight: 700;
   animation: finishing-glow 3s infinite;
+}
+
+/* Pace-based colors for compact participants in display mode */
+.compact-participant.pace-arriving-soon {
+  background: linear-gradient(135deg, #66bb6a, #4caf50) !important;
+  color: white !important;
+  border: 2px solid #388e3c !important;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3) !important;
+}
+
+.compact-participant.pace-arriving-closer {
+  background: linear-gradient(135deg, #ffeb3b, #ffc107) !important;
+  color: #333 !important;
+  border: 2px solid #ff8f00 !important;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3) !important;
+}
+
+.compact-participant.pace-arriving-later {
+  background: linear-gradient(135deg, #ffa726, #ff9800) !important;
+  color: white !important;
+  border: 2px solid #f57c00 !important;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3) !important;
 }
 
 .compact-station.final-station {
@@ -3024,6 +3059,28 @@ body {
   animation: pulse-highlight 2s infinite;
   border: 2px solid #ffd700;
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+/* Pace-based colors for regular display participants */
+.display-participant.pace-arriving-soon {
+  background: linear-gradient(135deg, #66bb6a, #4caf50) !important;
+  color: white !important;
+  border: 2px solid #388e3c !important;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3) !important;
+}
+
+.display-participant.pace-arriving-closer {
+  background: linear-gradient(135deg, #ffeb3b, #ffc107) !important;
+  color: #333 !important;
+  border: 2px solid #ff8f00 !important;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3) !important;
+}
+
+.display-participant.pace-arriving-later {
+  background: linear-gradient(135deg, #ffa726, #ff9800) !important;
+  color: white !important;
+  border: 2px solid #f57c00 !important;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3) !important;
 }
 
 /* Recent Activity View */
