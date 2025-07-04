@@ -3789,6 +3789,9 @@ body {
   animation: pulse 2s infinite;
 }
 
+/* Browser search highlighting has been replaced with custom search system
+   Use Ctrl+F to open the custom search overlay with better cross-browser compatibility */
+
 /* Pace-based gradient backgrounds for enhanced visual hierarchy */
 .bib-card.pace-arriving-later {
   background: linear-gradient(135deg, #ffa726 0%, #ff9800 50%, #f57c00 100%) !important;
@@ -3805,4 +3808,259 @@ body {
 @keyframes gradientShift {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
+}
+
+/* Custom Search Overlay */
+.search-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  padding-top: 80px;
+}
+
+.search-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.search-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 600px;
+  overflow: hidden;
+  transform: translateY(-20px);
+  transition: transform 0.3s ease;
+}
+
+.search-overlay.active .search-container {
+  transform: translateY(0);
+}
+
+.search-header {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1.1rem;
+  padding: 0.5rem 0;
+  background: transparent;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.search-results {
+  font-size: 0.9rem;
+  color: #666;
+  min-width: 80px;
+  text-align: center;
+}
+
+.search-nav-btn {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-nav-btn:hover:not(:disabled) {
+  background: #e9e9e9;
+  border-color: #bbb;
+}
+
+.search-nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.search-close {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1.2rem;
+}
+
+.search-close:hover {
+  background: #ff4757;
+  border-color: #ff4757;
+  color: white;
+}
+
+.search-help {
+  padding: 0.75rem 1rem;
+  background: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.search-help kbd {
+  background: #e9ecef;
+  border: 1px solid #ced4da;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.3rem;
+  margin: 0 0.1rem;
+  font-family: monospace;
+}
+
+/* Search Highlighting */
+.search-match {
+  position: relative;
+  box-shadow: 0 0 0 3px #3498db !important;
+  z-index: 1;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
+
+.search-current {
+  box-shadow: 0 0 0 4px #e74c3c !important;
+  z-index: 2;
+  transform: scale(1.05);
+}
+
+.search-highlight {
+  background: #ffeb3b !important;
+  color: #000 !important;
+  padding: 0.1rem 0.2rem;
+  border-radius: 2px;
+  font-weight: bold;
+}
+
+/* Search highlighting for different pace cards */
+.pace-arriving-soon .search-highlight {
+  background: #333 !important;
+  color: #4caf50 !important;
+}
+
+.pace-arriving-closer .search-highlight {
+  background: #333 !important;
+  color: #ff9800 !important;
+}
+
+.pace-arriving-later .search-highlight {
+  background: #333 !important;
+  color: #ffffff !important;
+}
+
+/* Ensure search matches are visible on different backgrounds */
+.search-match.pace-arriving-soon,
+.search-match.pace-arriving-closer,
+.search-match.pace-arriving-later {
+  border: 3px solid #3498db !important;
+  box-shadow: 0 0 0 2px #3498db, 0 0 20px rgba(52, 152, 219, 0.5) !important;
+}
+
+.search-current.pace-arriving-soon,
+.search-current.pace-arriving-closer,
+.search-current.pace-arriving-later {
+  border: 4px solid #e74c3c !important;
+  box-shadow: 0 0 0 2px #e74c3c, 0 0 20px rgba(231, 76, 60, 0.8) !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .search-container {
+    width: 95%;
+    margin: 0 auto;
+  }
+  
+  .search-header {
+    padding: 0.75rem;
+  }
+  
+  .search-input {
+    font-size: 1rem;
+  }
+  
+  .search-controls {
+    margin-left: 0.5rem;
+  }
+  
+  .search-nav-btn,
+  .search-close {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .search-help {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Animation for search matches */
+@keyframes search-highlight {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
+  }
+}
+
+@keyframes search-fade-out {
+  0% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+}
+
+.search-match {
+  animation: search-highlight 0.6s ease-out;
+}
+
+.search-closing {
+  animation: search-fade-out 0.3s ease-out forwards;
+}
+
+/* Ensure search overlay is above all other content */
+.search-overlay {
+  z-index: 99999;
 }

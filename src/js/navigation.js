@@ -1,6 +1,11 @@
 // Current page state
 let currentPage = 'race-tracker';
 
+// Get current page
+function getCurrentPage() {
+  return currentPage;
+}
+
 // Page Navigation
 function showPage(pageId, updateUrl = true) {
   // Hide all pages
