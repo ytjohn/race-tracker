@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   initializeEventSetup();
   initializeParticipants();
   initializeActivityLog();
+  initializeRaceResults();
   initializeEventManagement();
   initializeSearch();
   

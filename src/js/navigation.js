@@ -55,6 +55,13 @@ function showPage(pageId, updateUrl = true) {
     }
   }
   
+  // Special handling for race results page
+  if (pageId === 'race-results') {
+    if (window.renderRaceResults) {
+      renderRaceResults();
+    }
+  }
+  
   // Special handling for participants setup page
   if (pageId === 'participants-setup') {
     if (window.renderParticipantsSetup) {
