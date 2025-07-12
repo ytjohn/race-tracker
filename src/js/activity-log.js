@@ -62,13 +62,9 @@ function renderActivityLogManagement() {
           <span class="btn-icon">🖨️</span>
           Print Updates ${getUnprintedCount() > 0 ? `(${getUnprintedCount()})` : ''}
         </button>
-        <button class="btn btn-secondary" onclick="exportActivityLog('csv')">
+        <button class="btn btn-secondary" onclick="showExportModal()">
           <span class="btn-icon">📊</span>
-          Export CSV
-        </button>
-        <button class="btn btn-secondary" onclick="exportActivityLog('json')">
-          <span class="btn-icon">💾</span>
-          Export JSON
+          Exports
         </button>
         <button class="btn btn-danger" onclick="clearActivityLog()">
           <span class="btn-icon">🗑️</span>
@@ -737,6 +733,9 @@ function exportActivityLog(format) {
     return;
   }
   
+  // Close export modal if open
+  closeExportModal();
+  
   const sortedLog = [...eventData.activityLog].sort((a, b) => 
     new Date(a.userTime || a.timestamp) - new Date(b.userTime || b.timestamp)
   );
@@ -819,6 +818,243 @@ function downloadFile(content, filename, mimeType) {
   
   URL.revokeObjectURL(url);
 }
+
+// Show export modal
+function showExportModal() {
+  if (!eventData.activityLog.length && !eventData.participants.length && !eventData.courses.length) {
+    alert('No data available to export');
+    return;
+  }
+  
+  // Get courses with participants for per-course exports
+  const coursesWithParticipants = getCoursesWithParticipants();
+  
+  const modalHtml = `
+    <div class="modal-overlay" id="export-modal">
+      <div class="modal-content export-modal-large">
+        <div class="modal-header">
+          <h3>Export Data</h3>
+          <button class="modal-close" onclick="closeExportModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="export-sections">
+            
+            <!-- CSV Exports Section -->
+            <div class="export-section">
+              <h4 class="export-section-title">📊 CSV Exports</h4>
+              <div class="export-options">
+                
+                <!-- Activity Log CSV -->
+                <div class="export-option">
+                  <div class="export-option-info">
+                    <div class="export-option-title">
+                      <span class="export-icon">📋</span>
+                      Activity Log CSV
+                    </div>
+                    <div class="export-option-description">
+                      Complete activity log with all entries, times, and course analysis
+                    </div>
+                  </div>
+                  <button class="btn btn-primary btn-small" onclick="exportActivityLog('csv')" ${!eventData.activityLog.length ? 'disabled' : ''}>
+                    <span class="btn-icon">📊</span>
+                    Download
+                  </button>
+                </div>
+                
+                <!-- Per-Course CSV exports -->
+                ${coursesWithParticipants.map(course => `
+                  <div class="export-option">
+                    <div class="export-option-info">
+                      <div class="export-option-title">
+                        <span class="export-icon">📈</span>
+                        ${course.name} Course Updates CSV
+                      </div>
+                      <div class="export-option-description">
+                        Participant progression through aid stations for ${course.name} (${course.participantCount} participants)
+                      </div>
+                    </div>
+                    <button class="btn btn-primary btn-small" onclick="downloadSingleCourseCSV('${course.id}')">
+                      <span class="btn-icon">📊</span>
+                      Download
+                    </button>
+                  </div>
+                `).join('')}
+                
+              </div>
+            </div>
+            
+            <!-- JSON Exports Section -->
+            <div class="export-section">
+              <h4 class="export-section-title">💾 JSON Exports</h4>
+              <div class="export-options">
+                
+                <!-- Event JSON -->
+                <div class="export-option">
+                  <div class="export-option-info">
+                    <div class="export-option-title">
+                      <span class="export-icon">🗂️</span>
+                      Event JSON
+                    </div>
+                    <div class="export-option-description">
+                      Complete event data including courses, participants, and all settings
+                    </div>
+                  </div>
+                  <button class="btn btn-primary btn-small" onclick="exportEventJSON()">
+                    <span class="btn-icon">💾</span>
+                    Download
+                  </button>
+                </div>
+                
+                <!-- Activity Log JSON -->
+                <div class="export-option">
+                  <div class="export-option-info">
+                    <div class="export-option-title">
+                      <span class="export-icon">📋</span>
+                      Activity Log JSON
+                    </div>
+                    <div class="export-option-description">
+                      Activity log data in JSON format for technical analysis
+                    </div>
+                  </div>
+                  <button class="btn btn-primary btn-small" onclick="exportActivityLog('json')" ${!eventData.activityLog.length ? 'disabled' : ''}>
+                    <span class="btn-icon">💾</span>
+                    Download
+                  </button>
+                </div>
+                
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeExportModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+// Close export modal
+function closeExportModal() {
+  const modal = document.getElementById('export-modal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+// Get courses with participant data for export
+function getCoursesWithParticipants() {
+  const participantsByCourse = {};
+  eventData.participants.forEach(participant => {
+    if (!participant.courseId) return;
+    
+    if (!participantsByCourse[participant.courseId]) {
+      participantsByCourse[participant.courseId] = [];
+    }
+    participantsByCourse[participant.courseId].push(participant);
+  });
+  
+  return Object.keys(participantsByCourse).map(courseId => {
+    const course = eventData.courses.find(c => c.id === courseId);
+    return {
+      id: courseId,
+      name: course ? course.name : courseId,
+      participantCount: participantsByCourse[courseId].length
+    };
+  });
+}
+
+// Download single course CSV
+function downloadSingleCourseCSV(courseId) {
+  const course = eventData.courses.find(c => c.id === courseId);
+  if (!course) {
+    alert('Course not found');
+    return;
+  }
+  
+  const courseParticipants = eventData.participants.filter(p => p.courseId === courseId);
+  if (courseParticipants.length === 0) {
+    alert('No participants found for this course');
+    return;
+  }
+  
+  const csvContent = generatePerCourseCSV(course, courseParticipants);
+  const filename = `${eventData.event.name || 'race'}-${course.name.replace(/\s+/g, '-')}-course-updates.csv`;
+  
+  downloadFile(csvContent, filename, 'text/csv');
+  closeExportModal();
+}
+
+// Export event JSON
+function exportEventJSON() {
+  const exportData = {
+    ...eventData,
+    exportDate: new Date().toISOString(),
+    exportType: 'complete-event-data'
+  };
+  
+  const jsonContent = JSON.stringify(exportData, null, 2);
+  const filename = `${eventData.event.name || 'race'}-event-data.json`;
+  
+  downloadFile(jsonContent, filename, 'application/json');
+  closeExportModal();
+}
+
+
+
+// Generate per-course CSV content
+function generatePerCourseCSV(course, participants) {
+  // Create headers: Participant, Start Time, then each aid station
+  const headers = ['Participant', 'Start Time'];
+  
+  // Add aid stations in course order (excluding start)
+  course.stations.forEach(courseStation => {
+    if (courseStation.stationId !== 'start') {
+      const station = eventData.aidStations.find(s => s.id === courseStation.stationId);
+      headers.push(station ? station.name : courseStation.stationId);
+    }
+  });
+  
+  // Generate rows for each participant
+  const rows = participants.map(participant => {
+    const row = [participant.name || participant.id];
+    
+    // Get participant's activity log entries sorted by time
+    const participantActivities = eventData.activityLog
+      .filter(entry => entry.participantId === participant.id)
+      .sort((a, b) => new Date(a.userTime || a.timestamp) - new Date(b.userTime || b.timestamp));
+    
+    // Find start time (departure from start station)
+    const startDeparture = participantActivities.find(entry => 
+      entry.stationId === 'start' && entry.activityType === 'departed'
+    );
+    row.push(startDeparture ? formatTime(new Date(startDeparture.userTime || startDeparture.timestamp)) : '');
+    
+    // For each aid station in course order, find arrival time
+    course.stations.forEach(courseStation => {
+      if (courseStation.stationId !== 'start') {
+        const arrivalAtStation = participantActivities.find(entry => 
+          entry.stationId === courseStation.stationId && entry.activityType === 'arrival'
+        );
+        row.push(arrivalAtStation ? formatTime(new Date(arrivalAtStation.userTime || arrivalAtStation.timestamp)) : '');
+      }
+    });
+    
+    return row;
+  });
+  
+  // Convert to CSV format
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(cell => `"${cell}"`).join(','))
+    .join('\n');
+  
+  return csvContent;
+}
+
+
 
 // Bulk selection functions
 function toggleSelectAll() {
@@ -1193,6 +1429,10 @@ window.updateEntryStation = updateEntryStation;
 window.updateEntryPriorStation = updateEntryPriorStation;
 window.updateEntryNotes = updateEntryNotes;
 window.filterParticipantList = filterParticipantList;
+window.showExportModal = showExportModal;
+window.closeExportModal = closeExportModal;
+window.downloadSingleCourseCSV = downloadSingleCourseCSV;
+window.exportEventJSON = exportEventJSON;
 
 // Participant filter functions
 function toggleParticipantFilter() {
