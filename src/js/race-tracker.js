@@ -1046,6 +1046,14 @@ function submitBatchEntry() {
     
     if (entry.updateType === 'Race Update' && entry.participants.length > 0) {
       entry.participants.forEach(participantId => {
+        // Find current station before moving
+        let currentStationId = null;
+        Object.keys(eventData.stationAssignments).forEach(stationId => {
+          if ((eventData.stationAssignments[stationId] || []).includes(participantId)) {
+            currentStationId = stationId;
+          }
+        });
+        
         // Move participant to station
         Object.keys(eventData.stationAssignments).forEach(stationId => {
           eventData.stationAssignments[stationId] = (eventData.stationAssignments[stationId] || [])
@@ -1057,11 +1065,19 @@ function submitBatchEntry() {
         }
         eventData.stationAssignments[entry.stationId].push(participantId);
         
+        // Map action to proper activity type
+        const actionToActivityType = {
+          'arrived': 'arrival',
+          'departed': 'departed'
+        };
+        const activityType = actionToActivityType[entry.action.toLowerCase()] || entry.action.toLowerCase();
+        
         // Log activity
         logActivity({
           participantId: participantId,
-          activityType: entry.action.toLowerCase(),
+          activityType: activityType,
           stationId: entry.stationId,
+          priorStationId: currentStationId,
           userTime: parsedTime.toISOString(),
           notes: entry.notes
         });

@@ -58,6 +58,10 @@ function renderActivityLogManagement() {
           <span class="btn-icon">➕</span>
           Add Activity
         </button>
+        <button class="btn btn-secondary" onclick="printNewUpdates()">
+          <span class="btn-icon">🖨️</span>
+          Print Updates ${getUnprintedCount() > 0 ? `(${getUnprintedCount()})` : ''}
+        </button>
         <button class="btn btn-secondary" onclick="exportActivityLog('csv')">
           <span class="btn-icon">📊</span>
           Export CSV
@@ -220,7 +224,12 @@ function renderActivityLogRows(logEntries) {
           <input type="checkbox" class="row-checkbox" data-entry-id="${entry.id}" onchange="updateBulkActions()">
         </td>
         <td class="time-cell">
-          <div class="time-display">${formatTime(time)}</div>
+          <div class="time-display">
+            ${formatTime(time)}
+            ${entry.printed && (entry.activityType === 'arrival' || entry.activityType === 'other') ? 
+              `<span class="print-indicator" title="Printed on ${new Date(entry.printedAt).toLocaleString()}">🖨️</span>` : 
+              ''}
+          </div>
           <div class="time-edit hidden">
             <input type="time" value="${time.toTimeString().slice(0,5)}" 
                    onchange="updateEntryTime('${entry.id}', this.value)">
@@ -356,7 +365,7 @@ function formatActivityType(activityType) {
     'arrival': 'Arrived',
     'departed': 'Departed', 
     'suspect': 'Suspect',
-    'other': 'Message'
+    'other': 'Update At'
   };
   return types[activityType] || activityType;
 }
@@ -1445,4 +1454,181 @@ function filterByParticipant(participantId) {
   
   // Apply the filter
   filterActivityLog();
+}
+
+// Printing Functions
+function printNewUpdates() {
+  const unprintedEntries = getUnprintedEntries();
+  
+  if (unprintedEntries.length === 0) {
+    alert('No new updates to print');
+    return;
+  }
+  
+  const printContent = formatPrintContent(unprintedEntries);
+  
+  // Create a new window/tab for printing
+  const printWindow = window.open('', '_blank', 'width=800,height=600');
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Race Updates - ${new Date().toLocaleString()}</title>
+      <style>
+        body { 
+          font-family: 'Courier New', monospace; 
+          font-size: 12px; 
+          margin: 0;
+          padding: 10px;
+          line-height: 1.3;
+        }
+        .print-header { 
+          text-align: center; 
+          font-weight: bold; 
+          margin-bottom: 10px;
+          border-bottom: 1px solid #000;
+          padding-bottom: 5px;
+        }
+        .print-entry { 
+          margin-bottom: 5px;
+          padding-bottom: 3px;
+          border-bottom: 1px dotted #ccc;
+        }
+        .print-time { 
+          font-weight: bold; 
+        }
+        .print-participant { 
+          font-weight: bold; 
+        }
+        .print-station { 
+          font-weight: bold; 
+        }
+        .print-notes { 
+          font-style: italic; 
+          color: #666;
+          margin-left: 20px;
+        }
+        .print-footer {
+          margin-top: 15px;
+          text-align: center;
+          font-size: 10px;
+          color: #666;
+        }
+        @media print {
+          body { margin: 0; padding: 5px; }
+          .print-header { border-bottom: 2px solid #000; }
+        }
+      </style>
+    </head>
+    <body>
+      ${printContent}
+    </body>
+    </html>
+  `);
+  
+  printWindow.document.close();
+  
+  // Wait for content to load, then print
+  setTimeout(() => {
+    printWindow.print();
+    
+    // Ask if print was successful
+    setTimeout(() => {
+      if (confirm('Did the updates print successfully? Click OK to mark them as printed.')) {
+        markEntriesAsPrinted(unprintedEntries);
+        printWindow.close();
+        
+        // Refresh the activity log display
+        renderActivityLogManagement();
+      } else {
+        printWindow.close();
+      }
+    }, 1000);
+  }, 500);
+}
+
+function getUnprintedEntries() {
+  if (!eventData || !eventData.activityLog) return [];
+  
+  return eventData.activityLog
+    .filter(entry => !entry.printed && (entry.activityType === 'arrival' || entry.activityType === 'other'))
+    .sort((a, b) => new Date(a.userTime || a.timestamp) - new Date(b.userTime || b.timestamp));
+}
+
+function formatPrintContent(entries) {
+  if (!entries || entries.length === 0) return '';
+  
+  const eventName = eventData.event.name || 'Race Event';
+  const now = new Date();
+  const timeString = now.toLocaleString();
+  
+  let content = `
+    <div class="print-header">
+      ${eventName}<br>
+      Race Updates - ${timeString}<br>
+      ${entries.length} new update${entries.length === 1 ? '' : 's'}
+    </div>
+  `;
+  
+  entries.forEach(entry => {
+    const participant = entry.participantId ? 
+      eventData.participants.find(p => p.id === entry.participantId) : null;
+    const station = eventData.aidStations.find(s => s.id === entry.stationId);
+    const time = new Date(entry.userTime || entry.timestamp);
+    
+    const stationName = station ? station.name : entry.stationId;
+    const timeStr = time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    
+    if (entry.activityType === 'arrival' && participant) {
+      // Format arrival entries
+      const participantName = participant.name !== participant.id ? 
+        `${participant.name} (${participant.id})` : participant.name;
+      
+      content += `
+        <div class="print-entry">
+          <span class="print-time">${timeStr}</span> - 
+          <span class="print-participant">${participantName}</span> 
+          arrived at <span class="print-station">${stationName}</span>
+          ${entry.notes ? `<br><span class="print-notes">Notes: ${entry.notes}</span>` : ''}
+        </div>
+      `;
+    } else if (entry.activityType === 'other') {
+      // Format message entries
+      content += `
+        <div class="print-entry">
+          <span class="print-time">${timeStr}</span> - 
+          <span class="print-station">${stationName}</span>: 
+          <span class="print-notes">${entry.notes || 'Station message'}</span>
+        </div>
+      `;
+    }
+  });
+  
+  content += `
+    <div class="print-footer">
+      Printed: ${timeString}
+    </div>
+  `;
+  
+  return content;
+}
+
+function markEntriesAsPrinted(entries) {
+  if (!entries || entries.length === 0) return;
+  
+  entries.forEach(entry => {
+    const logEntry = eventData.activityLog.find(e => e.id === entry.id);
+    if (logEntry) {
+      logEntry.printed = true;
+      logEntry.printedAt = new Date().toISOString();
+    }
+  });
+  
+  // Save the updated data
+  saveData();
+}
+
+// Get count of unprinted entries (for UI display)
+function getUnprintedCount() {
+  return getUnprintedEntries().length;
 } 
