@@ -117,7 +117,7 @@ body {
 .page {
   display: none;
   padding: 1rem;
-  max-width: 1400px;
+  max-width: 95vw;
   margin: 0 auto;
 }
 
@@ -569,8 +569,8 @@ body {
   background: #f8f9fa;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  min-width: 160px;
-  max-width: 200px;
+  min-width: 180px;
+  max-width: 250px;
   flex-shrink: 0;
   transition: all 0.2s ease;
   margin: 0.25rem;
@@ -4063,4 +4063,63 @@ body {
 /* Ensure search overlay is above all other content */
 .search-overlay {
   z-index: 99999;
+}
+
+/* Add at the end of the file */
+
+/* Print Status Styling */
+.print-indicator {
+  font-size: 0.7em;
+  margin-left: 5px;
+  opacity: 0.6;
+  color: #6c757d;
+}
+
+.print-indicator:hover {
+  opacity: 1;
+}
+
+/* Print button styling */
+.btn-secondary:has(.btn-icon:contains('🖨️')) {
+  position: relative;
+}
+
+/* Print dialog styling */
+.print-header {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 10px;
+  border-bottom: 2px solid #000;
+  padding-bottom: 5px;
+}
+
+.print-entry {
+  margin-bottom: 5px;
+  padding-bottom: 3px;
+  border-bottom: 1px dotted #ccc;
+}
+
+.print-time {
+  font-weight: bold;
+}
+
+.print-participant {
+  font-weight: bold;
+}
+
+.print-station {
+  font-weight: bold;
+}
+
+.print-notes {
+  font-style: italic;
+  color: #666;
+  margin-top: 2px;
+}
+
+.print-footer {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 10px;
+  color: #666;
 }
