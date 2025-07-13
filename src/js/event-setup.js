@@ -221,7 +221,7 @@ function addCourse() {
     id: generateId(),
     name: courseName,
     stations: [
-      { stationId: 'start', distance: 0, cumulative: 0 }
+      { stationId: 'start', distance: 0, cumulative: 0, cumulativeDistance: 0 }
     ],
     totalDistance: 0 // Set this to the full race distance (start to finish)
   };
@@ -267,7 +267,8 @@ function addStationToCourse(courseId) {
   course.stations.push({
     stationId: stationId,
     distance: 0,
-    cumulative: 0
+    cumulative: 0,
+    cumulativeDistance: 0
   });
   
   // Recalculate distances
@@ -379,9 +380,11 @@ function recalculateCourseDistances(courseId) {
   course.stations.forEach((station, index) => {
     if (index === 0) {
       station.cumulative = 0;
+      station.cumulativeDistance = 0;
     } else {
       cumulative += parseFloat(station.distance) || 0;
       station.cumulative = roundDistance(cumulative);
+      station.cumulativeDistance = roundDistance(cumulative);
     }
   });
   

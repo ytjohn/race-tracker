@@ -190,8 +190,20 @@ function reloadEventData() {
     if (savedAppData) {
       const newAppData = JSON.parse(savedAppData);
       
-      // Use the display event ID if set, otherwise use current event ID
-      const targetEventId = displayEventId || newAppData.currentEventId;
+      // In display mode, use the locked display event ID to prevent switching
+      // Only use current event if display mode isn't active AND no displayEventId is set
+      let targetEventId;
+      if (displayModeActive && displayEventId) {
+        targetEventId = displayEventId;
+        console.log(`Display mode: Using locked event ${displayEventId}`);
+      } else if (!displayModeActive) {
+        targetEventId = newAppData.currentEventId;
+        console.log(`Display mode: Not active, using current event ${newAppData.currentEventId}`);
+      } else {
+        // Display mode is active but no displayEventId - shouldn't happen, but fallback
+        targetEventId = newAppData.currentEventId;
+        console.log(`Display mode: Active but no locked event, using current ${newAppData.currentEventId}`);
+      }
       
       // Get target event from the multi-event structure
       if (targetEventId && newAppData.events[targetEventId]) {
@@ -235,8 +247,9 @@ function reloadEventData() {
       }
     }
     
-    // Fallback: try the old single event structure
-    console.log('Display mode: Trying fallback to old eventData structure...');
+    // Fallback: try the old single event structure (only if display mode is not active)
+    if (!displayModeActive) {
+      console.log('Display mode: Trying fallback to old eventData structure...');
     const savedEventData = localStorage.getItem('raceTrackerData');
     if (savedEventData) {
       const newEventData = JSON.parse(savedEventData);
@@ -272,6 +285,7 @@ function reloadEventData() {
         return true; // Data was updated
       }
     }
+    } // End of !displayModeActive fallback block
   } catch (error) {
     console.error('Error reloading event data:', error);
   }
@@ -409,6 +423,16 @@ function startDisplayMode() {
   } else if (window.appData && window.appData.currentEventId) {
     displayEventId = window.appData.currentEventId;
     console.log(`Display mode: Locking to current event ${displayEventId}`);
+  } else {
+    // Try to get current event from localStorage as fallback
+    const savedAppData = localStorage.getItem('raceTrackerAppData');
+    if (savedAppData) {
+      const appData = JSON.parse(savedAppData);
+      if (appData.currentEventId) {
+        displayEventId = appData.currentEventId;
+        console.log(`Display mode: Locking to current event from localStorage ${displayEventId}`);
+      }
+    }
   }
   
   // Initialize eventData if not already set
@@ -1136,6 +1160,28 @@ function getDisplayedEventId() {
   return displayEventId;
 }
 
+// Reset display mode to lock to current event (useful when event changes)
+function resetDisplayModeLock() {
+  if (!displayModeActive) return false;
+  
+  console.log('Resetting display mode lock to current event...');
+  
+  // Clear current lock
+  displayEventId = null;
+  
+  // Stop display mode and restart to capture new event
+  stopDisplayMode();
+  setTimeout(() => {
+    // Force pace tracker reinitialization
+    if (window.paceTracker) {
+      window.paceTracker.initialized = false;
+    }
+    startDisplayMode();
+  }, 100);
+  
+  return true;
+}
+
 // Debug function to check display mode state
 function debugDisplayMode() {
   console.log('=== Display Mode Debug Info ===');
@@ -1165,6 +1211,7 @@ window.stopDisplayMode = stopDisplayMode;
 window.toggleFullscreen = toggleFullscreen;
 window.switchDisplayToEvent = switchDisplayToEvent;
 window.getDisplayedEventId = getDisplayedEventId;
+window.resetDisplayModeLock = resetDisplayModeLock;
 window.debugDisplayMode = debugDisplayMode;
 
 // Initialize the display mode module when this script loads
