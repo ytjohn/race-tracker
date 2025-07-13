@@ -10,13 +10,13 @@
 <body>
   <!-- Navigation -->
   <nav class="main-nav">
-    <div class="nav-brand" data-page="race-tracker" style="cursor: pointer;">Race Tracker</div>
+    <a href="?page=race-tracker" class="nav-brand" data-page="race-tracker">Race Tracker</a>
     <div class="nav-links">
-      <button class="nav-btn" data-page="race-tracker" id="tracker-nav">Race Tracker</button>
-      <button class="nav-btn" data-page="display-mode">Display Mode</button>
-      <button class="nav-btn" data-page="activity-log">Activity Log</button>
-      <button class="nav-btn" data-page="race-results">Race Results</button>
-      <button class="nav-btn" data-page="exports">Exports</button>
+      <a href="?page=race-tracker" class="nav-btn" data-page="race-tracker" id="tracker-nav">Race Tracker</a>
+      <a href="?page=display-mode" class="nav-btn" data-page="display-mode">Display Mode</a>
+      <a href="?page=activity-log" class="nav-btn" data-page="activity-log">Activity Log</a>
+      <a href="?page=race-results" class="nav-btn" data-page="race-results">Race Results</a>
+      <a href="?page=exports" class="nav-btn" data-page="exports">Exports</a>
       
       <div class="nav-dropdown">
         <button class="nav-btn dropdown-toggle admin-toggle" id="admin-toggle">
@@ -25,15 +25,15 @@
         <div class="dropdown-menu" id="admin-dropdown">
           <div class="dropdown-section">
             <div class="dropdown-section-title">Event Setup</div>
-            <button class="dropdown-item" data-page="event-setup">Event Details</button>
-            <button class="dropdown-item" data-page="aid-stations-setup">Aid Stations</button>
-            <button class="dropdown-item" data-page="courses-setup">Courses</button>
-            <button class="dropdown-item" data-page="participants-setup">Participants</button>
+            <a href="?page=event-setup" class="dropdown-item" data-page="event-setup">Event Details</a>
+            <a href="?page=aid-stations-setup" class="dropdown-item" data-page="aid-stations-setup">Aid Stations</a>
+            <a href="?page=courses-setup" class="dropdown-item" data-page="courses-setup">Courses</a>
+            <a href="?page=participants-setup" class="dropdown-item" data-page="participants-setup">Participants</a>
           </div>
           <div class="dropdown-divider"></div>
           <div class="dropdown-section">
             <div class="dropdown-section-title">Event Management</div>
-            <button class="dropdown-item" data-page="events-list">All Events</button>
+            <a href="?page=events-list" class="dropdown-item" data-page="events-list">All Events</a>
             <button class="dropdown-item" id="new-event-btn">New Event</button>
             <button class="dropdown-item" id="duplicate-event-btn">Duplicate Event</button>
           </div>

@@ -26,7 +26,7 @@ test.describe('Race Tracker App', () => {
     await page.waitForSelector('.main-nav');
     
     // Check if navigation links are present and clickable
-    const navLinks = page.locator('button[data-page]');
+    const navLinks = page.locator('a[data-page]');
     const count = await navLinks.count();
     
     if (count > 0) {
@@ -116,6 +116,25 @@ test.describe('Race Tracker App', () => {
     
     await page.screenshot({ 
       path: 'screenshots/tablet-view.png',
+      fullPage: true 
+    });
+  });
+
+  test('navigation links support right-click context menu', async ({ page }) => {
+    await page.goto(appUrl);
+    await page.waitForSelector('.main-nav');
+    
+    // Find Display Mode link specifically for testing
+    const displayModeLink = page.locator('a[data-page="display-mode"]');
+    await expect(displayModeLink).toBeVisible();
+    
+    // Verify it's an actual anchor link with href
+    const href = await displayModeLink.getAttribute('href');
+    expect(href).toContain('page=display-mode');
+    
+    // Take screenshot showing the navigation
+    await page.screenshot({ 
+      path: 'screenshots/navigation-links.png',
       fullPage: true 
     });
   });

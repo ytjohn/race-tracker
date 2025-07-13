@@ -230,42 +230,51 @@ function initializeNavigation() {
   
   // Set initial page based on URL or default logic
   currentPage = getInitialPage();
-  // Navigation event listeners for nav buttons
+  // Navigation event listeners for nav buttons (now anchor links)
   document.querySelectorAll('.nav-btn[data-page]').forEach(btn => {
     btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      const page = this.getAttribute('data-page');
-      
-      // Validate prerequisites
-      if (page === 'race-tracker' && (!eventData || !eventData.courses.length || !eventData.participants.length)) {
-        alert('Please complete Event Setup, Aid Stations, Courses, and Participants configuration first.');
-        return;
+      // Only prevent default for left-click - allow middle/right click to work normally
+      if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        const page = this.getAttribute('data-page');
+        
+        // Validate prerequisites
+        if (page === 'race-tracker' && (!eventData || !eventData.courses.length || !eventData.participants.length)) {
+          alert('Please complete Event Setup, Aid Stations, Courses, and Participants configuration first.');
+          return;
+        }
+        
+        showPage(page);
       }
-      
-      showPage(page);
     });
   });
   
-  // Navigation event listeners for dropdown items
+  // Navigation event listeners for dropdown items (now anchor links)
   document.querySelectorAll('.dropdown-item[data-page]').forEach(btn => {
     btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      const page = this.getAttribute('data-page');
-      
-      // Close dropdown
-      document.getElementById('admin-dropdown').classList.remove('show');
-      
-      showPage(page);
+      // Only prevent default for left-click - allow middle/right click to work normally
+      if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        const page = this.getAttribute('data-page');
+        
+        // Close dropdown
+        document.getElementById('admin-dropdown').classList.remove('show');
+        
+        showPage(page);
+      }
     });
   });
   
-  // Navigation event listener for nav-brand
+  // Navigation event listener for nav-brand (now anchor link)
   const navBrand = document.querySelector('.nav-brand[data-page]');
   if (navBrand) {
     navBrand.addEventListener('click', function(e) {
-      e.preventDefault();
-      const page = this.getAttribute('data-page');
-      showPage(page);
+      // Only prevent default for left-click - allow middle/right click to work normally
+      if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        const page = this.getAttribute('data-page');
+        showPage(page);
+      }
     });
   }
   
