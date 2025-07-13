@@ -48,25 +48,19 @@ function renderRaceResults() {
   
   // Render the results
   const html = `
-    <div class="race-results-header" id="race-results-top">
+    <div class="race-results-header compact" id="race-results-top">
       <div class="results-actions">
-        <button class="btn btn-secondary" onclick="printRaceResults()">
+        <button class="btn btn-secondary btn-small" onclick="printRaceResults()">
           <span class="btn-icon">🖨️</span>
-          Print Results
-        </button>
-        <button class="btn btn-secondary" onclick="exportResultsCSV()">
-          <span class="btn-icon">📊</span>
-          Export CSV
+          Print
         </button>
       </div>
-    </div>
-    
-    <div class="course-navigation">
-      <h3>Jump to Course:</h3>
-      <div class="nav-links">
+      
+      <div class="course-navigation">
+        <span class="nav-label">Courses:</span>
         ${courseResults.map(result => `
           <a href="#course-${result.course.id}" class="course-nav-link">
-            ${result.course.name} (${result.participants.length} participants)
+            ${result.course.name} (${result.participants.length})
           </a>
         `).join('')}
       </div>
@@ -183,7 +177,12 @@ function renderCourseResultsTable(result) {
   return `
     <div class="course-results-section" id="course-${course.id}">
       <div class="course-header">
-        <h2 class="course-results-title">${course.name} - ${eventData.event.name || 'Race'}</h2>
+        <h2 class="course-results-title">
+          ${course.name} - ${eventData.event.name || 'Race'}
+          <button class="export-icon-btn" onclick="exportSingleCourseResults('${course.id}')" title="Export ${course.name} CSV">
+            <span class="btn-icon">📊</span>
+          </button>
+        </h2>
         <a href="#race-results-top" class="back-to-top">↑ Back to Top</a>
       </div>
       <div class="course-results-meta">
@@ -365,97 +364,97 @@ function printRaceResults() {
   }, 1000);
 }
 
-// Export results as CSV
-function exportResultsCSV() {
-  // Generate separate CSV for each course
-  eventData.courses.forEach(course => {
-    const courseParticipants = getCourseParticipants(course);
-    const participantResults = courseParticipants.map(participant => {
-      return generateParticipantResult(participant, course);
-    });
+// Export single course results
+function exportSingleCourseResults(courseId) {
+  const course = eventData.courses.find(c => c.id === courseId);
+  if (!course) return;
+  
+  const courseParticipants = getCourseParticipants(course);
+  const participantResults = courseParticipants.map(participant => {
+    return generateParticipantResult(participant, course);
+  });
+  
+  participantResults.sort((a, b) => {
+    const aId = a.participant.id.toString();
+    const bId = b.participant.id.toString();
+    return aId.localeCompare(bId, undefined, { numeric: true });
+  });
+  
+  // Get stations (excluding start) for header
+  const stations = course.stations
+    .filter(courseStation => courseStation.stationId !== 'start')
+    .map(courseStation => {
+      const station = eventData.aidStations.find(aid => aid.id === courseStation.stationId);
+      return {
+        ...station,
+        courseStation: courseStation
+      };
+    })
+    .filter(station => station.id);
+  
+  // Build CSV header
+  const csvHeader = [
+    'Participant ID',
+    'Participant Name', 
+    'Start Time'
+  ];
+  
+  // Add two columns per station (arrival time and pace)
+  stations.forEach(station => {
+    csvHeader.push(`${station.name} Arrival Time`);
+    csvHeader.push(`${station.name} Pace (mph)`);
+  });
+  
+  csvHeader.push('Issues');
+  
+  // Build CSV data rows
+  const csvRows = [csvHeader];
+  
+  participantResults.forEach(result => {
+    const { participant, startTime, stationResults, hasIssues } = result;
     
-    participantResults.sort((a, b) => {
-      const aId = a.participant.id.toString();
-      const bId = b.participant.id.toString();
-      return aId.localeCompare(bId, undefined, { numeric: true });
-    });
-    
-    // Get stations (excluding start) for header
-    const stations = course.stations
-      .filter(courseStation => courseStation.stationId !== 'start')
-      .map(courseStation => {
-        const station = eventData.aidStations.find(aid => aid.id === courseStation.stationId);
-        return {
-          ...station,
-          courseStation: courseStation
-        };
-      })
-      .filter(station => station.id);
-    
-    // Build CSV header
-    const csvHeader = [
-      'Participant ID',
-      'Participant Name', 
-      'Start Time'
+    const row = [
+      participant.id,
+      participant.name || '',
+      startTime ? formatTime(startTime) : 'No Start'
     ];
     
-    // Add two columns per station (arrival time and pace)
+    // Add data for each station
     stations.forEach(station => {
-      csvHeader.push(`${station.name} Arrival Time`);
-      csvHeader.push(`${station.name} Pace (mph)`);
+      const stationResult = stationResults.find(r => r.station.id === station.id);
+      if (stationResult && stationResult.arrivalTime) {
+        row.push(formatTime(stationResult.arrivalTime));
+        row.push(stationResult.overallPace.toFixed(1));
+      } else {
+        row.push('--'); // No arrival time
+        row.push('--'); // No pace
+      }
     });
     
-    csvHeader.push('Issues');
+    // Add issues column
+    row.push(hasIssues ? 'YES' : 'NO');
     
-    // Build CSV data rows
-    const csvRows = [csvHeader];
-    
-    participantResults.forEach(result => {
-      const { participant, startTime, stationResults, hasIssues } = result;
-      
-      const row = [
-        participant.id,
-        participant.name || '',
-        startTime ? formatTime(startTime) : 'No Start'
-      ];
-      
-      // Add data for each station
-      stations.forEach(station => {
-        const stationResult = stationResults.find(r => r.station.id === station.id);
-        if (stationResult && stationResult.arrivalTime) {
-          row.push(formatTime(stationResult.arrivalTime));
-          row.push(stationResult.overallPace.toFixed(1));
-        } else {
-          row.push('--'); // No arrival time
-          row.push('--'); // No pace
-        }
-      });
-      
-      // Add issues column
-      row.push(hasIssues ? 'YES' : 'NO');
-      
-      csvRows.push(row);
-    });
-    
-    // Convert to CSV format
-    const csvContent = csvRows.map(row => {
-      return row.map(cell => {
-        const cellStr = cell.toString();
-        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
-          return '"' + cellStr.replace(/"/g, '""') + '"';
-        }
-        return cellStr;
-      }).join(',');
-    }).join('\n');
-    
-    // Download the CSV for this course
-    const eventName = eventData.event.name || 'Event';
-    const timestamp = new Date().toISOString().split('T')[0];
-    const courseName = course.name.replace(/[^a-zA-Z0-9]/g, '_');
-    const filename = `${eventName.replace(/[^a-zA-Z0-9]/g, '_')}_${courseName}_Results_${timestamp}.csv`;
-    
-    downloadFile(csvContent, filename, 'text/csv');
+    csvRows.push(row);
   });
+  
+  // Convert to CSV format
+  const csvContent = csvRows.map(row => {
+    return row.map(cell => {
+      const cellStr = cell.toString();
+      if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+        return '"' + cellStr.replace(/"/g, '""') + '"';
+      }
+      return cellStr;
+    }).join(',');
+  }).join('\n');
+  
+  // Download the CSV for this course
+  const eventName = eventData.event.name || 'Event';
+  const timestamp = new Date().toISOString().split('T')[0];
+  const courseName = course.name.replace(/[^a-zA-Z0-9]/g, '_');
+  const filename = `${eventName.replace(/[^a-zA-Z0-9]/g, '_')}_${courseName}_Results_${timestamp}.csv`;
+  
+  downloadFile(csvContent, filename, 'text/csv');
 }
 
 // Download file utility (reused from activity-log.js)
@@ -469,4 +468,7 @@ function downloadFile(content, filename, mimeType) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-} 
+}
+
+// Make functions globally accessible
+window.exportSingleCourseResults = exportSingleCourseResults; 

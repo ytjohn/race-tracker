@@ -1858,13 +1858,15 @@ body {
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  overflow: hidden;
+  overflow-x: auto;
   border: 1px solid #e1e8ed;
 }
 
 .activity-log-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
+  min-width: 1200px;
 }
 
 .activity-log-table th {
@@ -2024,6 +2026,9 @@ body {
 .actions-cell {
   white-space: nowrap;
   padding: 0.5rem 0.25rem;
+  width: 120px;
+  min-width: 120px;
+  max-width: 120px;
 }
 
 .action-buttons,
@@ -2031,6 +2036,16 @@ body {
   display: flex;
   gap: 0.25rem;
   flex-wrap: wrap;
+}
+
+.time-cell {
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
+}
+
+.time-edit {
+  min-width: 120px !important;
 }
 
 .edit-actions {
@@ -2193,6 +2208,158 @@ body {
   .activity-log-table td {
     padding: 0.5rem;
     font-size: 0.9rem;
+  }
+}
+
+/* Export Page Styles */
+.exports-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.export-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  border: 1px solid #e1e8ed;
+}
+
+.export-section-header {
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #f1f3f4;
+  padding-bottom: 1rem;
+}
+
+.export-section-header h3 {
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+}
+
+.export-section-header p {
+  color: #6c757d;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.export-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.export-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.export-option:hover {
+  border-color: #007bff;
+  background: #f0f8ff;
+}
+
+.export-option-content {
+  flex: 1;
+}
+
+.export-option-title {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+}
+
+.export-option-description {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.admin-toggle .hamburger {
+  font-size: 1.2rem;
+  margin-right: 0.5rem;
+}
+
+/* Race Results Compact Header */
+.race-results-header.compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e1e8ed;
+  margin-bottom: 1.5rem;
+}
+
+.race-results-header.compact .course-navigation {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.race-results-header.compact .nav-label {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-right: 0.5rem;
+}
+
+.race-results-header.compact .course-nav-link {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 0.375rem 0.75rem;
+  text-decoration: none;
+  color: #495057;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.race-results-header.compact .course-nav-link:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+  color: #212529;
+}
+
+/* Export Icon Button */
+.export-icon-btn {
+  background: #17a2b8;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  margin-left: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.export-icon-btn:hover {
+  background: #138496;
+  transform: scale(1.1);
+}
+
+.export-icon-btn .btn-icon {
+  color: white;
+  font-size: 0.875rem;
+}
+
+.course-results-title {
+  display: flex;
+  align-items: center;
+}
+
+/* Print styles - hide export buttons */
+@media print {
+  .export-icon-btn,
+  .results-actions {
+    display: none !important;
   }
 }
 

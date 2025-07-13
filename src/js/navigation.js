@@ -62,6 +62,13 @@ function showPage(pageId, updateUrl = true) {
     }
   }
   
+  // Special handling for exports page
+  if (pageId === 'exports') {
+    if (window.renderExportsPage) {
+      renderExportsPage();
+    }
+  }
+  
   // Special handling for participants setup page
   if (pageId === 'participants-setup') {
     if (window.renderParticipantsSetup) {
@@ -128,9 +135,9 @@ function updateNavigation() {
     
     // If it's a dropdown item, also highlight the dropdown toggle
     if (currentBtn.classList.contains('dropdown-item')) {
-      const settingsToggle = document.getElementById('settings-toggle');
-      if (settingsToggle) {
-        settingsToggle.classList.add('active');
+      const adminToggle = document.getElementById('admin-toggle');
+      if (adminToggle) {
+        adminToggle.classList.add('active');
       }
     }
   }
@@ -246,7 +253,7 @@ function initializeNavigation() {
       const page = this.getAttribute('data-page');
       
       // Close dropdown
-      document.getElementById('settings-dropdown').classList.remove('show');
+      document.getElementById('admin-dropdown').classList.remove('show');
       
       showPage(page);
     });
@@ -262,12 +269,12 @@ function initializeNavigation() {
     });
   }
   
-  // Settings dropdown toggle
-  const settingsToggle = document.getElementById('settings-toggle');
-  if (settingsToggle) {
-    settingsToggle.addEventListener('click', function(e) {
+  // Admin dropdown toggle
+  const adminToggle = document.getElementById('admin-toggle');
+  if (adminToggle) {
+    adminToggle.addEventListener('click', function(e) {
       e.preventDefault();
-      const dropdown = document.getElementById('settings-dropdown');
+      const dropdown = document.getElementById('admin-dropdown');
       if (dropdown) {
         dropdown.classList.toggle('show');
       }
@@ -276,8 +283,8 @@ function initializeNavigation() {
   
   // Close dropdown when clicking outside
   document.addEventListener('click', function(e) {
-    if (!e.target.matches('#settings-toggle') && !e.target.closest('#settings-dropdown')) {
-      const dropdown = document.getElementById('settings-dropdown');
+    if (!e.target.matches('#admin-toggle') && !e.target.closest('#admin-dropdown')) {
+      const dropdown = document.getElementById('admin-dropdown');
       if (dropdown) {
         dropdown.classList.remove('show');
       }
@@ -292,21 +299,21 @@ function initializeNavigation() {
   
   if (newEventBtn) {
     newEventBtn.addEventListener('click', function() {
-      document.getElementById('settings-dropdown').classList.remove('show');
+      document.getElementById('admin-dropdown').classList.remove('show');
       createNewEvent();
     });
   }
   
   if (exportEventBtn) {
     exportEventBtn.addEventListener('click', function() {
-      document.getElementById('settings-dropdown').classList.remove('show');
+      document.getElementById('admin-dropdown').classList.remove('show');
       exportEvent();
     });
   }
   
   if (importEventBtn) {
     importEventBtn.addEventListener('click', function() {
-      document.getElementById('settings-dropdown').classList.remove('show');
+      document.getElementById('admin-dropdown').classList.remove('show');
       if (importFile) {
         importFile.click();
       }

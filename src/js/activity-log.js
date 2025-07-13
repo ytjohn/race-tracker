@@ -227,8 +227,14 @@ function renderActivityLogRows(logEntries) {
               ''}
           </div>
           <div class="time-edit hidden">
-            <input type="time" value="${time.toTimeString().slice(0,5)}" 
-                   onchange="updateEntryTime('${entry.id}', this.value)">
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 120px;">
+              <input type="time" value="${time.toTimeString().slice(0,5)}" 
+                     onchange="updateEntryDateTime('${entry.id}', this.value, null)" 
+                     style="width: 100%; font-size: 12px;">
+              <input type="date" value="${time.toISOString().split('T')[0]}" 
+                     onchange="updateEntryDateTime('${entry.id}', null, this.value)"
+                     style="width: 100%; font-size: 12px;">
+            </div>
           </div>
         </td>
         <td class="participant-cell">
@@ -507,8 +513,12 @@ function cancelEntryEdit(entryId) {
   if (entry) {
     const time = new Date(entry.userTime || entry.timestamp);
     const timeInput = row.querySelector('.time-edit input[type="time"]');
+    const dateInput = row.querySelector('.time-edit input[type="date"]');
     if (timeInput) {
       timeInput.value = time.toTimeString().slice(0, 5);
+    }
+    if (dateInput) {
+      dateInput.value = time.toISOString().split('T')[0];
     }
     
     const participantSelect = row.querySelector('.participant-edit select');
@@ -635,18 +645,32 @@ function saveEntryChanges(entryId) {
   cancelEntryEdit(entryId);
 }
 
-// Update entry time
-function updateEntryTime(entryId, newTime) {
+// Update entry date/time (enhanced to handle both date and time changes)
+function updateEntryDateTime(entryId, newTime, newDate) {
   const entry = eventData.activityLog.find(e => e.id === entryId);
   if (!entry) return;
   
-  const currentDate = new Date(entry.userTime || entry.timestamp);
-  const [hours, minutes] = newTime.split(':');
+  const currentDateTime = new Date(entry.userTime || entry.timestamp);
+  let updatedDateTime = new Date(currentDateTime);
   
-  const newDate = new Date(currentDate);
-  newDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  // Update time if provided
+  if (newTime) {
+    const [hours, minutes] = newTime.split(':');
+    updatedDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  }
   
-  entry.userTime = newDate.toISOString();
+  // Update date if provided
+  if (newDate) {
+    const targetDate = new Date(newDate);
+    updatedDateTime.setFullYear(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+  }
+  
+  entry.userTime = updatedDateTime.toISOString();
+}
+
+// Legacy function for backward compatibility
+function updateEntryTime(entryId, newTime) {
+  updateEntryDateTime(entryId, newTime, null);
 }
 
 // Update entry participant
@@ -1127,12 +1151,15 @@ function showBulkEditModal() {
         <div class="modal-body">
           <div class="bulk-edit-form">
             <div class="form-section">
-              <h4>Update Time</h4>
+              <h4>Update Date/Time</h4>
               <label>
                 <input type="checkbox" id="bulk-update-time"> 
-                Change time for all selected entries
+                Change date/time for all selected entries
               </label>
-              <input type="time" id="bulk-time-value" disabled>
+              <div style="display: flex; gap: 8px; margin-top: 4px;">
+                <input type="time" id="bulk-time-value" disabled placeholder="Time">
+                <input type="date" id="bulk-date-value" disabled placeholder="Date">
+              </div>
             </div>
             
             <div class="form-section">
@@ -1196,17 +1223,34 @@ function showBulkEditModal() {
   document.body.insertAdjacentHTML('beforeend', modalHtml);
   
   // Setup checkbox handlers to enable/disable inputs
-  ['time', 'activity', 'station', 'prior-station', 'notes'].forEach(field => {
+  ['activity', 'station', 'prior-station', 'notes'].forEach(field => {
     const checkbox = document.getElementById(`bulk-update-${field}`);
     const input = document.getElementById(`bulk-${field}-value`);
     
-    checkbox.addEventListener('change', function() {
-      input.disabled = !this.checked;
+    if (checkbox && input) {
+      checkbox.addEventListener('change', function() {
+        input.disabled = !this.checked;
+        if (this.checked) {
+          input.focus();
+        }
+      });
+    }
+  });
+  
+  // Special handling for time checkbox (controls both time and date inputs)
+  const timeCheckbox = document.getElementById('bulk-update-time');
+  const timeInput = document.getElementById('bulk-time-value');
+  const dateInput = document.getElementById('bulk-date-value');
+  
+  if (timeCheckbox && timeInput && dateInput) {
+    timeCheckbox.addEventListener('change', function() {
+      timeInput.disabled = !this.checked;
+      dateInput.disabled = !this.checked;
       if (this.checked) {
-        input.focus();
+        timeInput.focus();
       }
     });
-  });
+  }
 }
 
 function closeBulkEditModal() {
@@ -1223,12 +1267,19 @@ function applyBulkEdit() {
   // Collect updates
   if (document.getElementById('bulk-update-time').checked) {
     const timeValue = document.getElementById('bulk-time-value').value;
-    if (timeValue) {
-      const today = new Date();
-      const [hours, minutes] = timeValue.split(':');
-      const newDate = new Date(today);
-      newDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-      updates.userTime = newDate.toISOString();
+    const dateValue = document.getElementById('bulk-date-value').value;
+    
+    if (timeValue || dateValue) {
+      // Use current date/time as base if not specified
+      const baseDate = dateValue ? new Date(dateValue) : new Date();
+      const targetDate = new Date(baseDate);
+      
+      if (timeValue) {
+        const [hours, minutes] = timeValue.split(':');
+        targetDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      }
+      
+      updates.userTime = targetDate.toISOString();
     }
   }
   
@@ -1281,6 +1332,10 @@ function createStandaloneAddActivityModal() {
               <div class="form-col">
                 <label for="add-time">Time</label>
                 <input type="time" id="add-time" value="${getCurrentTimeString()}">
+              </div>
+              <div class="form-col">
+                <label for="add-date">Date</label>
+                <input type="date" id="add-date" value="${getCurrentDateString()}">
               </div>
               <div class="form-col">
                 <label for="add-station">Station</label>
@@ -1355,6 +1410,7 @@ function closeAddActivityModal() {
 
 function submitAddActivity() {
   const time = document.getElementById('add-time').value;
+  const date = document.getElementById('add-date').value;
   const stationId = document.getElementById('add-station').value;
   const participantId = document.getElementById('add-participant').value;
   const activityType = document.getElementById('add-activity-type').value;
@@ -1366,11 +1422,14 @@ function submitAddActivity() {
     return;
   }
   
+  // Parse the date/time using enhanced functionality
+  const parsedDateTime = time ? parseDateTimeInputs(time, date) : new Date();
+  
   // Create activity log entry
   const entry = {
     id: generateId(),
     timestamp: new Date().toISOString(),
-    userTime: time ? parseTimeToISO(time) : new Date().toISOString(),
+    userTime: parsedDateTime.toISOString(),
     participantId: participantId || null,
     activityType: activityType,
     stationId: stationId,
@@ -1386,18 +1445,6 @@ function submitAddActivity() {
   renderActivityLogManagement();
 }
 
-function getCurrentTimeString() {
-  const now = new Date();
-  return now.toTimeString().slice(0, 5);
-}
-
-function parseTimeToISO(timeString) {
-  const today = new Date();
-  const [hours, minutes] = timeString.split(':');
-  const date = new Date(today);
-  date.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-  return date.toISOString();
-}
 
 // Make functions globally accessible
 window.openAddActivityModal = openAddActivityModal;
@@ -1423,6 +1470,7 @@ window.filterActivityLog = filterActivityLog;
 window.toggleSelectAll = toggleSelectAll;
 window.updateBulkActions = updateBulkActions;
 window.updateEntryTime = updateEntryTime;
+window.updateEntryDateTime = updateEntryDateTime;
 window.updateEntryParticipant = updateEntryParticipant;
 window.updateEntryActivityType = updateEntryActivityType;
 window.updateEntryStation = updateEntryStation;

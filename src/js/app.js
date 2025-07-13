@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   initializeParticipants();
   initializeActivityLog();
   initializeRaceResults();
+  initializeExports();
   initializeEventManagement();
   initializeSearch();
   

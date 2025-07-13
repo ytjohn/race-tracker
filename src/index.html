@@ -16,13 +16,16 @@
       <button class="nav-btn" data-page="display-mode">Display Mode</button>
       <button class="nav-btn" data-page="activity-log">Activity Log</button>
       <button class="nav-btn" data-page="race-results">Race Results</button>
+      <button class="nav-btn" data-page="exports">Exports</button>
       
       <div class="nav-dropdown">
-        <button class="nav-btn dropdown-toggle" id="settings-toggle">Setup ▼</button>
-        <div class="dropdown-menu" id="settings-dropdown">
+        <button class="nav-btn dropdown-toggle admin-toggle" id="admin-toggle">
+          <span class="hamburger">☰</span> Admin
+        </button>
+        <div class="dropdown-menu" id="admin-dropdown">
           <div class="dropdown-section">
-            <div class="dropdown-section-title">Current Event Setup</div>
-            <button class="dropdown-item" data-page="event-setup">Event Setup</button>
+            <div class="dropdown-section-title">Event Setup</div>
+            <button class="dropdown-item" data-page="event-setup">Event Details</button>
             <button class="dropdown-item" data-page="aid-stations-setup">Aid Stations</button>
             <button class="dropdown-item" data-page="courses-setup">Courses</button>
             <button class="dropdown-item" data-page="participants-setup">Participants</button>
@@ -36,9 +39,9 @@
           </div>
           <div class="dropdown-divider"></div>
           <div class="dropdown-section">
-            <div class="dropdown-section-title">Import/Export</div>
-            <button class="dropdown-item" id="export-event-btn">Export Event</button>
+            <div class="dropdown-section-title">Data Management</div>
             <button class="dropdown-item" id="import-event-btn">Import Event</button>
+            <button class="dropdown-item" id="export-event-btn">Export Event</button>
             <input type="file" id="import-file" accept=".json" style="display: none;">
           </div>
         </div>
@@ -244,6 +247,18 @@
     </div>
   </div>
 
+  <!-- Exports Page -->
+  <div id="exports" class="page">
+    <div class="page-header">
+      <h1>Data Exports</h1>
+      <p>Export race data in various formats for analysis, sharing, and archival</p>
+    </div>
+    
+    <div id="exports-container">
+      <!-- Export options will be rendered here -->
+    </div>
+  </div>
+
   <!-- Race Tracker Page -->
   <div id="race-tracker" class="page">
     <!-- Kanban Board -->
@@ -359,6 +374,7 @@
   <script src="js/race-tracker.js"></script>
   <script src="js/activity-log.js"></script>
   <script src="js/race-results.js"></script>
+  <script src="js/exports.js"></script>
   <script src="js/display-mode.js"></script>
   <script src="js/event-management.js"></script>
   <script src="js/app.js"></script>

@@ -1,17 +1,18 @@
 // Utility Functions
 
-// Parse time input in various formats
-function parseTimeInput(timeStr) {
+// Parse time input in various formats, with optional date parameter
+function parseTimeInput(timeStr, dateStr = null) {
   if (!timeStr || timeStr.trim() === '') {
     return new Date();
   }
   
-  const now = new Date();
+  // Use provided date or current date as base
+  const baseDate = dateStr ? new Date(dateStr) : new Date();
   const input = timeStr.trim().toLowerCase();
   
   // Handle "now" or current time
   if (input === 'now' || input === '') {
-    return now;
+    return new Date(); // Always return actual current time for "now"
   }
   
   // Handle formats like "2PM", "2:30PM", "14:30", "1430", "10:05", "1005"
@@ -26,7 +27,7 @@ function parseTimeInput(timeStr) {
     if (period === 'pm' && hours !== 12) hours += 12;
     if (period === 'am' && hours === 12) hours = 0;
     
-    const result = new Date(now);
+    const result = new Date(baseDate);
     result.setHours(hours, minutes, 0, 0);
     return result;
   }
@@ -37,7 +38,7 @@ function parseTimeInput(timeStr) {
     const minutes = parseInt(match[2]);
     
     if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-      const result = new Date(now);
+      const result = new Date(baseDate);
       result.setHours(hours, minutes, 0, 0);
       return result;
     }
@@ -57,7 +58,7 @@ function parseTimeInput(timeStr) {
     }
     
     if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-      const result = new Date(now);
+      const result = new Date(baseDate);
       result.setHours(hours, minutes, 0, 0);
       return result;
     }
@@ -67,14 +68,46 @@ function parseTimeInput(timeStr) {
   if ((match = input.match(/^(\d{1,2})$/))) {
     const hours = parseInt(match[1]);
     if (hours >= 0 && hours <= 23) {
-      const result = new Date(now);
+      const result = new Date(baseDate);
       result.setHours(hours, 0, 0, 0);
       return result;
     }
   }
   
   // If nothing matches, return current time
-  return now;
+  return new Date();
+}
+
+// Get current date in YYYY-MM-DD format for date inputs
+function getCurrentDateString() {
+  const now = new Date();
+  return now.toISOString().split('T')[0];
+}
+
+// Get current time in HH:MM format for time inputs
+function getCurrentTimeString() {
+  const now = new Date();
+  return now.toTimeString().slice(0, 5);
+}
+
+// Parse combined date and time inputs into a single Date object
+function parseDateTimeInputs(timeStr, dateStr = null) {
+  const targetDate = dateStr || getCurrentDateString();
+  return parseTimeInput(timeStr, targetDate);
+}
+
+// Format date for display in date inputs
+function formatDateForInput(date) {
+  if (!date) return getCurrentDateString();
+  const d = new Date(date);
+  return d.toISOString().split('T')[0];
+}
+
+// Format time for display in time inputs  
+function formatTimeForInput(date) {
+  if (!date) return getCurrentTimeString();
+  const d = new Date(date);
+  return d.toTimeString().slice(0, 5);
 }
 
 // Format time for display

@@ -555,16 +555,28 @@ function openBatchModal(stationId) {
   batchEntries = [];
   isPreviewMode = false;
   
+  // Store current time as placeholder when modal opens
+  const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  
   // Add initial entry
   addBatchRow();
   
-  // Set default station for new entries
+  // Set default station for new entries and current time placeholder
   batchEntries[0].stationId = stationId;
+  batchEntries[0].currentTimePlaceholder = currentTime;
   
   console.log('Removing hidden class from modal');
   modal.classList.remove('hidden');
   console.log('Modal classes after removing hidden:', modal.className);
   renderBatchEntries();
+  
+  // Focus on participant input after modal is rendered
+  setTimeout(() => {
+    const participantInput = document.querySelector('.participant-input');
+    if (participantInput) {
+      participantInput.focus();
+    }
+  }, 150);
 }
 
 // Make function globally accessible
@@ -647,6 +659,9 @@ window.bulkDepartureFromStart = bulkDepartureFromStart;
 
 // Add a new batch entry row
 function addBatchRow() {
+  // Store current time for this new entry
+  const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  
   const newEntry = {
     id: generateId(),
     stationId: batchEntries.length > 0 ? batchEntries[batchEntries.length - 1].stationId : 'start',
@@ -654,18 +669,22 @@ function addBatchRow() {
     action: 'Arrived',
     participants: [],
     time: '',
+    date: getCurrentDateString(), // Default to current date
+    currentTimePlaceholder: currentTime, // Store current time as placeholder
     notes: ''
   };
   
   batchEntries.push(newEntry);
   renderBatchEntries();
   
-  // Focus on the new entry
+  // Focus on the participant input for new entries
   setTimeout(() => {
     const newRow = document.querySelector(`[data-entry-id="${newEntry.id}"]`);
     if (newRow) {
-      const firstInput = newRow.querySelector('input, select, textarea');
-      if (firstInput) firstInput.focus();
+      const participantInput = newRow.querySelector('.participant-input');
+      if (participantInput) {
+        participantInput.focus();
+      }
     }
   }, 100);
 }
@@ -729,12 +748,22 @@ function renderBatchEntries() {
               </select>
             </div>
           ` : ''}
-          
+        </div>
+        
+        <div class="form-row">
           <div class="form-col">
             <label>Time (optional)</label>
-            <input type="text" placeholder="e.g., 10:30, 1430, 2PM" 
+            <input type="text" placeholder="${entry.currentTimePlaceholder || 'e.g., 10:30, 1430, 2PM'}" 
                    value="${entry.time}"
                    onchange="updateBatchEntry('${entry.id}', 'time', this.value)">
+          </div>
+          <div class="form-col">
+            <label>
+              Date 
+              <small style="color: #666; font-weight: normal;">(for overnight races)</small>
+            </label>
+            <input type="date" value="${entry.date || getCurrentDateString()}"
+                   onchange="updateBatchEntry('${entry.id}', 'date', this.value)">
           </div>
         </div>
         
@@ -784,7 +813,7 @@ function renderBatchPreview() {
   
   const html = batchEntries.map((entry, index) => {
     const station = eventData.aidStations.find(s => s.id === entry.stationId);
-    const parsedTime = parseTimeInput(entry.time);
+    const parsedTime = parseDateTimeInputs(entry.time, entry.date);
     
     return `
       <div class="preview-entry">
@@ -1041,7 +1070,7 @@ function submitBatchEntry() {
   let processedCount = 0;
   
   batchEntries.forEach(entry => {
-    const parsedTime = parseTimeInput(entry.time);
+    const parsedTime = parseDateTimeInputs(entry.time, entry.date);
     const station = eventData.aidStations.find(s => s.id === entry.stationId);
     
     if (entry.updateType === 'Race Update' && entry.participants.length > 0) {
@@ -1118,6 +1147,7 @@ function submitBatchEntry() {
   
   alert(`Processed ${processedCount} updates successfully!`);
 }
+
 
 // Close batch modal
 function closeBatchModal() {
