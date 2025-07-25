@@ -140,6 +140,12 @@ function renderActivityLogManagement() {
             <option value="valid-only">Valid Entries Only</option>
           </select>
           
+          <select id="filter-print-status" onchange="filterActivityLog()" class="filter-select">
+            <option value="">All Print Status</option>
+            <option value="printed">Printed Only</option>
+            <option value="unprinted">Unprinted Only</option>
+          </select>
+          
           <button class="btn btn-small btn-outline" onclick="clearFilters()">
             <span class="btn-icon">🔄</span>
             Clear Filters
@@ -154,6 +160,14 @@ function renderActivityLogManagement() {
             <button class="btn btn-small btn-secondary" onclick="showBulkEditModal()">
               <span class="btn-icon">✏️</span>
               Edit Selected
+            </button>
+            <button class="btn btn-small btn-secondary" onclick="markSelectedAsPrinted()">
+              <span class="btn-icon">🖨️</span>
+              Mark as Printed
+            </button>
+            <button class="btn btn-small btn-outline" onclick="markSelectedAsUnprinted()">
+              <span class="btn-icon">📄</span>
+              Mark as Unprinted
             </button>
             <button class="btn btn-small btn-danger" onclick="deleteBulkSelected()">
               <span class="btn-icon">🗑️</span>
@@ -181,6 +195,7 @@ function renderActivityLogManagement() {
             <th class="duration-column">Duration</th>
             <th class="notes-column">Notes</th>
             <th class="course-analysis-column">Analysis</th>
+            <th class="print-status-column">Print</th>
             <th class="actions-column">Actions</th>
           </tr>
         </thead>
@@ -222,9 +237,6 @@ function renderActivityLogRows(logEntries) {
         <td class="time-cell">
           <div class="time-display">
             ${formatTime(time)}
-            ${entry.printed && (entry.activityType === 'arrival' || entry.activityType === 'other') ? 
-              `<span class="print-indicator" title="Printed on ${new Date(entry.printedAt).toLocaleString()}">🖨️</span>` : 
-              ''}
           </div>
           <div class="time-edit hidden">
             <div style="display: flex; flex-direction: column; gap: 2px; min-width: 120px;">
@@ -326,6 +338,17 @@ function renderActivityLogRows(logEntries) {
             ${courseAnalysis ? renderCourseAnalysisIcon(courseAnalysis, participant) : '—'}
           </div>
         </td>
+        <td class="print-status-cell">
+          <div class="print-status-display">
+            ${(entry.activityType === 'arrival' || entry.activityType === 'other') ? 
+              `<button class="print-status-icon ${entry.printed ? 'printed' : 'unprinted'}" 
+                       onclick="togglePrintStatus('${entry.id}')"
+                       title="${entry.printed ? `Printed on ${new Date(entry.printedAt).toLocaleString()}` : 'Not printed'}">
+                 ${entry.printed ? '🖨️' : '📄'}
+               </button>` : 
+              '—'}
+          </div>
+        </td>
         <td class="actions-cell">
           <div class="action-buttons">
             <button class="btn btn-small edit-btn" onclick="toggleEditEntry('${entry.id}')">Edit</button>
@@ -382,6 +405,7 @@ function filterActivityLog() {
   const courseFilter = document.getElementById('filter-course')?.value;
   const activityFilter = document.getElementById('filter-activity-type')?.value;
   const courseIssuesFilter = document.getElementById('filter-course-issues')?.value;
+  const printStatusFilter = document.getElementById('filter-print-status')?.value;
   
   let filteredLog = [...eventData.activityLog];
   
@@ -428,6 +452,23 @@ function filterActivityLog() {
     });
   }
   
+  // Print status filter
+  if (printStatusFilter) {
+    filteredLog = filteredLog.filter(entry => {
+      // Only apply to arrival and other entries (which can be printed)
+      if (entry.activityType !== 'arrival' && entry.activityType !== 'other') {
+        return printStatusFilter !== 'printed' && printStatusFilter !== 'unprinted';
+      }
+      
+      if (printStatusFilter === 'printed') {
+        return entry.printed === true;
+      } else if (printStatusFilter === 'unprinted') {
+        return !entry.printed;
+      }
+      return true;
+    });
+  }
+  
   // Sort filtered results
   filteredLog.sort((a, b) => 
     new Date(b.userTime || b.timestamp) - new Date(a.userTime || a.timestamp)
@@ -452,10 +493,12 @@ function clearFilters() {
   const courseFilter = document.getElementById('filter-course');
   const activityFilter = document.getElementById('filter-activity-type');
   const courseIssuesFilter = document.getElementById('filter-course-issues');
+  const printStatusFilter = document.getElementById('filter-print-status');
   if (stationFilter) stationFilter.value = '';
   if (courseFilter) courseFilter.value = '';
   if (activityFilter) activityFilter.value = '';
   if (courseIssuesFilter) courseIssuesFilter.value = '';
+  if (printStatusFilter) printStatusFilter.value = '';
   
   filterActivityLog();
 }
@@ -1481,6 +1524,9 @@ window.showExportModal = showExportModal;
 window.closeExportModal = closeExportModal;
 window.downloadSingleCourseCSV = downloadSingleCourseCSV;
 window.exportEventJSON = exportEventJSON;
+window.togglePrintStatus = togglePrintStatus;
+window.markSelectedAsPrinted = markSelectedAsPrinted;
+window.markSelectedAsUnprinted = markSelectedAsUnprinted;
 
 // Participant filter functions
 function toggleParticipantFilter() {
@@ -1744,6 +1790,104 @@ function filterByParticipant(participantId) {
   filterActivityLog();
 }
 
+// Print Status Management Functions
+function togglePrintStatus(entryId) {
+  const entry = eventData.activityLog.find(e => e.id === entryId);
+  if (!entry) return;
+  
+  if (entry.printed) {
+    entry.printed = false;
+    entry.printedAt = null;
+  } else {
+    entry.printed = true;
+    entry.printedAt = new Date().toISOString();
+  }
+  
+  saveData();
+  
+  // Update just the print status button for this entry
+  const row = document.querySelector(`[data-entry-id="${entryId}"]`);
+  if (row) {
+    const printStatusDisplay = row.querySelector('.print-status-display');
+    if (printStatusDisplay && (entry.activityType === 'arrival' || entry.activityType === 'other')) {
+      printStatusDisplay.innerHTML = `
+        <button class="print-status-icon ${entry.printed ? 'printed' : 'unprinted'}" 
+                onclick="togglePrintStatus('${entry.id}')"
+                title="${entry.printed ? `Printed on ${new Date(entry.printedAt).toLocaleString()}` : 'Not printed'}">
+          ${entry.printed ? '🖨️' : '📄'}
+        </button>
+      `;
+    }
+  }
+  
+  // Update the print button count in the header
+  updatePrintButtonCount();
+}
+
+function markSelectedAsPrinted() {
+  const selectedIds = getSelectedEntryIds();
+  if (selectedIds.length === 0) return;
+  
+  let markedCount = 0;
+  eventData.activityLog.forEach(entry => {
+    if (selectedIds.includes(entry.id) && (entry.activityType === 'arrival' || entry.activityType === 'other')) {
+      entry.printed = true;
+      entry.printedAt = new Date().toISOString();
+      markedCount++;
+    }
+  });
+  
+  if (markedCount > 0) {
+    saveData();
+    renderActivityLogManagement();
+    
+    // Clear selections after bulk action
+    setTimeout(() => {
+      const selectAllCheckbox = document.getElementById('select-all-checkbox');
+      if (selectAllCheckbox) selectAllCheckbox.checked = false;
+      updateBulkActions();
+    }, 100);
+  }
+}
+
+function markSelectedAsUnprinted() {
+  const selectedIds = getSelectedEntryIds();
+  if (selectedIds.length === 0) return;
+  
+  let markedCount = 0;
+  eventData.activityLog.forEach(entry => {
+    if (selectedIds.includes(entry.id) && (entry.activityType === 'arrival' || entry.activityType === 'other')) {
+      entry.printed = false;
+      entry.printedAt = null;
+      markedCount++;
+    }
+  });
+  
+  if (markedCount > 0) {
+    saveData();
+    renderActivityLogManagement();
+    
+    // Clear selections after bulk action
+    setTimeout(() => {
+      const selectAllCheckbox = document.getElementById('select-all-checkbox');
+      if (selectAllCheckbox) selectAllCheckbox.checked = false;
+      updateBulkActions();
+    }, 100);
+  }
+}
+
+function updatePrintButtonCount() {
+  const printButton = document.querySelector('button[onclick="printNewUpdates()"]');
+  if (printButton) {
+    const unprintedCount = getUnprintedCount();
+    // Update the text content while preserving the icon
+    const icon = printButton.querySelector('.btn-icon');
+    if (icon) {
+      printButton.innerHTML = `${icon.outerHTML} Print Updates ${unprintedCount > 0 ? `(${unprintedCount})` : ''}`;
+    }
+  }
+}
+
 // Printing Functions
 function printNewUpdates() {
   const unprintedEntries = getUnprintedEntries();
@@ -1820,18 +1964,17 @@ function printNewUpdates() {
   setTimeout(() => {
     printWindow.print();
     
-    // Ask if print was successful
+    // Automatically mark as printed after a short delay
     setTimeout(() => {
-      if (confirm('Did the updates print successfully? Click OK to mark them as printed.')) {
-        markEntriesAsPrinted(unprintedEntries);
-        printWindow.close();
-        
-        // Refresh the activity log display
-        renderActivityLogManagement();
-      } else {
-        printWindow.close();
-      }
-    }, 1000);
+      markEntriesAsPrinted(unprintedEntries);
+      printWindow.close();
+      
+      // Refresh the activity log display
+      renderActivityLogManagement();
+      
+      // Update the print button count
+      updatePrintButtonCount();
+    }, 2000);
   }, 500);
 }
 
